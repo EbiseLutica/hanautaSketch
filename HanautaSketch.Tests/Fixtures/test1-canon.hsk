@@ -1,0 +1,508 @@
+{
+  "version": 1,
+  "song": {
+    "ppq": 480,
+    "bpm": 120,
+    "beatsPerBar": 4,
+    "key": {
+      "tonic": 2,
+      "mode": "major"
+    },
+    "tracks": [
+      {
+        "type": "note",
+        "name": "Melody",
+        "program": 0,
+        "volume": 100,
+        "notes": [
+          {
+            "tick": 0,
+            "length": 120,
+            "pitch": 69,
+            "velocity": 100
+          },
+          {
+            "tick": 240,
+            "length": 120,
+            "pitch": 66,
+            "velocity": 100
+          },
+          {
+            "tick": 360,
+            "length": 120,
+            "pitch": 67,
+            "velocity": 100
+          },
+          {
+            "tick": 480,
+            "length": 120,
+            "pitch": 69,
+            "velocity": 100
+          },
+          {
+            "tick": 720,
+            "length": 120,
+            "pitch": 66,
+            "velocity": 100
+          },
+          {
+            "tick": 840,
+            "length": 120,
+            "pitch": 67,
+            "velocity": 100
+          },
+          {
+            "tick": 960,
+            "length": 120,
+            "pitch": 69,
+            "velocity": 100
+          },
+          {
+            "tick": 1080,
+            "length": 120,
+            "pitch": 57,
+            "velocity": 100
+          },
+          {
+            "tick": 1200,
+            "length": 120,
+            "pitch": 59,
+            "velocity": 100
+          },
+          {
+            "tick": 1320,
+            "length": 120,
+            "pitch": 61,
+            "velocity": 100
+          },
+          {
+            "tick": 1440,
+            "length": 120,
+            "pitch": 62,
+            "velocity": 100
+          },
+          {
+            "tick": 1560,
+            "length": 120,
+            "pitch": 64,
+            "velocity": 100
+          },
+          {
+            "tick": 1680,
+            "length": 120,
+            "pitch": 66,
+            "velocity": 100
+          },
+          {
+            "tick": 1800,
+            "length": 120,
+            "pitch": 67,
+            "velocity": 100
+          },
+          {
+            "tick": 1920,
+            "length": 120,
+            "pitch": 66,
+            "velocity": 100
+          },
+          {
+            "tick": 2160,
+            "length": 120,
+            "pitch": 62,
+            "velocity": 100
+          },
+          {
+            "tick": 2280,
+            "length": 120,
+            "pitch": 64,
+            "velocity": 100
+          },
+          {
+            "tick": 2400,
+            "length": 120,
+            "pitch": 66,
+            "velocity": 100
+          },
+          {
+            "tick": 2640,
+            "length": 120,
+            "pitch": 54,
+            "velocity": 100
+          },
+          {
+            "tick": 2760,
+            "length": 120,
+            "pitch": 55,
+            "velocity": 100
+          },
+          {
+            "tick": 2880,
+            "length": 120,
+            "pitch": 57,
+            "velocity": 100
+          },
+          {
+            "tick": 3000,
+            "length": 120,
+            "pitch": 59,
+            "velocity": 100
+          },
+          {
+            "tick": 3120,
+            "length": 120,
+            "pitch": 57,
+            "velocity": 100
+          },
+          {
+            "tick": 3240,
+            "length": 120,
+            "pitch": 55,
+            "velocity": 100
+          },
+          {
+            "tick": 3360,
+            "length": 120,
+            "pitch": 57,
+            "velocity": 100
+          },
+          {
+            "tick": 3480,
+            "length": 120,
+            "pitch": 54,
+            "velocity": 100
+          },
+          {
+            "tick": 3600,
+            "length": 120,
+            "pitch": 55,
+            "velocity": 100
+          },
+          {
+            "tick": 3720,
+            "length": 120,
+            "pitch": 57,
+            "velocity": 100
+          },
+          {
+            "tick": 3840,
+            "length": 120,
+            "pitch": 55,
+            "velocity": 100
+          },
+          {
+            "tick": 4080,
+            "length": 120,
+            "pitch": 59,
+            "velocity": 100
+          },
+          {
+            "tick": 4200,
+            "length": 120,
+            "pitch": 57,
+            "velocity": 100
+          },
+          {
+            "tick": 4320,
+            "length": 120,
+            "pitch": 55,
+            "velocity": 100
+          },
+          {
+            "tick": 4560,
+            "length": 120,
+            "pitch": 54,
+            "velocity": 100
+          },
+          {
+            "tick": 4680,
+            "length": 120,
+            "pitch": 52,
+            "velocity": 100
+          },
+          {
+            "tick": 4800,
+            "length": 120,
+            "pitch": 54,
+            "velocity": 100
+          },
+          {
+            "tick": 4920,
+            "length": 120,
+            "pitch": 52,
+            "velocity": 100
+          },
+          {
+            "tick": 5040,
+            "length": 120,
+            "pitch": 50,
+            "velocity": 100
+          },
+          {
+            "tick": 5160,
+            "length": 120,
+            "pitch": 52,
+            "velocity": 100
+          },
+          {
+            "tick": 5280,
+            "length": 120,
+            "pitch": 54,
+            "velocity": 100
+          },
+          {
+            "tick": 5400,
+            "length": 120,
+            "pitch": 55,
+            "velocity": 100
+          },
+          {
+            "tick": 5520,
+            "length": 120,
+            "pitch": 57,
+            "velocity": 100
+          },
+          {
+            "tick": 5640,
+            "length": 120,
+            "pitch": 59,
+            "velocity": 100
+          },
+          {
+            "tick": 5760,
+            "length": 120,
+            "pitch": 55,
+            "velocity": 100
+          },
+          {
+            "tick": 6000,
+            "length": 120,
+            "pitch": 59,
+            "velocity": 100
+          },
+          {
+            "tick": 6120,
+            "length": 120,
+            "pitch": 57,
+            "velocity": 100
+          },
+          {
+            "tick": 6240,
+            "length": 120,
+            "pitch": 59,
+            "velocity": 100
+          },
+          {
+            "tick": 6480,
+            "length": 120,
+            "pitch": 61,
+            "velocity": 100
+          },
+          {
+            "tick": 6600,
+            "length": 120,
+            "pitch": 62,
+            "velocity": 100
+          },
+          {
+            "tick": 6720,
+            "length": 120,
+            "pitch": 57,
+            "velocity": 100
+          },
+          {
+            "tick": 6840,
+            "length": 120,
+            "pitch": 59,
+            "velocity": 100
+          },
+          {
+            "tick": 6960,
+            "length": 120,
+            "pitch": 61,
+            "velocity": 100
+          },
+          {
+            "tick": 7080,
+            "length": 120,
+            "pitch": 62,
+            "velocity": 100
+          },
+          {
+            "tick": 7200,
+            "length": 120,
+            "pitch": 64,
+            "velocity": 100
+          },
+          {
+            "tick": 7320,
+            "length": 120,
+            "pitch": 66,
+            "velocity": 100
+          },
+          {
+            "tick": 7440,
+            "length": 120,
+            "pitch": 67,
+            "velocity": 100
+          },
+          {
+            "tick": 7560,
+            "length": 120,
+            "pitch": 69,
+            "velocity": 100
+          }
+        ]
+      },
+      {
+        "type": "note",
+        "name": "Bass",
+        "program": 33,
+        "volume": 100,
+        "notes": [
+          {
+            "tick": 0,
+            "length": 240,
+            "pitch": 38,
+            "velocity": 100
+          },
+          {
+            "tick": 360,
+            "length": 240,
+            "pitch": 38,
+            "velocity": 100
+          },
+          {
+            "tick": 720,
+            "length": 240,
+            "pitch": 38,
+            "velocity": 100
+          },
+          {
+            "tick": 960,
+            "length": 240,
+            "pitch": 33,
+            "velocity": 100
+          },
+          {
+            "tick": 1320,
+            "length": 240,
+            "pitch": 33,
+            "velocity": 100
+          },
+          {
+            "tick": 1680,
+            "length": 240,
+            "pitch": 33,
+            "velocity": 100
+          },
+          {
+            "tick": 1920,
+            "length": 240,
+            "pitch": 35,
+            "velocity": 100
+          },
+          {
+            "tick": 2280,
+            "length": 240,
+            "pitch": 35,
+            "velocity": 100
+          },
+          {
+            "tick": 2640,
+            "length": 240,
+            "pitch": 35,
+            "velocity": 100
+          },
+          {
+            "tick": 2880,
+            "length": 240,
+            "pitch": 42,
+            "velocity": 100
+          },
+          {
+            "tick": 3240,
+            "length": 240,
+            "pitch": 42,
+            "velocity": 100
+          },
+          {
+            "tick": 3600,
+            "length": 240,
+            "pitch": 42,
+            "velocity": 100
+          },
+          {
+            "tick": 3840,
+            "length": 240,
+            "pitch": 43,
+            "velocity": 100
+          },
+          {
+            "tick": 4200,
+            "length": 240,
+            "pitch": 43,
+            "velocity": 100
+          },
+          {
+            "tick": 4560,
+            "length": 240,
+            "pitch": 43,
+            "velocity": 100
+          },
+          {
+            "tick": 4800,
+            "length": 240,
+            "pitch": 38,
+            "velocity": 100
+          },
+          {
+            "tick": 5160,
+            "length": 240,
+            "pitch": 38,
+            "velocity": 100
+          },
+          {
+            "tick": 5520,
+            "length": 240,
+            "pitch": 38,
+            "velocity": 100
+          },
+          {
+            "tick": 5760,
+            "length": 240,
+            "pitch": 43,
+            "velocity": 100
+          },
+          {
+            "tick": 6120,
+            "length": 240,
+            "pitch": 43,
+            "velocity": 100
+          },
+          {
+            "tick": 6480,
+            "length": 240,
+            "pitch": 43,
+            "velocity": 100
+          },
+          {
+            "tick": 6720,
+            "length": 480,
+            "pitch": 45,
+            "velocity": 100
+          },
+          {
+            "tick": 7200,
+            "length": 480,
+            "pitch": 33,
+            "velocity": 100
+          }
+        ]
+      }
+    ]
+  },
+  "smartChord": {
+    "minorDominant": "minor",
+    "useMelody": true
+  }
+}

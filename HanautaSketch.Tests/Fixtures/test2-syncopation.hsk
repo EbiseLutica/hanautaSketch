@@ -1,0 +1,195 @@
+{
+  "version": 1,
+  "song": {
+    "ppq": 480,
+    "bpm": 128,
+    "beatsPerBar": 4,
+    "key": {
+      "tonic": 0,
+      "mode": "minor"
+    },
+    "tracks": [
+      {
+        "type": "note",
+        "name": "Melody",
+        "program": 0,
+        "volume": 100,
+        "notes": []
+      },
+      {
+        "type": "note",
+        "name": "Bass",
+        "program": 33,
+        "volume": 100,
+        "notes": [
+          {
+            "tick": 0,
+            "length": 240,
+            "pitch": 32,
+            "velocity": 100
+          },
+          {
+            "tick": 240,
+            "length": 240,
+            "pitch": 44,
+            "velocity": 100
+          },
+          {
+            "tick": 480,
+            "length": 240,
+            "pitch": 32,
+            "velocity": 100
+          },
+          {
+            "tick": 720,
+            "length": 240,
+            "pitch": 44,
+            "velocity": 100
+          },
+          {
+            "tick": 960,
+            "length": 240,
+            "pitch": 34,
+            "velocity": 100
+          },
+          {
+            "tick": 1200,
+            "length": 240,
+            "pitch": 46,
+            "velocity": 100
+          },
+          {
+            "tick": 1440,
+            "length": 240,
+            "pitch": 34,
+            "velocity": 100
+          },
+          {
+            "tick": 1680,
+            "length": 240,
+            "pitch": 46,
+            "velocity": 100
+          },
+          {
+            "tick": 1920,
+            "length": 240,
+            "pitch": 36,
+            "velocity": 100
+          },
+          {
+            "tick": 2280,
+            "length": 240,
+            "pitch": 38,
+            "velocity": 100
+          },
+          {
+            "tick": 2640,
+            "length": 480,
+            "pitch": 39,
+            "velocity": 100
+          },
+          {
+            "tick": 3120,
+            "length": 240,
+            "pitch": 46,
+            "velocity": 100
+          },
+          {
+            "tick": 3360,
+            "length": 240,
+            "pitch": 39,
+            "velocity": 100
+          },
+          {
+            "tick": 3600,
+            "length": 240,
+            "pitch": 46,
+            "velocity": 100
+          },
+          {
+            "tick": 3840,
+            "length": 240,
+            "pitch": 41,
+            "velocity": 100
+          },
+          {
+            "tick": 4080,
+            "length": 240,
+            "pitch": 53,
+            "velocity": 100
+          },
+          {
+            "tick": 4320,
+            "length": 240,
+            "pitch": 41,
+            "velocity": 100
+          },
+          {
+            "tick": 4560,
+            "length": 240,
+            "pitch": 53,
+            "velocity": 100
+          },
+          {
+            "tick": 4800,
+            "length": 240,
+            "pitch": 34,
+            "velocity": 100
+          },
+          {
+            "tick": 5040,
+            "length": 240,
+            "pitch": 46,
+            "velocity": 100
+          },
+          {
+            "tick": 5280,
+            "length": 240,
+            "pitch": 34,
+            "velocity": 100
+          },
+          {
+            "tick": 5520,
+            "length": 240,
+            "pitch": 46,
+            "velocity": 100
+          },
+          {
+            "tick": 5760,
+            "length": 240,
+            "pitch": 36,
+            "velocity": 100
+          },
+          {
+            "tick": 6120,
+            "length": 240,
+            "pitch": 34,
+            "velocity": 100
+          },
+          {
+            "tick": 6480,
+            "length": 480,
+            "pitch": 36,
+            "velocity": 100
+          },
+          {
+            "tick": 6960,
+            "length": 240,
+            "pitch": 48,
+            "velocity": 100
+          },
+          {
+            "tick": 7200,
+            "length": 480,
+            "pitch": 36,
+            "velocity": 100
+          }
+        ]
+      }
+    ]
+  },
+  "smartChord": {
+    "minorDominant": "minor",
+    "useMelody": true
+  }
+}

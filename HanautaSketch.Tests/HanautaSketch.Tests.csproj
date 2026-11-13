@@ -22,4 +22,8 @@
     <ProjectReference Include="..\HanautaSketch.Engine\HanautaSketch.Engine.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="Fixtures\**\*.hsk" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
