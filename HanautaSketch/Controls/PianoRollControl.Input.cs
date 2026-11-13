@@ -34,6 +34,12 @@ public sealed partial class PianoRollControl
     private Point _selectStart;
     private Point _selectCurrent;
     private HashSet<int> _selectionBeforeBox = [];
+
+    /// <summary>
+    /// 現在の選択が、配置や未選択ノートの移動のために一時的に付けたものか。そうなら操作の終了時に解除する。
+    /// 矩形選択・Shift+クリック・Ctrl+A・貼り付けなど、意図して選んだ選択は残す。
+    /// </summary>
+    private bool _temporarySelection;
     private Point _panStart;
     private Vector _panStartOffset;
 
@@ -161,7 +167,9 @@ public sealed partial class PianoRollControl
                 return;
             }
 
-            if (!_selection.Contains(hit))
+            // 未選択のノートを掴んだときの選択は、操作のための一時的なもの（離したら解除）
+            _temporarySelection = !_selection.Contains(hit);
+            if (_temporarySelection)
             {
                 _selection.Clear();
                 _selection.Add(hit);
@@ -182,6 +190,7 @@ public sealed partial class PianoRollControl
         var index = EditTrack.Notes.Count - 1;
         _selection.Clear();
         _selection.Add(index);
+        _temporarySelection = true;
         RaiseNotesEdited();
 
         BeginNoteDrag(index, NewNoteDrag == NewNoteDragBehavior.Resize ? DragMode.Resize : DragMode.Move, pos);
@@ -242,6 +251,10 @@ public sealed partial class PianoRollControl
             UpdateScrollExtents();
         }
 
+        if (_dragMode is DragMode.Move or DragMode.Resize && _temporarySelection)
+            _selection.Clear();
+        _temporarySelection = false;
+
         StopPreview();
         _dragMode = DragMode.None;
         _dragAnchor = -1;
@@ -255,6 +268,10 @@ public sealed partial class PianoRollControl
         base.OnPointerCaptureLost(e);
         if (_dragMode is DragMode.Move or DragMode.Resize or DragMode.Velocity)
             EditCompleted?.Invoke(this, EventArgs.Empty);
+
+        if (_dragMode is DragMode.Move or DragMode.Resize && _temporarySelection)
+            _selection.Clear();
+        _temporarySelection = false;
 
         StopPreview();
         _dragMode = DragMode.None;
