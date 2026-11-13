@@ -25,6 +25,10 @@ public sealed class PianoRollPalette
     public required IPen BarLine { get; init; }
     public required IPen RowLine { get; init; }
     public required IPen KeySeparator { get; init; }
+    public required IBrush ChordLane { get; init; }
+    public required IBrush ChordBlock { get; init; }
+    public required IBrush ChordOverride { get; init; }
+    public required IPen ChordBorder { get; init; }
 
     public static PianoRollPalette Light { get; } = new()
     {
@@ -44,6 +48,10 @@ public sealed class PianoRollPalette
         BarLine = Pen("#8C919C"),
         RowLine = Pen("#DCDEE3"),
         KeySeparator = Pen("#C0C2C8"),
+        ChordLane = Brush("#E6E8EC"),
+        ChordBlock = Brush("#FFFFFF"),
+        ChordOverride = Brush("#FFE9B8"),
+        ChordBorder = Pen("#B5B9C2"),
     };
 
     public static PianoRollPalette Dark { get; } = new()
@@ -64,6 +72,10 @@ public sealed class PianoRollPalette
         BarLine = Pen("#4A4D59"),
         RowLine = Pen("#202126"),
         KeySeparator = Pen("#9A9AA2"),
+        ChordLane = Brush("#222328"),
+        ChordBlock = Brush("#30323A"),
+        ChordOverride = Brush("#5A4A22"),
+        ChordBorder = Pen("#4A4D59"),
     };
 
     public static PianoRollPalette For(ThemeVariant variant) => variant == ThemeVariant.Dark ? Dark : Light;

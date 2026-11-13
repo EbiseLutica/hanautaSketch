@@ -5,6 +5,7 @@ using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
 using HanautaSketch.Engine.Core;
+using HanautaSketch.Engine.Smart.Chords;
 using Key = HanautaSketch.Engine.Core.Key;
 
 namespace HanautaSketch.Controls;
@@ -30,8 +31,13 @@ public sealed class PianoRollControl : Control
     public static readonly StyledProperty<NewNoteDragBehavior> NewNoteDragProperty =
         AvaloniaProperty.Register<PianoRollControl, NewNoteDragBehavior>(nameof(NewNoteDrag));
 
+    public static readonly StyledProperty<IReadOnlyList<ChordSegment>?> ChordsProperty =
+        AvaloniaProperty.Register<PianoRollControl, IReadOnlyList<ChordSegment>?>(nameof(Chords));
+
     private const double KeyboardWidth = 56;
     private const double RulerHeight = 22;
+    private const double ChordLaneHeight = 22;
+    private const double HeaderHeight = RulerHeight + ChordLaneHeight;
     private const double NoteHeight = 12;
     private const double ResizeHandleWidth = 6;
     private const int PitchCount = 128;
@@ -58,7 +64,7 @@ public sealed class PianoRollControl : Control
 
     static PianoRollControl()
     {
-        AffectsRender<PianoRollControl>(SongProperty, TrackProperty, KeyProperty, SnapTicksProperty);
+        AffectsRender<PianoRollControl>(SongProperty, TrackProperty, KeyProperty, SnapTicksProperty, ChordsProperty);
         FocusableProperty.OverrideDefaultValue<PianoRollControl>(true);
         ClipToBoundsProperty.OverrideDefaultValue<PianoRollControl>(true);
     }
@@ -69,6 +75,16 @@ public sealed class PianoRollControl : Control
         get => GetValue(NewNoteDragProperty);
         set => SetValue(NewNoteDragProperty, value);
     }
+
+    /// <summary>コードレーンに表示する判別結果</summary>
+    public IReadOnlyList<ChordSegment>? Chords
+    {
+        get => GetValue(ChordsProperty);
+        set => SetValue(ChordsProperty, value);
+    }
+
+    /// <summary>ノーツが編集されたときに発生する</summary>
+    public event EventHandler? NotesEdited;
 
     public PianoRollControl()
     {
@@ -105,8 +121,8 @@ public sealed class PianoRollControl : Control
 
     private double PixelsPerTick => _pixelsPerBeat / Ppq;
 
-    private Rect EditArea => new(KeyboardWidth, RulerHeight,
-        Math.Max(0, Bounds.Width - KeyboardWidth), Math.Max(0, Bounds.Height - RulerHeight));
+    private Rect EditArea => new(KeyboardWidth, HeaderHeight,
+        Math.Max(0, Bounds.Width - KeyboardWidth), Math.Max(0, Bounds.Height - HeaderHeight));
 
     #region 座標変換
 
@@ -114,9 +130,9 @@ public sealed class PianoRollControl : Control
 
     private double XToTick(double x) => (x - KeyboardWidth + _scrollX) / PixelsPerTick;
 
-    private double PitchToY(int pitch) => RulerHeight + (PitchCount - 1 - pitch) * NoteHeight - _scrollY;
+    private double PitchToY(int pitch) => HeaderHeight + (PitchCount - 1 - pitch) * NoteHeight - _scrollY;
 
-    private int YToPitch(double y) => PitchCount - 1 - (int)Math.Floor((y - RulerHeight + _scrollY) / NoteHeight);
+    private int YToPitch(double y) => PitchCount - 1 - (int)Math.Floor((y - HeaderHeight + _scrollY) / NoteHeight);
 
     private Rect NoteRect(Note note) =>
         new(TickToX(note.Tick), PitchToY(note.Pitch), Math.Max(2, note.Length * PixelsPerTick), NoteHeight);
@@ -144,7 +160,7 @@ public sealed class PianoRollControl : Control
             RenderNotes(context);
         }
 
-        using (context.PushClip(new Rect(0, RulerHeight, KeyboardWidth, area.Height)))
+        using (context.PushClip(new Rect(0, HeaderHeight, KeyboardWidth, area.Height)))
         {
             RenderKeyboard(context);
         }
@@ -154,7 +170,12 @@ public sealed class PianoRollControl : Control
             RenderRuler(context, area);
         }
 
-        context.FillRectangle(_palette.Ruler, new Rect(0, 0, KeyboardWidth, RulerHeight));
+        using (context.PushClip(new Rect(KeyboardWidth, RulerHeight, area.Width, ChordLaneHeight)))
+        {
+            RenderChordLane(context, area);
+        }
+
+        context.FillRectangle(_palette.Ruler, new Rect(0, 0, KeyboardWidth, HeaderHeight));
     }
 
     /// <summary>
@@ -259,6 +280,39 @@ public sealed class PianoRollControl : Control
         }
     }
 
+    /// <summary>
+    /// 判別されたコードを区間ごとに表示する。同じコードが続く区間はまとめて1つにする。
+    /// </summary>
+    private void RenderChordLane(DrawingContext context, Rect area)
+    {
+        context.FillRectangle(_palette.ChordLane, new Rect(KeyboardWidth, RulerHeight, area.Width, ChordLaneHeight));
+        if (Chords is not { Count: > 0 } chords) return;
+
+        var i = 0;
+        while (i < chords.Count)
+        {
+            var head = chords[i];
+            var end = head.End;
+            var j = i + 1;
+            while (j < chords.Count && chords[j].Chord == head.Chord && chords[j].IsOverride == head.IsOverride)
+                end = chords[j++].End;
+
+            var rect = new Rect(TickToX(head.Start), RulerHeight + 2, (end - head.Start) * PixelsPerTick, ChordLaneHeight - 4)
+                .Deflate(new Thickness(1, 0));
+            if (rect.Right >= area.X && rect.X <= area.Right)
+            {
+                context.DrawRectangle(head.IsOverride ? _palette.ChordOverride : _palette.ChordBlock,
+                    _palette.ChordBorder, rect, 3, 3);
+                using (context.PushClip(rect))
+                {
+                    DrawText(context, head.Chord.ToString(), new Point(rect.X + 4, rect.Y + 1), _palette.Text, 12);
+                }
+            }
+
+            i = j;
+        }
+    }
+
     private (int Top, int Bottom) VisiblePitchRange(Rect area)
     {
         var top = Math.Clamp(YToPitch(area.Y), 0, PitchCount - 1);
@@ -297,6 +351,7 @@ public sealed class PianoRollControl : Control
             if (hit >= 0)
             {
                 Track.Notes.RemoveAt(hit);
+                NotesEdited?.Invoke(this, EventArgs.Empty);
                 InvalidateVisual();
             }
             e.Handled = true;
@@ -318,6 +373,7 @@ public sealed class PianoRollControl : Control
             var pitch = Math.Clamp(YToPitch(pos.Y), 0, PitchCount - 1);
             var tick = SnapFloor(Math.Max(0, XToTick(pos.X)));
             Track.Notes.Add(new Note(tick, _lastNoteLength, pitch, 100));
+            NotesEdited?.Invoke(this, EventArgs.Empty);
             _dragIndex = Track.Notes.Count - 1;
             _dragMode = NewNoteDrag == NewNoteDragBehavior.Resize ? DragMode.Resize : DragMode.Move;
             _dragTickOffset = XToTick(pos.X) - tick;
@@ -363,6 +419,7 @@ public sealed class PianoRollControl : Control
         if (note != Track.Notes[_dragIndex])
         {
             Track.Notes[_dragIndex] = note;
+            NotesEdited?.Invoke(this, EventArgs.Empty);
             InvalidateVisual();
         }
     }
