@@ -1,0 +1,5 @@
+<Solution>
+    <Project Path="HanautaSketch.Engine/HanautaSketch.Engine.csproj" />
+    <Project Path="HanautaSketch/HanautaSketch.csproj" />
+    <Project Path="HanautaSketch.Tests/HanautaSketch.Tests.csproj" />
+</Solution>

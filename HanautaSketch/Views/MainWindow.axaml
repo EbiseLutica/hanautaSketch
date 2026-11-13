@@ -1,0 +1,35 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:HanautaSketch.ViewModels"
+        xmlns:c="using:HanautaSketch.Controls"
+        xmlns:core="using:HanautaSketch.Engine.Core"
+        x:Class="HanautaSketch.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="hanautaSketch"
+        Width="1280" Height="800">
+    <DockPanel>
+        <!-- ツールバー -->
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="8">
+            <TextBlock Text="Key" VerticalAlignment="Center" />
+            <ComboBox ItemsSource="{Binding TonicNames}" SelectedIndex="{Binding Tonic}" Width="80" />
+            <ComboBox ItemsSource="{Binding Modes}" SelectedItem="{Binding Mode}" Width="100" />
+            <TextBlock Text="Snap" VerticalAlignment="Center" Margin="16,0,0,0" />
+            <ComboBox ItemsSource="{Binding SnapOptions}" SelectedItem="{Binding SelectedSnap}" Width="90" />
+        </StackPanel>
+
+        <!-- トラックメニュー -->
+        <ListBox DockPanel.Dock="Left" Width="160"
+                 ItemsSource="{Binding Tracks}" SelectedItem="{Binding SelectedTrack}">
+            <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="core:NoteTrack">
+                    <TextBlock Text="{Binding Name}" />
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <c:PianoRollControl Song="{Binding Song}"
+                            Track="{Binding SelectedTrack}"
+                            Key="{Binding Key}"
+                            SnapTicks="{Binding SelectedSnap.Ticks}" />
+    </DockPanel>
+</Window>
