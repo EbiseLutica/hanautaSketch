@@ -87,7 +87,8 @@
             </StackPanel>
 
             <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="6" Margin="8,4">
-                <Button Content="＋ スマートコード" Command="{Binding AddSmartChordTrackCommand}" />
+                <Button Content="＋ ノート" Command="{Binding AddNoteTrackCommand}" />
+                <Button Content="＋ コード" Command="{Binding AddSmartChordTrackCommand}" ToolTip.Tip="スマートコードトラックを追加" />
                 <Button Content="削除" Command="{Binding RemoveSelectedTrackCommand}" />
             </StackPanel>
 

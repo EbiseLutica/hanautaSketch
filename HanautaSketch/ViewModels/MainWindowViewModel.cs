@@ -161,6 +161,16 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
+    /// 空のノートトラックを追加する。
+    /// </summary>
+    [RelayCommand]
+    private void AddNoteTrack()
+    {
+        var track = new NoteTrack { Name = UniqueTrackName("Track") };
+        AddTrack(track);
+    }
+
+    /// <summary>
     /// スマートコードトラックを追加する。ソースは「Bass」という名前のトラック（なければ最後のノートトラック）。
     /// </summary>
     [RelayCommand]
@@ -171,36 +181,67 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
                    ?? noteTracks.LastOrDefault();
         var melody = noteTracks.FirstOrDefault(t => t != bass);
 
-        var track = new SmartChordTrack
-        {
-            Name = $"Chord {Tracks.OfType<SmartChordTrack>().Count() + 1}",
-            BassSource = bass,
-            MelodySource = melody,
-        };
-        Song.Tracks.Add(track);
-        Tracks.Add(track);
-        track.Regenerate(Song);
-        SelectedTrack = track;
-        MarkDirty();
+        AddTrack(new SmartChordTrack { Name = UniqueTrackName("Chord"), BassSource = bass, MelodySource = melody });
     }
 
     /// <summary>
-    /// 選択中のスマートトラックを削除する。ノートトラックは他のスマートトラックのソースになり得るので、今は削除できない。
+    /// 選択中のトラックの直後にトラックを追加して選択する。Undo できる。
+    /// </summary>
+    private void AddTrack(Track track)
+    {
+        OnEditStarted();
+        var index = SelectedTrack is { } selected ? Tracks.IndexOf(selected) + 1 : Tracks.Count;
+        Song.Tracks.Insert(index, track);
+        Tracks.Insert(index, track);
+        OnEditCompleted();
+
+        SelectedTrack = track;
+        MarkDirty();
+        RegenerateSmartTracks();
+    }
+
+    /// <summary>
+    /// 選択中のトラックを削除する。ノートトラックなら、それをソースにしているスマートトラックの参照を外す。Undo できる。
     /// </summary>
     [RelayCommand(CanExecute = nameof(CanRemoveSelectedTrack))]
     private void RemoveSelectedTrack()
     {
-        if (SelectedTrack is not SmartChordTrack track) return;
+        if (SelectedTrack is not { } track) return;
+
+        OnEditStarted();
+        if (track is NoteTrack noteTrack)
+        {
+            foreach (var smart in Tracks.OfType<SmartChordTrack>())
+            {
+                if (smart.BassSource == noteTrack) smart.BassSource = null;
+                if (smart.MelodySource == noteTrack) smart.MelodySource = null;
+            }
+        }
 
         var index = Tracks.IndexOf(track);
         Song.Tracks.Remove(track);
         Tracks.Remove(track);
+        OnEditCompleted();
+
         SelectedTrack = Tracks.Count > 0 ? Tracks[Math.Clamp(index - 1, 0, Tracks.Count - 1)] : null;
+        Message = $"{track.Name} を削除した（Ctrl+Z で元に戻せる）";
         MarkDirty();
-        RefreshChordLane();
+        RegenerateSmartTracks();
     }
 
-    private bool CanRemoveSelectedTrack() => SelectedTrack is SmartChordTrack;
+    private bool CanRemoveSelectedTrack() => SelectedTrack is not null;
+
+    /// <summary>
+    /// 「基本名 + 番号」で、既存のトラックと重ならない名前を作る。
+    /// </summary>
+    private string UniqueTrackName(string baseName)
+    {
+        for (var i = 1; ; i++)
+        {
+            var name = $"{baseName} {i}";
+            if (Tracks.All(t => t.Name != name)) return name;
+        }
+    }
 
     #endregion
 

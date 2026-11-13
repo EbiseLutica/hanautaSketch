@@ -21,37 +21,58 @@ public partial class MainWindowViewModel
     private int _notesRevision;
 
     /// <summary>
-    /// 編集対象の写し。各配列の並びは Song.Tracks 内の同じ種類のトラックの並び。
+    /// スマートコードトラック1本分の編集対象の写し。
     /// </summary>
-    private sealed record EditSnapshot(Note[][] Notes, ChordOverride[][] Overrides)
+    private sealed record SmartTrackState(ChordOverride[] Overrides, NoteTrack? BassSource, NoteTrack? MelodySource)
+    {
+        public bool ContentEquals(SmartTrackState other) =>
+            Overrides.SequenceEqual(other.Overrides)
+            && BassSource == other.BassSource && MelodySource == other.MelodySource;
+    }
+
+    /// <summary>
+    /// 編集対象の写し。トラック構成（並びと参照）と、各トラックの中身を持つ。
+    /// トラックはオブジェクトごと保持するので、削除したトラックも Undo で元に戻せる。
+    /// </summary>
+    private sealed record EditSnapshot(
+        Track[] Tracks,
+        Dictionary<NoteTrack, Note[]> Notes,
+        Dictionary<SmartChordTrack, SmartTrackState> SmartTracks)
     {
         public bool ContentEquals(EditSnapshot other) =>
-            SequencesEqual(Notes, other.Notes) && SequencesEqual(Overrides, other.Overrides);
-
-        private static bool SequencesEqual<T>(T[][] a, T[][] b) =>
-            a.Length == b.Length && a.Zip(b).All(p => p.First.SequenceEqual(p.Second));
+            Tracks.SequenceEqual(other.Tracks)
+            && Notes.All(p => other.Notes.TryGetValue(p.Key, out var n) && p.Value.SequenceEqual(n))
+            && SmartTracks.All(p => other.SmartTracks.TryGetValue(p.Key, out var s) && p.Value.ContentEquals(s));
     }
 
     private EditSnapshot TakeSnapshot() => new(
-        Song.Tracks.OfType<NoteTrack>().Select(t => t.Notes.ToArray()).ToArray(),
-        Song.Tracks.OfType<SmartChordTrack>().Select(t => t.Overrides.ToArray()).ToArray());
+        Song.Tracks.ToArray(),
+        Song.Tracks.OfType<NoteTrack>().ToDictionary(t => t, t => t.Notes.ToArray()),
+        Song.Tracks.OfType<SmartChordTrack>().ToDictionary(
+            t => t, t => new SmartTrackState(t.Overrides.ToArray(), t.BassSource, t.MelodySource)));
 
     private void RestoreSnapshot(EditSnapshot snapshot)
     {
-        var noteTracks = Song.Tracks.OfType<NoteTrack>().ToList();
-        for (var i = 0; i < noteTracks.Count && i < snapshot.Notes.Length; i++)
+        var selected = SelectedTrack;
+        if (!Song.Tracks.SequenceEqual(snapshot.Tracks))
+            ReplaceTracks(snapshot.Tracks);
+
+        foreach (var (track, notes) in snapshot.Notes)
         {
-            noteTracks[i].Notes.Clear();
-            noteTracks[i].Notes.AddRange(snapshot.Notes[i]);
+            track.Notes.Clear();
+            track.Notes.AddRange(notes);
         }
 
-        var smartTracks = Song.Tracks.OfType<SmartChordTrack>().ToList();
-        for (var i = 0; i < smartTracks.Count && i < snapshot.Overrides.Length; i++)
+        foreach (var (track, state) in snapshot.SmartTracks)
         {
-            smartTracks[i].Overrides.Clear();
-            smartTracks[i].Overrides.AddRange(snapshot.Overrides[i]);
+            track.Overrides.Clear();
+            track.Overrides.AddRange(state.Overrides);
+            track.BassSource = state.BassSource;
+            track.MelodySource = state.MelodySource;
         }
 
+        SelectedTrack = selected is not null && Tracks.Contains(selected) ? selected : Tracks.FirstOrDefault();
+        OnSelectedTrackChanged(SelectedTrack);
         NotesRevision++;
         MarkDirty();
         RegenerateSmartTracks();

@@ -34,9 +34,11 @@ public sealed class SmartChordTrackViewModel
         _track = track;
         _owner = owner;
 
-        var noteTracks = owner.Tracks.OfType<NoteTrack>().ToList();
-        BassSourceOptions = noteTracks.Select(t => new SourceOption(t.Name, t)).ToList();
-        MelodySourceOptions = BassSourceOptions.Prepend(new SourceOption("（なし）", null)).ToList();
+        // ソースのトラックが削除されると null になるので、ベースにも「なし」を用意する
+        var options = owner.Tracks.OfType<NoteTrack>().Select(t => new SourceOption(t.Name, t))
+            .Prepend(new SourceOption("（なし）", null)).ToList();
+        BassSourceOptions = options;
+        MelodySourceOptions = options;
     }
 
     public IReadOnlyList<SourceOption> BassSourceOptions { get; }
