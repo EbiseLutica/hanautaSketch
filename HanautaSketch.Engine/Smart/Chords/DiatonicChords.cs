@@ -29,9 +29,6 @@ internal static class DiatonicChords
     /// <summary>Auto 時に V へ課すペナルティ。メロディに導音がなければ v が勝つ程度</summary>
     private const double BorrowedDominantPenalty = -0.6;
 
-    /// <summary>減三和音はスケッチ用途では使用頻度が低いので、軽く減点する</summary>
-    private const double DiminishedPenalty = -0.3;
-
     private static readonly HarmonicFunction[] MajorFunctions =
     [
         HarmonicFunction.Tonic, HarmonicFunction.Subdominant, HarmonicFunction.Tonic, HarmonicFunction.Subdominant,
@@ -57,8 +54,7 @@ internal static class DiatonicChords
             var isMinorDominant = key.Mode == Mode.Minor && degree == 4;
             if (!isMinorDominant)
             {
-                var prior = chord.Quality == ChordQuality.Diminished ? DiminishedPenalty : 0;
-                result.Add(new ChordCandidate(chord, degree, prior));
+                result.Add(new ChordCandidate(chord, degree, 0));
                 continue;
             }
 

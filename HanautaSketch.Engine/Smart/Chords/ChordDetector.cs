@@ -35,6 +35,9 @@ public static class ChordDetector
     private const double BassThirdScore = 1.0;
     private const double BassFifthScore = 1.2;
     private const double BassNonChordScore = -1.0;
+
+    /// <summary>同じ半小節のベースにルートがないとき、3度・5度の得点に掛ける係数</summary>
+    private const double RootlessInversionFactor = 0.25;
     private const double MelodyChordToneScore = 1.0;
     private const double MelodyNonChordScore = -0.5;
     private const double SegmentHeadAccent = 1.5;
@@ -48,7 +51,7 @@ public static class ChordDetector
     /// <summary>
     /// コードを切り替える基本コスト。区切り位置の区切れやすさ（拍節＋ベースの発音＋シンコペーション）を差し引いて払う。
     /// </summary>
-    private const double ChangeCost = 5.0;
+    private const double ChangeCost = 3.0;
 
     /// <summary>区切れやすさがどれだけ高くても最低限払うコスト</summary>
     private const double MinChangeCost = 0.5;
@@ -288,7 +291,7 @@ public static class ChordDetector
         private readonly struct SegmentEvidence
         {
             private readonly Problem _problem;
-            private readonly List<(int PitchClass, double Weight, bool IsBass)> _notes = [];
+            private readonly List<(int PitchClass, double Weight, bool IsBass, int Window)> _notes = [];
             private readonly double _totalWeight;
             private readonly double _beats;
             private readonly double _dominantEvidence;
@@ -298,16 +301,19 @@ public static class ChordDetector
                 _problem = problem;
                 _beats = (double)(end - start) / problem._context.Ppq;
 
+                // ルートの有無を判定する局所窓（半小節）。ベース音は発音位置（区間頭より前なら区間頭）で窓に割り当てる
+                var window = Math.Max(1, problem._context.TicksPerBar / 2);
+
                 foreach (var note in problem._bass)
                 {
                     var w = Weight(note, start, end, problem._context.Ppq);
-                    if (w > 0) _notes.Add((note.PitchClass, w, true));
+                    if (w > 0) _notes.Add((note.PitchClass, w, true, Math.Max(note.Tick, start) / window));
                 }
 
                 foreach (var note in problem._melody)
                 {
                     var w = Weight(note, start, end, problem._context.Ppq) * problem._settings.MelodyWeight;
-                    if (w > 0) _notes.Add((note.PitchClass, w, false));
+                    if (w > 0) _notes.Add((note.PitchClass, w, false, -1));
                 }
 
                 _totalWeight = _notes.Sum(n => n.Weight);
@@ -325,14 +331,21 @@ public static class ChordDetector
             public double Score(ChordCandidate candidate)
             {
                 var tones = candidate.Chord.GetPitchClasses();
+
+                // 同じ半小節のベースにルートがない3度・5度の音は、そのコードの根拠としてあまり認めない。
+                // 「D を繰り返す」ような箇所を、前後にルートがある長い区間の5度として吸収させないため
+                var root = tones[0];
+                var windowsWithRoot = _notes.Where(n => n.IsBass && n.PitchClass == root).Select(n => n.Window).ToHashSet();
+
                 var fit = 0.0;
-                foreach (var (pc, w, isBass) in _notes)
+                foreach (var (pc, w, isBass, window) in _notes)
                 {
                     if (isBass)
                     {
-                        if (pc == tones[0]) fit += BassRootScore * w;
-                        else if (pc == tones[1]) fit += BassThirdScore * w;
-                        else if (pc == tones[2]) fit += BassFifthScore * w;
+                        var inversionFactor = windowsWithRoot.Contains(window) ? 1.0 : RootlessInversionFactor;
+                        if (pc == root) fit += BassRootScore * w;
+                        else if (pc == tones[1]) fit += BassThirdScore * inversionFactor * w;
+                        else if (pc == tones[2]) fit += BassFifthScore * inversionFactor * w;
                         else fit += BassNonChordScore * w;
                     }
                     else

@@ -81,12 +81,43 @@ public class ChordDetectorTests
     }
 
     [Fact]
-    public void WalkingBassWithinOneChord_IsNotSplit()
+    public void RepeatedBassNote_IsTreatedAsRoot()
     {
-        // C E G A の4分音符 → 1小節 C のまま
+        // 実機のケース（C minor、メロディあり）。2小節目前半は D を繰り返して Bb で G へ下りる → Ddim | Gm
+        const int s = Ppq / 4;
+        (int Pos, int Len, int Pitch)[] bassRaw =
+        [
+            (0, 2, 48), (3, 1, 51), (6, 7, 55), (13, 1, 50), (14, 2, 43),
+            (16, 2, 38), (18, 2, 50), (20, 2, 38), (22, 2, 34), (24, 2, 31), (26, 2, 43), (28, 2, 31), (30, 2, 43),
+            (32, 2, 36), (34, 2, 48), (36, 2, 36), (38, 2, 48), (40, 2, 39), (42, 2, 51), (44, 2, 39), (46, 2, 51),
+        ];
+        (int Pos, int Len, int Pitch)[] melodyRaw =
+        [
+            (0, 1, 60), (2, 1, 62), (3, 1, 63), (5, 1, 68), (6, 4, 67), (12, 2, 67), (14, 2, 70),
+            (16, 1, 72), (18, 1, 72), (20, 1, 72), (22, 1, 70), (23, 1, 67), (26, 2, 67), (28, 2, 65), (30, 2, 63),
+            (32, 2, 65), (34, 2, 67), (36, 2, 68), (38, 2, 60),
+        ];
+        var bass = bassRaw.Select(r => new Note(r.Pos * s, r.Len * s, r.Pitch, 100)).ToList();
+        var melody = melodyRaw.Select(r => new Note(r.Pos * s, r.Len * s, r.Pitch, 100)).ToList();
+        var cMinor = new ChordDetectionContext(new Key(0, Mode.Minor), Ppq, Bar);
+
+        var result = ChordDetector.Detect(bass, melody, Bar * 3, cMinor, new(), []);
+        var fromSecondBar = result.Where(r => r.Start >= Bar).ToList();
+
+        Assert.Equal(["Ddim", "Gm", "Cm", "Eb"], Names(fromSecondBar, cMinor));
+        Assert.Equal([Bar, Bar * 3 / 2, Bar * 2, Bar * 5 / 2], fromSecondBar.Select(r => r.Start).ToArray());
+    }
+
+    [Fact]
+    public void WalkingBass_IsNotSplitOnWeakBeats()
+    {
+        // C E G A の4分音符。半小節での C | G は許容するが、2・4拍目では割らない
         int[] pitches = [48, 52, 55, 57];
         var bass = pitches.Select((p, i) => new Note(i * Ppq, Ppq, p, 100)).ToList();
-        Assert.Equal(["C"], Names(Detect(bass, CMajor)));
+        var result = Detect(bass, CMajor);
+
+        Assert.Equal("C", result[0].Chord.ToString());
+        Assert.All(result, r => Assert.Contains(r.Start, new[] { 0, Bar / 2 }));
     }
 
     [Fact]
