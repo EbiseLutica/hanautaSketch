@@ -15,8 +15,8 @@ public class ChordDetectorTests
     private static List<Note> WholeNoteBass(params int[] pitches) =>
         pitches.Select((p, i) => new Note(i * Bar, Bar, p, 100)).ToList();
 
-    private static string[] Names(IReadOnlyList<ChordSegment> segments) =>
-        segments.Select(s => s.Chord.ToString()).ToArray();
+    private static string[] Names(IReadOnlyList<ChordSegment> segments, ChordDetectionContext? context = null) =>
+        segments.Select(s => s.Chord.GetName((context ?? CMajor).Key)).ToArray();
 
     private static IReadOnlyList<ChordSegment> Detect(List<Note> bass, ChordDetectionContext context,
         SmartChordSettings? settings = null, List<Note>? melody = null, List<ChordOverride>? overrides = null) =>
@@ -42,9 +42,9 @@ public class ChordDetectorTests
     }
 
     [Fact]
-    public void HalfBarGrid_DetectsTwoChordsPerBar()
+    public void TwoChordsPerBar_AreSplitAtHalfBar()
     {
-        // C minor: Ab G | Cm Eb（実機で 1小節グリッドだと Gm Cm になったケース）
+        // C minor: Ab G | Cm Eb（1小節グリッドだと Gm Cm になっていたケース）
         const int s = Ppq / 4;
         (int Pos, int Len, int Pitch)[] raw =
         [
@@ -55,8 +55,27 @@ public class ChordDetectorTests
         var bass = raw.Select(r => new Note(r.Pos * s, r.Len * s, r.Pitch, 100)).ToList();
         var cMinor = new ChordDetectionContext(new Key(0, Mode.Minor), Ppq, Bar);
 
-        var result = ChordDetector.Detect(bass, [], Bar * 2, cMinor, new SmartChordSettings { SegmentTicks = Bar / 2 }, []);
-        Assert.Equal(["G#", "Gm", "Cm", "D#"], Names(result));
+        var result = ChordDetector.Detect(bass, [], Bar * 2, cMinor, new(), []);
+        Assert.Equal(["Ab", "Gm", "Cm", "Eb"], Names(result, cMinor));
+        Assert.Equal([0, Bar / 2, Bar, Bar * 3 / 2], result.Select(r => r.Start).ToArray());
+    }
+
+    [Fact]
+    public void WalkingBassWithinOneChord_IsNotSplit()
+    {
+        // C E G A の4分音符 → 1小節 C のまま
+        int[] pitches = [48, 52, 55, 57];
+        var bass = pitches.Select((p, i) => new Note(i * Ppq, Ppq, p, 100)).ToList();
+        Assert.Equal(["C"], Names(Detect(bass, CMajor)));
+    }
+
+    [Fact]
+    public void SustainedBass_IsNotSplitInside()
+    {
+        // 全音符の C の上で、後半だけメロディが F A → ベースの持続をまたいで割らない
+        List<Note> bass = [new(0, Bar, 48, 100)];
+        List<Note> melody = [new(Bar / 2, Ppq, 65, 100), new(Bar / 2 + Ppq, Ppq, 69, 100)];
+        Assert.Equal(["C"], Names(Detect(bass, CMajor, melody: melody)));
     }
 
     [Fact]
@@ -75,7 +94,7 @@ public class ChordDetectorTests
     public void MinorKey_DefaultsToMinorDominant()
     {
         var result = Detect(WholeNoteBass(45, 50, 52, 45), AMinor);
-        Assert.Equal(["Am", "Dm", "Em", "Am"], Names(result));
+        Assert.Equal(["Am", "Dm", "Em", "Am"], Names(result, AMinor));
     }
 
     [Fact]
@@ -83,7 +102,7 @@ public class ChordDetectorTests
     {
         var result = Detect(WholeNoteBass(45, 50, 52, 45), AMinor,
             new SmartChordSettings { MinorDominant = MinorDominantMode.Major });
-        Assert.Equal(["Am", "Dm", "E", "Am"], Names(result));
+        Assert.Equal(["Am", "Dm", "E", "Am"], Names(result, AMinor));
     }
 
     [Fact]
@@ -95,7 +114,7 @@ public class ChordDetectorTests
         // 2小節目のメロディに G#、4小節目に G
         List<Note> melody = [new(Bar, Ppq, 68, 100), new(Bar * 3, Ppq, 67, 100)];
 
-        Assert.Equal(["Am", "E", "Am", "Em"], Names(Detect(bass, AMinor, auto, melody)));
+        Assert.Equal(["Am", "E", "Am", "Em"], Names(Detect(bass, AMinor, auto, melody), AMinor));
     }
 
     [Fact]
@@ -127,7 +146,9 @@ public class ChordDetectorTests
     public void EmptySegment_InheritsPreviousChord()
     {
         List<Note> bass = [new(0, Bar, 48, 100), new(Bar * 2, Bar, 55, 100)];
-        Assert.Equal(["C", "C", "G"], Names(Detect(bass, CMajor)));
+        var result = Detect(bass, CMajor);
+        Assert.Equal(["C", "G"], Names(result));
+        Assert.Equal(Bar * 2, result[0].Length);
     }
 
     [Fact]
@@ -136,6 +157,16 @@ public class ChordDetectorTests
         // 小節頭 E、残りは C が長く鳴る → C/E
         List<Note> bass = [new(0, Ppq, 52, 100), new(Ppq, Ppq * 3, 48, 100)];
         Assert.Equal(["C/E"], Names(Detect(bass, CMajor)));
+    }
+
+    [Theory]
+    [InlineData(0, Mode.Minor, 8, "Ab")]
+    [InlineData(0, Mode.Major, 8, "G#")]
+    [InlineData(5, Mode.Major, 10, "Bb")]
+    [InlineData(9, Mode.Minor, 1, "C#")]
+    public void PitchName_FollowsKeySignature(int tonic, Mode mode, int pc, string expected)
+    {
+        Assert.Equal(expected, new Key(tonic, mode).GetPitchName(pc));
     }
 
     [Fact]

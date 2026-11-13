@@ -40,7 +40,12 @@ public readonly record struct Chord(int Root, ChordQuality Quality, int? Bass = 
     /// <summary>転回指定を外した基本形</summary>
     public Chord RootPosition => this with { Bass = null };
 
-    public override string ToString()
+    public override string ToString() => GetName(new Key(0, Mode.Major));
+
+    /// <summary>
+    /// キーの調号に合わせたコード名を返す（C minor なら "Ab"、C major なら "G#"）。
+    /// </summary>
+    public string GetName(Key key)
     {
         var suffix = Quality switch
         {
@@ -50,7 +55,7 @@ public readonly record struct Chord(int Root, ChordQuality Quality, int? Bass = 
             ChordQuality.Augmented => "aug",
             _ => "?",
         };
-        var name = Key.PitchNames[Root] + suffix;
-        return Bass is { } bass && bass != Root ? $"{name}/{Key.PitchNames[bass]}" : name;
+        var name = key.GetPitchName(Root) + suffix;
+        return Bass is { } bass && bass != Root ? $"{name}/{key.GetPitchName(bass)}" : name;
     }
 }

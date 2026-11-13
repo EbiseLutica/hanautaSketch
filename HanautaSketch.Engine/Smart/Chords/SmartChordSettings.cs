@@ -16,15 +16,21 @@ public enum MinorDominantMode
 }
 
 /// <summary>
-/// スマートコードの判別設定。
+/// スマートコードの判別設定。tick 指定の項目は 0 以下なら既定値を使う。
 /// </summary>
 public sealed record SmartChordSettings
 {
-    /// <summary>自動判別の区間グリッド（tick）。0 以下なら1小節</summary>
-    public int SegmentTicks { get; init; }
-
     public MinorDominantMode MinorDominant { get; init; } = MinorDominantMode.Minor;
 
     /// <summary>メロディの重み（ベースを 1 としたとき）</summary>
     public double MelodyWeight { get; init; } = 0.4;
+
+    /// <summary>コードの区切り候補の間隔（既定: 1拍）</summary>
+    public int BoundaryUnitTicks { get; init; }
+
+    /// <summary>コード区間の最小長（既定: 2拍）</summary>
+    public int MinSegmentTicks { get; init; }
+
+    /// <summary>コード区間の最大長（既定: 2小節）。同じコードが続く場合は結果上で連結される</summary>
+    public int MaxSegmentTicks { get; init; }
 }

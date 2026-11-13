@@ -32,6 +32,30 @@ public readonly record struct Key(int Tonic, Mode Mode)
         return intervals.Select(i => (tonic + i) % 12).ToArray();
     }
 
+    private static readonly string[] FlatPitchNames = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
+
+    /// <summary>フラット系の調号を持つメジャーキーの主音（F, B♭, E♭, A♭, D♭）</summary>
+    private static readonly int[] FlatMajorTonics = [5, 10, 3, 8, 1];
+
+    /// <summary>調号がフラット系か</summary>
+    public bool PrefersFlats
+    {
+        get
+        {
+            var relativeMajor = Mode == Mode.Major ? Tonic : (Tonic + 3) % 12;
+            return FlatMajorTonics.Contains(relativeMajor);
+        }
+    }
+
+    /// <summary>
+    /// 調号に合わせた音名を返す（C minor なら A♭ は "Ab"）。
+    /// </summary>
+    public string GetPitchName(int pitchClass)
+    {
+        var pc = ((pitchClass % 12) + 12) % 12;
+        return PrefersFlats ? FlatPitchNames[pc] : PitchNames[pc];
+    }
+
     /// <summary>
     /// 指定ピッチがスケール内の音か判定する。
     /// </summary>
