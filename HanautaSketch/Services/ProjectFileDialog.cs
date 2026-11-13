@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using HanautaSketch.Engine.IO;
+using HanautaSketch.Views;
 
 namespace HanautaSketch.Services;
 
@@ -17,12 +18,15 @@ public interface IProjectFileDialog
 
     /// <summary>MIDI の書き出し先を選ぶ。キャンセルなら null</summary>
     Task<IStorageFile?> PickMidiExportAsync(string suggestedName);
+
+    /// <summary>MIDI 書き出しのオプションを選ぶ。キャンセルなら null</summary>
+    Task<MidiExportOptions?> PickMidiExportOptionsAsync(MidiExportOptions initial, string fileName);
 }
 
 /// <summary>
-/// <see cref="IStorageProvider"/> を使った実装。
+/// <see cref="IStorageProvider"/> と、オーナーウィンドウ上のモーダル画面を使った実装。
 /// </summary>
-public sealed class StorageProjectFileDialog(TopLevel topLevel) : IProjectFileDialog
+public sealed class StorageProjectFileDialog(Window owner) : IProjectFileDialog
 {
     private static readonly FilePickerFileType ProjectFileType = new("hanautaSketch プロジェクト")
     {
@@ -36,7 +40,7 @@ public sealed class StorageProjectFileDialog(TopLevel topLevel) : IProjectFileDi
 
     public async Task<IStorageFile?> PickOpenAsync()
     {
-        var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        var files = await owner.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
             Title = "プロジェクトを開く",
             AllowMultiple = false,
@@ -46,7 +50,7 @@ public sealed class StorageProjectFileDialog(TopLevel topLevel) : IProjectFileDi
     }
 
     public Task<IStorageFile?> PickSaveAsync(string suggestedName) =>
-        topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        owner.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
             Title = "プロジェクトを保存",
             SuggestedFileName = suggestedName,
@@ -56,7 +60,7 @@ public sealed class StorageProjectFileDialog(TopLevel topLevel) : IProjectFileDi
         });
 
     public Task<IStorageFile?> PickMidiExportAsync(string suggestedName) =>
-        topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        owner.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
             Title = "MIDI 書き出し",
             SuggestedFileName = suggestedName,
@@ -64,4 +68,7 @@ public sealed class StorageProjectFileDialog(TopLevel topLevel) : IProjectFileDi
             FileTypeChoices = [MidiFileType],
             ShowOverwritePrompt = true,
         });
+
+    public Task<MidiExportOptions?> PickMidiExportOptionsAsync(MidiExportOptions initial, string fileName) =>
+        new MidiExportOptionsWindow(initial, fileName).ShowDialog<MidiExportOptions?>(owner);
 }

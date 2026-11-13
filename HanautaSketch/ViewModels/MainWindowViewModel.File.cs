@@ -16,6 +16,7 @@ public partial class MainWindowViewModel
     private const string UntitledName = "無題";
 
     private IStorageFile? _currentFile;
+    private AppSettings _appSettings = AppSettingsStore.Load();
     private bool _suppressDirty;
 
     /// <summary>View 側から設定するファイルダイアログ</summary>
@@ -107,7 +108,8 @@ public partial class MainWindowViewModel
     }
 
     /// <summary>
-    /// 曲を MIDI ファイルに書き出す。既定のファイル名はプロジェクト名。
+    /// 曲を MIDI ファイルに書き出す。保存先を選んだあとにオプションを選ぶ（OS の保存ダイアログは拡張できないため）。
+    /// 既定のファイル名はプロジェクト名、オプションの初期値は前回の選択。
     /// </summary>
     [RelayCommand]
     private async Task ExportMidiAsync()
@@ -118,12 +120,18 @@ public partial class MainWindowViewModel
         var file = await FileDialog.PickMidiExportAsync(baseName + MidiExporter.FileExtension);
         if (file is null) return;
 
+        var options = await FileDialog.PickMidiExportOptionsAsync(_appSettings.MidiExport, file.Name);
+        if (options is null) return;
+
+        _appSettings = _appSettings with { MidiExport = options };
+        AppSettingsStore.Save(_appSettings);
+
         try
         {
             RegenerateSmartTracks();
             await using (var stream = await file.OpenWriteAsync())
             {
-                MidiExporter.Export(Song, stream);
+                MidiExporter.Export(Song, stream, options);
                 if (stream.CanSeek) stream.SetLength(stream.Position);
             }
             Message = $"{file.Name} に書き出した";

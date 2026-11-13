@@ -7,6 +7,22 @@ using HanautaSketch.Engine.Smart.Chords;
 namespace HanautaSketch.Engine.IO;
 
 /// <summary>
+/// MIDI 書き出しで省略できる項目。テンポ・拍子・トラック名・ノーツは常に書き出す。
+/// DAW 側の設定と干渉しやすいものを外せるようにしている。
+/// </summary>
+public sealed record MidiExportOptions
+{
+    public bool IncludeProgramChange { get; init; } = true;
+
+    /// <summary>コントロールチェンジ（現在は音量 CC7 のみ）</summary>
+    public bool IncludeControlChange { get; init; } = true;
+
+    public bool IncludeChordMarkers { get; init; } = true;
+
+    public bool IncludeKeySignature { get; init; } = true;
+}
+
+/// <summary>
 /// 曲を Standard MIDI File（Format 1）として書き出す。
 /// トラック0はコンダクター（テンポ・拍子・調号・コード名のマーカー）、以降は曲のトラックを順に並べる。
 /// スマートトラックは生成済みのノーツを書き出すので、呼び出し前に再生成しておくこと。
@@ -28,16 +44,17 @@ public static class MidiExporter
     /// </summary>
     public static Encoding DefaultTextEncoding => Encoding.GetEncoding("shift_jis");
 
-    public static void Export(Song song, Stream output, Encoding? textEncoding = null)
+    public static void Export(Song song, Stream output, MidiExportOptions? options = null, Encoding? textEncoding = null)
     {
+        options ??= new MidiExportOptions();
         var encoding = textEncoding ?? DefaultTextEncoding;
-        var tracks = new List<SmfTrackBuilder>(song.Tracks.Count + 1) { BuildConductor(song, encoding) };
+        var tracks = new List<SmfTrackBuilder>(song.Tracks.Count + 1) { BuildConductor(song, options, encoding) };
 
         var channel = 0;
         foreach (var track in song.Tracks)
         {
             if (channel == DrumChannel) channel++;
-            tracks.Add(BuildTrack(track, Math.Min(channel, MaxChannel), encoding));
+            tracks.Add(BuildTrack(track, Math.Min(channel, MaxChannel), options, encoding));
             channel++;
         }
 
@@ -46,16 +63,17 @@ public static class MidiExporter
 
     #region トラックの組み立て
 
-    private static SmfTrackBuilder BuildConductor(Song song, Encoding encoding)
+    private static SmfTrackBuilder BuildConductor(Song song, MidiExportOptions options, Encoding encoding)
     {
         var builder = new SmfTrackBuilder();
         builder.AddText(0, SmfMeta.TrackName, "Conductor", encoding);
         builder.AddTempo(0, song.Bpm);
         builder.AddTimeSignature(0, song.BeatsPerBar, 4);
-        builder.AddKeySignature(0, song.Key);
+        if (options.IncludeKeySignature)
+            builder.AddKeySignature(0, song.Key);
 
         // コード名は DAW でマーカーとして見えるよう、コンダクターに置く
-        if (song.Tracks.OfType<SmartChordTrack>().FirstOrDefault() is { } chordTrack)
+        if (options.IncludeChordMarkers && song.Tracks.OfType<SmartChordTrack>().FirstOrDefault() is { } chordTrack)
         {
             foreach (var segment in chordTrack.Chords)
                 builder.AddText(segment.Start, SmfMeta.Marker, segment.Chord.GetName(song.Key), encoding);
@@ -64,13 +82,15 @@ public static class MidiExporter
         return builder;
     }
 
-    private static SmfTrackBuilder BuildTrack(Track track, int channel, Encoding encoding)
+    private static SmfTrackBuilder BuildTrack(Track track, int channel, MidiExportOptions options, Encoding encoding)
     {
         var notes = track.PlaybackNotes;
         var builder = new SmfTrackBuilder(notes.Count * 2 + 3);
         builder.AddText(0, SmfMeta.TrackName, track.Name, encoding);
-        builder.AddChannelMessage(0, SmfStatus.ProgramChange, channel, track.Program);
-        builder.AddChannelMessage(0, SmfStatus.ControlChange, channel, 7, track.Volume);
+        if (options.IncludeProgramChange)
+            builder.AddChannelMessage(0, SmfStatus.ProgramChange, channel, track.Program);
+        if (options.IncludeControlChange)
+            builder.AddChannelMessage(0, SmfStatus.ControlChange, channel, 7, track.Volume);
 
         foreach (var note in notes)
         {

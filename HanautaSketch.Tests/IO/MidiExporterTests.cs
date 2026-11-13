@@ -14,10 +14,10 @@ namespace HanautaSketch.Tests.IO;
 /// </summary>
 public class MidiExporterTests
 {
-    private static MidiFile ExportAndRead(Song song)
+    private static MidiFile ExportAndRead(Song song, MidiExportOptions? options = null)
     {
         using var stream = new MemoryStream();
-        MidiExporter.Export(song, stream);
+        MidiExporter.Export(song, stream, options);
         stream.Position = 0;
         return MidiFile.Read(stream, new ReadingSettings { TextEncoding = MidiExporter.DefaultTextEncoding });
     }
@@ -150,6 +150,35 @@ public class MidiExporterTests
         Assert.Equal([(0L, "Cm"), (1920L, "Gm")], markers);
 
         Assert.Equal(chord.PlaybackNotes.Count, chunks[3].GetNotes().Count);
+    }
+
+    [Fact]
+    public void Options_CanOmitSetupAndMetaEvents()
+    {
+        var song = CreateSong();
+        var chord = new SmartChordTrack { Name = "Chord", BassSource = (NoteTrack)song.Tracks[1] };
+        song.Tracks.Add(chord);
+        chord.Regenerate(song);
+
+        var options = new MidiExportOptions
+        {
+            IncludeProgramChange = false,
+            IncludeControlChange = false,
+            IncludeChordMarkers = false,
+            IncludeKeySignature = false,
+        };
+        var chunks = ExportAndRead(song, options).GetTrackChunks().ToList();
+        var events = chunks.SelectMany(c => c.Events).ToList();
+
+        Assert.Empty(events.OfType<ProgramChangeEvent>());
+        Assert.Empty(events.OfType<ControlChangeEvent>());
+        Assert.Empty(events.OfType<MarkerEvent>());
+        Assert.Empty(events.OfType<KeySignatureEvent>());
+
+        // 常に書き出すもの
+        Assert.Single(chunks[0].Events.OfType<SetTempoEvent>());
+        Assert.Single(chunks[0].Events.OfType<TimeSignatureEvent>());
+        Assert.Equal(2, chunks[1].GetNotes().Count);
     }
 
     [Fact]
