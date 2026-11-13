@@ -103,9 +103,33 @@ public class ProjectSerializerTests
     }
 
     [Fact]
-    public async Task Load_RejectsNewerVersion()
+    public async Task Save_WritesVersionAsMajorMinorString()
     {
-        await Assert.ThrowsAsync<InvalidDataException>(() => LoadJson("""{ "version": 999 }"""));
+        using var stream = new MemoryStream();
+        await ProjectSerializer.SaveAsync(new ProjectDocument(new Song()), stream);
+        var json = Encoding.UTF8.GetString(stream.ToArray());
+
+        Assert.Contains("\"version\": \"0.2\"", json);
+    }
+
+    [Theory]
+    [InlineData("1")]
+    [InlineData("2")]
+    [InlineData("\"0.1\"")]
+    [InlineData("\"0.2\"")]
+    public async Task Load_AcceptsCurrentAndOlderVersions(string version)
+    {
+        var loaded = await LoadJson($$"""{ "version": {{version}}, "song": { "tracks": [] } }""");
+        Assert.Empty(loaded.Song.Tracks);
+    }
+
+    [Theory]
+    [InlineData("\"0.3\"")]
+    [InlineData("\"1.0\"")]
+    [InlineData("999")]
+    public async Task Load_RejectsNewerVersion(string version)
+    {
+        await Assert.ThrowsAsync<InvalidDataException>(() => LoadJson($$"""{ "version": {{version}} }"""));
     }
 
     [Fact]

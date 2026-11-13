@@ -19,11 +19,13 @@ public static class ProjectSerializer
     public const string FileExtension = ".hsk";
 
     /// <summary>
-    /// 現在のファイル形式のバージョン。互換性のない変更をしたら上げる。
-    /// v1: トラックはノートのみ（曲全体のスマートコード設定 smartChord は読み込み時に無視する）
-    /// v2: スマートコードトラック（ソース参照・設定・override）を追加
+    /// 現在のファイル形式のバージョン（メジャー.マイナー）。正式版で 1.0 にする。
+    /// 0.x の間はマイナーアップでも互換が崩れ得るので、ファイルの方が新しければマイナーまで含めて弾く。
+    /// 0.1: トラックはノートのみ（曲全体のスマートコード設定 smartChord は読み込み時に無視する）
+    /// 0.2: スマートコードトラック（ソース参照・設定・override）を追加
+    /// 初期のファイルは整数（1 / 2）で書かれているので、それぞれ 0.1 / 0.2 として読む。
     /// </summary>
-    public const int CurrentVersion = 2;
+    public static Version CurrentVersion { get; } = new(0, 2);
 
     private static readonly JsonSerializerOptions Options = new()
     {
@@ -53,7 +55,7 @@ public static class ProjectSerializer
 
         if (dto is null) throw new InvalidDataException("プロジェクトファイルが空です。");
         if (dto.Version > CurrentVersion)
-            throw new InvalidDataException($"新しいバージョン（{dto.Version}）のファイルには対応していません。");
+            throw new InvalidDataException($"新しいバージョン（{dto.Version.ToString(2)}）のファイルには対応していません。");
 
         return FromDto(dto);
     }
@@ -210,8 +212,30 @@ public static class ProjectSerializer
 
     private sealed class ProjectDto
     {
-        public int Version { get; set; }
+        [JsonConverter(typeof(FormatVersionConverter))]
+        public Version Version { get; set; } = new(0, 1);
+
         public SongDto? Song { get; set; }
+    }
+
+    /// <summary>
+    /// バージョンを "0.2" のような文字列で書き出す。読み込みでは初期の整数表記（1 / 2）を 0.x として受け付ける。
+    /// </summary>
+    private sealed class FormatVersionConverter : JsonConverter<Version>
+    {
+        public override Version Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            if (reader.TokenType == JsonTokenType.Number && reader.TryGetInt32(out var legacy))
+                return new Version(0, legacy);
+
+            if (reader.TokenType == JsonTokenType.String && Version.TryParse(reader.GetString(), out var version))
+                return new Version(version.Major, Math.Max(0, version.Minor));
+
+            throw new JsonException("バージョンの書式が不正です。");
+        }
+
+        public override void Write(Utf8JsonWriter writer, Version value, JsonSerializerOptions options) =>
+            writer.WriteStringValue(value.ToString(2));
     }
 
     private sealed class SongDto

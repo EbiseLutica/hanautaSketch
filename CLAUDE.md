@@ -15,7 +15,7 @@
 - テスト：xUnit
 - 再生：MeltySynth（SF2）でシンセを鳴らし、NAudio 2.2.1（WASAPI 共有モード）で出力する。MeltySynth とシーケンサーは Engine（`PlaybackEngine`）、OS 依存の出力は App（`AudioOutput`）に置く
   - 音源は `HanautaSketch/SoundFonts/*.sf2` に置く（GM 互換の SGM-V2.01 を想定）。サイズが大きいので git 管理外（`.gitignore` で `*.sf2` を除外）。ビルド時に出力先へコピーされる
-- 保存形式：独自 JSON（`.hsk`、`ProjectSerializer`）。ファイル上の形式は DTO で固定し、`version` で互換性を管理する（現在 v2。v2 は v1 にトラック種別を足した上位互換で、v1 の曲全体のスマートコード設定は読み込み時に無視する）。ファイルダイアログは `IProjectFileDialog` 経由で VM から使う
+- 保存形式：独自 JSON（`.hsk`、`ProjectSerializer`）。ファイル上の形式は DTO で固定し、`version` で互換性を管理する（`"version": "0.2"` のメジャー.マイナー表記。正式版で 1.0 にする。0.x の間はマイナーまで含めて新しいファイルを弾く。初期の整数表記 1 / 2 は 0.1 / 0.2 として読む。0.2 は 0.1 にトラック種別を足した上位互換で、0.1 の曲全体のスマートコード設定は読み込み時に無視する）。ファイルダイアログは `IProjectFileDialog` 経由で VM から使う
 - 採用予定：MIDI 入出力は DryWetMIDI
 
 ### ドメインモデルの約束事
