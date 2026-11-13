@@ -5,10 +5,14 @@ using HanautaSketch.Engine.Core;
 
 namespace HanautaSketch.ViewModels;
 
-/// <summary>音色の選択肢。表示は1始まりの番号＋名前</summary>
-public sealed record ProgramOption(int Program, string Name)
+/// <summary>
+/// 楽器欄の1枠。カテゴリが変わっても枠は同じまま、表示名だけを書き換える。
+/// </summary>
+public sealed partial class ProgramSlot : ObservableObject
 {
-    public override string ToString() => $"{Program + 1} {Name}";
+    /// <summary>1始まりの番号＋名前（例: 34 Fingered Bass）</summary>
+    [ObservableProperty]
+    private string _label = "";
 }
 
 /// <summary>
@@ -16,11 +20,8 @@ public sealed record ProgramOption(int Program, string Name)
 /// </summary>
 public partial class MainWindowViewModel
 {
-    /// <summary>
-    /// カテゴリごとの音色の選択肢。同じカテゴリでは同じリストを返し続け、選択のたびに一覧を差し替えない。
-    /// SF2 の読み込み後にプリセット名で作り直す。
-    /// </summary>
-    private IReadOnlyList<ProgramOption>[] _programsByCategory = BuildProgramOptions(GeneralMidi.ProgramNames);
+    /// <summary>音色名（添字は音色番号）。SF2 の読み込み後にプリセット名で上書きする</summary>
+    private readonly string[] _programNames = [.. GeneralMidi.ProgramNames];
 
     /// <summary>トラック一覧の行。Tracks と同じ並び</summary>
     public ObservableCollection<TrackItemViewModel> TrackItems { get; } = [];
@@ -41,13 +42,14 @@ public partial class MainWindowViewModel
         }
     }
 
-    /// <summary>選択中のカテゴリに含まれる音色</summary>
-    public IReadOnlyList<ProgramOption> ProgramsInCategory => _programsByCategory[SelectedProgramCategory];
-
     /// <summary>
-    /// 選択中の音色の、カテゴリ内での位置（0〜7）。
-    /// ComboBox とは番号で結ぶ。オブジェクトで結ぶと、一覧の作り直しで選択が外れて null が書き戻されるため。
+    /// 楽器欄の選択肢（カテゴリ内の8枠）。コレクションは差し替えず、各枠の表示名だけを更新する。
+    /// ComboBox は ItemsSource が差し替わると選択を -1 に戻し、その後の番号の通知を取りこぼすことがあるため。
     /// </summary>
+    public IReadOnlyList<ProgramSlot> ProgramSlots { get; } =
+        Enumerable.Range(0, GeneralMidi.ProgramsPerCategory).Select(_ => new ProgramSlot()).ToList();
+
+    /// <summary>選択中の音色の、カテゴリ内での位置（0〜7）。楽器欄とは番号で結ぶ</summary>
     public int SelectedProgramIndex
     {
         get => (SelectedTrack?.Program ?? 0) % GeneralMidi.ProgramsPerCategory;
@@ -111,8 +113,18 @@ public partial class MainWindowViewModel
     private void NotifyProgramChanged()
     {
         OnPropertyChanged(nameof(SelectedProgramCategory));
-        OnPropertyChanged(nameof(ProgramsInCategory));
+        RefreshProgramSlots();
         OnPropertyChanged(nameof(SelectedProgramIndex));
+    }
+
+    /// <summary>
+    /// 楽器欄の各枠の表示名を、選択中のカテゴリの音色に合わせる。
+    /// </summary>
+    private void RefreshProgramSlots()
+    {
+        var first = SelectedProgramCategory * GeneralMidi.ProgramsPerCategory;
+        for (var i = 0; i < ProgramSlots.Count; i++)
+            ProgramSlots[i].Label = $"{first + i + 1} {_programNames[first + i]}";
     }
 
     /// <summary>
@@ -120,21 +132,12 @@ public partial class MainWindowViewModel
     /// </summary>
     private void ApplyPresetNames(IReadOnlyDictionary<int, string> presetNames)
     {
-        string[] names = [.. GeneralMidi.ProgramNames];
         foreach (var (program, name) in presetNames)
         {
-            if (!string.IsNullOrWhiteSpace(name)) names[program] = name;
+            if (!string.IsNullOrWhiteSpace(name)) _programNames[program] = name;
         }
-        _programsByCategory = BuildProgramOptions(names);
-        NotifyProgramChanged();
+        RefreshProgramSlots();
     }
-
-    private static IReadOnlyList<ProgramOption>[] BuildProgramOptions(IReadOnlyList<string> names) =>
-        Enumerable.Range(0, GeneralMidi.Categories.Count)
-            .Select(category => (IReadOnlyList<ProgramOption>)Enumerable
-                .Range(category * GeneralMidi.ProgramsPerCategory, GeneralMidi.ProgramsPerCategory)
-                .Select(p => new ProgramOption(p, names[p])).ToList())
-            .ToArray();
 
     /// <summary>
     /// 音色・音量・ミュート・ソロが変わったときに呼ぶ。再生中ならすぐ反映する。

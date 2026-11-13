@@ -58,8 +58,14 @@
                 <TextBlock Text="音色" />
                 <ComboBox ItemsSource="{Binding ProgramCategories}" SelectedIndex="{Binding SelectedProgramCategory}"
                           HorizontalAlignment="Stretch" />
-                <ComboBox ItemsSource="{Binding ProgramsInCategory}" SelectedIndex="{Binding SelectedProgramIndex}"
-                          HorizontalAlignment="Stretch" />
+                <ComboBox ItemsSource="{Binding ProgramSlots}" SelectedIndex="{Binding SelectedProgramIndex}"
+                          HorizontalAlignment="Stretch">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ProgramSlot">
+                            <TextBlock Text="{Binding Label}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
                 <DockPanel>
                     <TextBlock DockPanel.Dock="Left" Text="音量" VerticalAlignment="Center" Width="40" />
                     <TextBlock DockPanel.Dock="Right" Text="{Binding SelectedTrackVolume}" VerticalAlignment="Center"
