@@ -16,6 +16,18 @@ public sealed partial class ProgramSlot : ObservableObject
 }
 
 /// <summary>
+/// ドラムキットの選択肢。SF2 の読み込みで名前が変わっても、要素は差し替えずに表示名だけを書き換える。
+/// </summary>
+public sealed partial class DrumKitOption(int program, string name) : ObservableObject
+{
+    public int Program { get; } = program;
+
+    /// <summary>1始まりの番号＋名前（例: 26 TR-808）</summary>
+    [ObservableProperty]
+    private string _label = $"{program + 1} {name}";
+}
+
+/// <summary>
 /// トラック一覧の表示状態、音色・音量・ミュート・ソロ、トラックの並び替え。
 /// </summary>
 public partial class MainWindowViewModel
@@ -48,6 +60,30 @@ public partial class MainWindowViewModel
     /// </summary>
     public IReadOnlyList<ProgramSlot> ProgramSlots { get; } =
         Enumerable.Range(0, GeneralMidi.ProgramsPerCategory).Select(_ => new ProgramSlot()).ToList();
+
+    /// <summary>
+    /// ドラムキットの選択肢（SF2 のバンク128）。SF2 の読み込み前は Standard だけ。
+    /// 一覧は差し替えず追加だけにする（差し替えると ComboBox の選択が外れるため）。
+    /// </summary>
+    public ObservableCollection<DrumKitOption> DrumKits { get; } = [new DrumKitOption(0, "Standard")];
+
+    /// <summary>選択中のドラムトラックのキットの、一覧内での位置。一覧にないキットなら -1</summary>
+    public int SelectedDrumKitIndex
+    {
+        get
+        {
+            if (SelectedTrack is not { IsDrum: true } track) return -1;
+            for (var i = 0; i < DrumKits.Count; i++)
+            {
+                if (DrumKits[i].Program == track.Program) return i;
+            }
+            return -1;
+        }
+        set
+        {
+            if (value >= 0 && value < DrumKits.Count) SetSelectedTrackProgram(DrumKits[value].Program);
+        }
+    }
 
     /// <summary>選択中の音色の、カテゴリ内での位置（0〜7）。楽器欄とは番号で結ぶ</summary>
     public int SelectedProgramIndex
@@ -115,6 +151,7 @@ public partial class MainWindowViewModel
         OnPropertyChanged(nameof(SelectedProgramCategory));
         RefreshProgramSlots();
         OnPropertyChanged(nameof(SelectedProgramIndex));
+        OnPropertyChanged(nameof(SelectedDrumKitIndex));
     }
 
     /// <summary>
@@ -137,6 +174,26 @@ public partial class MainWindowViewModel
             if (!string.IsNullOrWhiteSpace(name)) _programNames[program] = name;
         }
         RefreshProgramSlots();
+    }
+
+    /// <summary>
+    /// SF2 のドラムキット名で選択肢を作る。Standard（0）は表示名だけ書き換え、それ以外は番号順に追加する。
+    /// </summary>
+    private void ApplyDrumKitNames(IReadOnlyDictionary<int, string> kitNames)
+    {
+        foreach (var (program, name) in kitNames.OrderBy(k => k.Key))
+        {
+            var existing = DrumKits.FirstOrDefault(k => k.Program == program);
+            if (existing is not null)
+            {
+                existing.Label = $"{program + 1} {name}";
+                continue;
+            }
+
+            var index = DrumKits.TakeWhile(k => k.Program < program).Count();
+            DrumKits.Insert(index, new DrumKitOption(program, name));
+        }
+        OnPropertyChanged(nameof(SelectedDrumKitIndex));
     }
 
     /// <summary>

@@ -28,12 +28,20 @@ public partial class MainWindow : Window
         // Space はボタンやトグルより先に受け取り、テキスト入力中以外は再生の切り替えに使う
         AddHandler(KeyDownEvent, OnPreviewKeyDown, RoutingStrategies.Tunnel);
 
+        // スウィングのスライダーは、離した・キー操作を終えた・フォーカスが外れたときに Undo の1ステップとして確定する
+        SwingSlider.AddHandler(PointerReleasedEvent, OnContinuousEditFinished, RoutingStrategies.Bubble, handledEventsToo: true);
+        SwingSlider.AddHandler(PointerCaptureLostEvent, OnContinuousEditFinished, RoutingStrategies.Bubble, handledEventsToo: true);
+        SwingSlider.AddHandler(KeyUpEvent, OnContinuousEditFinished, RoutingStrategies.Bubble, handledEventsToo: true);
+        SwingSlider.LostFocus += OnContinuousEditFinished;
+
         TrackList.AddHandler(PointerPressedEvent, OnTrackListPointerPressed, RoutingStrategies.Tunnel);
         TrackList.AddHandler(PointerMovedEvent, OnTrackListPointerMoved, RoutingStrategies.Tunnel);
         TrackList.AddHandler(PointerReleasedEvent, OnTrackListPointerReleased, RoutingStrategies.Tunnel);
     }
 
     private MainWindowViewModel? ViewModel => DataContext as MainWindowViewModel;
+
+    private void OnContinuousEditFinished(object? sender, RoutedEventArgs e) => ViewModel?.EndContinuousEdit();
 
     protected override void OnDataContextChanged(EventArgs e)
     {

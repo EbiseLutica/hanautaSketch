@@ -73,6 +73,7 @@ public partial class MainWindowViewModel
             AudioStatus = Path.GetFileName(path);
             IsAudioReady = true;
             ApplyPresetNames(_audio.Engine.GetPresetNames());
+            ApplyDrumKitNames(_audio.Engine.GetDrumKitNames());
         }
         catch (Exception ex)
         {

@@ -142,10 +142,26 @@ public class MidiExporterTests
         var chunks = ExportAndRead(song).GetTrackChunks().ToList();
 
         Assert.All(chunks[1].GetNotes(), n => Assert.Equal(9, (int)n.Channel));
-        Assert.Empty(chunks[1].Events.OfType<ProgramChangeEvent>());
+        Assert.Empty(chunks[1].Events.OfType<ProgramChangeEvent>()); // Standard キットは指定しない
         // 後ろのメロディ・ベースは 1ch・2ch のまま
         Assert.Equal(0, (int)chunks[2].GetNotes().First().Channel);
         Assert.Equal(1, (int)chunks[3].GetNotes().First().Channel);
+    }
+
+    [Fact]
+    public void DrumTrack_ExportsKitProgramChangeExceptStandard()
+    {
+        var song = new Song();
+        var drums = new HanautaSketch.Engine.Smart.Drums.SmartDrumTrack { Name = "Drums", Program = 25 };
+        drums.AddSection(0, 1920);
+        song.Tracks.Add(drums);
+        drums.Regenerate(song);
+
+        var program = ExportAndRead(song).GetTrackChunks().ElementAt(1).Events.OfType<ProgramChangeEvent>().Single();
+        Assert.Equal((25, 9), ((int)program.ProgramNumber, (int)program.Channel));
+
+        var withoutProgram = ExportAndRead(song, new MidiExportOptions { IncludeProgramChange = false });
+        Assert.Empty(withoutProgram.GetTrackChunks().ElementAt(1).Events.OfType<ProgramChangeEvent>());
     }
 
     [Fact]

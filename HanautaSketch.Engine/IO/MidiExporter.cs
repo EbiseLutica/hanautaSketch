@@ -79,7 +79,8 @@ public static class MidiExporter
         var notes = track.PlaybackNotes;
         var builder = new SmfTrackBuilder(notes.Count * 2 + 3);
         builder.AddText(0, SmfMeta.TrackName, track.Name, encoding);
-        if (options.IncludeProgramChange && !track.IsDrum)
+        // ドラムは Standard（0）以外のときだけキットを指定する（GM1 前提の受け手と干渉しないように）
+        if (options.IncludeProgramChange && (!track.IsDrum || track.Program != 0))
             builder.AddChannelMessage(0, SmfStatus.ProgramChange, channel, track.Program);
         if (options.IncludeControlChange)
             builder.AddChannelMessage(0, SmfStatus.ControlChange, channel, 7, track.Volume);

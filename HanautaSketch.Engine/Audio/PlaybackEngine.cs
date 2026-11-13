@@ -15,6 +15,9 @@ public sealed class PlaybackEngine
     /// <summary>入力プレビュー専用のチャンネル。曲のトラックには割り当てない</summary>
     private const int PreviewChannel = 15;
 
+    /// <summary>SF2 でドラムキットが入っているバンク</summary>
+    private const int DrumBank = 128;
+
     private readonly Synthesizer _synth;
     private readonly object _lock = new();
 
@@ -44,12 +47,19 @@ public sealed class PlaybackEngine
     /// <summary>
     /// SF2 に入っているバンク0のプリセット名（キーは音色番号 0〜127）。
     /// </summary>
-    public IReadOnlyDictionary<int, string> GetPresetNames()
+    public IReadOnlyDictionary<int, string> GetPresetNames() => GetPresetNames(0);
+
+    /// <summary>
+    /// SF2 に入っているドラムキット（バンク128）の名前（キーはキット番号 0〜127）。
+    /// </summary>
+    public IReadOnlyDictionary<int, string> GetDrumKitNames() => GetPresetNames(DrumBank);
+
+    private IReadOnlyDictionary<int, string> GetPresetNames(int bank)
     {
         lock (_lock)
         {
             return _synth.SoundFont.Presets
-                .Where(p => p.BankNumber == 0 && p.PatchNumber is >= 0 and < 128)
+                .Where(p => p.BankNumber == bank && p.PatchNumber is >= 0 and < 128)
                 .GroupBy(p => p.PatchNumber)
                 .ToDictionary(g => g.Key, g => g.First().Name.Trim());
         }
@@ -109,7 +119,7 @@ public sealed class PlaybackEngine
         {
             foreach (var (track, channel) in AssignChannels(song))
             {
-                if (!track.IsDrum) _synth.ProcessMidiMessage(channel, 0xC0, track.Program, 0);
+                _synth.ProcessMidiMessage(channel, 0xC0, track.Program, 0);
                 _synth.ProcessMidiMessage(channel, 0xB0, 7, track.Volume);
             }
 
@@ -132,7 +142,7 @@ public sealed class PlaybackEngine
         {
             StopPreviewNotes();
             var channel = isDrum ? MidiChannels.Drum : PreviewChannel;
-            if (!isDrum) _synth.ProcessMidiMessage(channel, 0xC0, program, 0);
+            _synth.ProcessMidiMessage(channel, 0xC0, program, 0);
             foreach (var (pitch, velocity) in notes)
             {
                 _synth.NoteOn(channel, pitch, velocity);
@@ -230,7 +240,8 @@ public sealed class PlaybackEngine
         var events = new List<ScheduledEvent>();
         foreach (var (track, channel) in AssignChannels(song))
         {
-            if (!track.IsDrum) events.Add(new ScheduledEvent(0, channel, 0xC0, track.Program, 0, 1));
+            // 10ch の Program Change はドラムキットの切り替え（SF2 のバンク128）
+            events.Add(new ScheduledEvent(0, channel, 0xC0, track.Program, 0, 1));
             events.Add(new ScheduledEvent(0, channel, 0xB0, 7, track.Volume, 1));
 
             foreach (var note in track.PlaybackNotes)

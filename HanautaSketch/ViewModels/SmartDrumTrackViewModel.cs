@@ -75,11 +75,21 @@ public sealed partial class SmartDrumTrackViewModel : ObservableObject
         set => UpdateSection(s => s with { Swing = value });
     }
 
-    /// <summary>スウィングの強さ（%）</summary>
+    /// <summary>
+    /// スウィングの強さ（%）。スライダーで連続して変わるので、離したときに1つの Undo ステップにまとめる。
+    /// </summary>
     public int SwingAmount
     {
         get => (int)Math.Round((Section?.SwingAmount ?? 0) * 100);
-        set => UpdateSection(s => s with { SwingAmount = Math.Clamp(value, 0, 100) / 100.0 });
+        set
+        {
+            if (Section is not { } section) return;
+            var updated = section with { SwingAmount = Math.Clamp(value, 0, 100) / 100.0 };
+            if (updated == section) return;
+
+            _owner.EditDrumTrackContinuous(_track, () => _track.ReplaceSection(section, updated));
+            _owner.SelectDrumSection(updated);
+        }
     }
 
     public bool FollowBass

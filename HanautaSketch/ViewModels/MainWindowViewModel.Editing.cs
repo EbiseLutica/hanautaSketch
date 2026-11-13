@@ -105,7 +105,12 @@ public partial class MainWindowViewModel
     /// <summary>
     /// 一連の編集が始まる直前に呼ぶ。変更前の状態を控える。
     /// </summary>
-    public void OnEditStarted() => _pendingSnapshot = TakeSnapshot();
+    public void OnEditStarted()
+    {
+        // 確定前の連続した変更があれば、別の操作として先に確定しておく
+        EndContinuousEdit();
+        _pendingSnapshot = TakeSnapshot();
+    }
 
     /// <summary>
     /// 一連の編集が終わったら呼ぶ。実際に変化していれば履歴に積む。

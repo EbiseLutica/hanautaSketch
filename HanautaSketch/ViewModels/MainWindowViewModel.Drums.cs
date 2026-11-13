@@ -98,6 +98,37 @@ public partial class MainWindowViewModel
         RegenerateSmartTracks();
     }
 
+    /// <summary>スライダーのドラッグなど、連続した変更を1つの Undo ステップにまとめている最中か</summary>
+    private bool _continuousEdit;
+
+    /// <summary>
+    /// 連続した変更（スライダーのドラッグなど）の1回分を反映する。最初の1回で Undo の起点を取り、
+    /// <see cref="EndContinuousEdit"/> で1ステップとして確定する。
+    /// </summary>
+    public void EditDrumTrackContinuous(SmartDrumTrack track, Action edit)
+    {
+        if (!_continuousEdit)
+        {
+            OnEditStarted();
+            _continuousEdit = true;
+        }
+
+        edit();
+        MarkDirty();
+        NotesRevision++;
+        RegenerateSmartTracks();
+    }
+
+    /// <summary>
+    /// 連続した変更を確定する。実際に変化していれば1ステップとして履歴に積む。
+    /// </summary>
+    public void EndContinuousEdit()
+    {
+        if (!_continuousEdit) return;
+        _continuousEdit = false;
+        OnEditCompleted();
+    }
+
     /// <summary>
     /// セクションレーンの表示を更新し、指定のセクションを選択する。
     /// </summary>

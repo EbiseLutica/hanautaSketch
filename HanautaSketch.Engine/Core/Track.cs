@@ -7,7 +7,7 @@ public abstract class Track
 {
     public string Name { get; set; } = "";
 
-    /// <summary>GM音色番号（0〜127）。ドラムトラックでは使わない</summary>
+    /// <summary>GM音色番号（0〜127）。ドラムトラックではドラムキットの番号（0 = Standard）</summary>
     public int Program { get; set; }
 
     /// <summary>トラック音量（0〜127）</summary>

@@ -68,7 +68,17 @@
                         </ComboBox.ItemTemplate>
                     </ComboBox>
                 </StackPanel>
-                <TextBlock Text="GM ドラム（10ch）" Opacity="0.7" IsVisible="{Binding IsSelectedTrackDrum}" />
+                <StackPanel Spacing="6" IsVisible="{Binding IsSelectedTrackDrum}">
+                    <ComboBox ItemsSource="{Binding DrumKits}" SelectedIndex="{Binding SelectedDrumKitIndex}"
+                              HorizontalAlignment="Stretch">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:DrumKitOption">
+                                <TextBlock Text="{Binding Label}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <TextBlock Text="ドラムキット（10ch）" Opacity="0.6" FontSize="11" />
+                </StackPanel>
                 <DockPanel>
                     <TextBlock DockPanel.Dock="Left" Text="音量" VerticalAlignment="Center" Width="40" />
                     <TextBlock DockPanel.Dock="Right" Text="{Binding SelectedTrackVolume}" VerticalAlignment="Center"
@@ -116,8 +126,8 @@
                             <TextBlock DockPanel.Dock="Left" Text="強さ" VerticalAlignment="Center" Width="40" />
                             <TextBlock DockPanel.Dock="Right" Text="{Binding SwingAmount, StringFormat={}{0}%}" VerticalAlignment="Center"
                                        Width="36" TextAlignment="Right" />
-                            <Slider Minimum="0" Maximum="100" SmallChange="1" LargeChange="10" IsSnapToTickEnabled="True"
-                                    TickFrequency="1" Value="{Binding SwingAmount}" />
+                            <Slider x:Name="SwingSlider" Minimum="0" Maximum="100" SmallChange="1" LargeChange="10"
+                                    IsSnapToTickEnabled="True" TickFrequency="1" Value="{Binding SwingAmount}" />
                         </DockPanel>
                         <CheckBox Content="キックをベースに合わせる" IsChecked="{Binding FollowBass}" />
                         <Button Content="{Binding FixLabel}" Command="{Binding ToggleFixCommand}" HorizontalAlignment="Stretch" />
