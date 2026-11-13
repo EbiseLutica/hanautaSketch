@@ -40,6 +40,7 @@ HanautaSketch/               Avalonia アプリ（UI）
 HanautaSketch.Engine/        UI 非依存のロジック。Tests に InternalsVisibleTo
   Audio/                     MeltySynth による再生エンジン（PlaybackEngine）
   Core/                      ドメインモデル（Song, Track, Note, Key）
+  Editing/                   編集の補助（Undo/Redo 履歴）
   IO/                        プロジェクトファイルの読み書き（今後 MIDI 書き出しも）
   Smart/Chords/              スマートコード（コード判別・遷移スコア）
   Smart/Rhythm/              ベースのリズム解析（コードの区切り判定、将来はドラムの FollowBass と共用）

@@ -21,6 +21,10 @@ public partial class MainWindow : Window
 
     private void OnNotesEdited(object? sender, EventArgs e) => (DataContext as MainWindowViewModel)?.OnNotesEdited();
 
+    private void OnEditStarted(object? sender, EventArgs e) => (DataContext as MainWindowViewModel)?.OnEditStarted();
+
+    private void OnEditCompleted(object? sender, EventArgs e) => (DataContext as MainWindowViewModel)?.OnEditCompleted();
+
     private void OnNotePreview(object? sender, NotePreviewEventArgs e) =>
         (DataContext as MainWindowViewModel)?.PreviewNote(e.Pitch, e.Velocity);
 }

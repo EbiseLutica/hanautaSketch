@@ -33,6 +33,8 @@ public sealed partial class PianoRollControl
     private Point _selectStart;
     private Point _selectCurrent;
     private HashSet<int> _selectionBeforeBox = [];
+    private Point _panStart;
+    private Vector _panStartOffset;
 
     private enum DragMode
     {
@@ -42,13 +44,25 @@ public sealed partial class PianoRollControl
         Select,
         Ruler,
         Keyboard,
+        Pan,
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
-        if (change.Property == TrackProperty)
+        if (change.Property == TrackProperty || change.Property == NotesRevisionProperty)
+        {
             _selection.Clear();
+            UpdateScrollExtents();
+        }
+        else if (change.Property == SongProperty)
+        {
+            UpdateScrollExtents();
+        }
+        else if (change.Property == HorizontalOffsetProperty || change.Property == VerticalOffsetProperty)
+        {
+            ClampOffsets();
+        }
     }
 
     #region マウス
@@ -60,6 +74,15 @@ public sealed partial class PianoRollControl
 
         var pos = e.GetPosition(this);
         var point = e.GetCurrentPoint(this);
+
+        if (point.Properties.IsMiddleButtonPressed)
+        {
+            // 中ボタンのドラッグでスクロール
+            _panStart = pos;
+            _panStartOffset = new Vector(HorizontalOffset, VerticalOffset);
+            BeginDrag(DragMode.Pan, e);
+            return;
+        }
 
         if (pos.Y < RulerHeight && pos.X >= KeyboardWidth)
         {
@@ -93,12 +116,25 @@ public sealed partial class PianoRollControl
 
         if (e.ClickCount == 2 && hit >= 0)
         {
+            EditStarted?.Invoke(this, EventArgs.Empty);
             DeleteNotes([hit]);
+            EditCompleted?.Invoke(this, EventArgs.Empty);
             e.Handled = true;
             return;
         }
 
         var modifiers = e.KeyModifiers;
+        if (modifiers.HasFlag(KeyModifiers.Control))
+        {
+            // Ctrl+ドラッグで矩形選択。押した位置を再生開始位置（貼り付け先）にする。Shift も押していれば既存の選択に追加
+            SetPlayStartFromX(pos.X);
+            _selectionBeforeBox = modifiers.HasFlag(KeyModifiers.Shift) ? [.. _selection] : [];
+            _selectStart = _selectCurrent = pos;
+            BeginDrag(DragMode.Select, e);
+            UpdateBoxSelection();
+            return;
+        }
+
         if (hit >= 0)
         {
             if (modifiers.HasFlag(KeyModifiers.Shift))
@@ -115,25 +151,17 @@ public sealed partial class PianoRollControl
                 _selection.Add(hit);
             }
 
+            EditStarted?.Invoke(this, EventArgs.Empty);
             BeginNoteDrag(hit, onResizeHandle ? DragMode.Resize : DragMode.Move, pos);
             StartPreview(Track.Notes[hit].Pitch);
             BeginDrag(_dragMode, e);
             return;
         }
 
-        if (modifiers.HasFlag(KeyModifiers.Control))
-        {
-            // Ctrl+ドラッグで矩形選択。Shift も押していれば既存の選択に追加
-            _selectionBeforeBox = modifiers.HasFlag(KeyModifiers.Shift) ? [.. _selection] : [];
-            _selectStart = _selectCurrent = pos;
-            BeginDrag(DragMode.Select, e);
-            UpdateBoxSelection();
-            return;
-        }
-
         // 空き領域クリックで新規配置し、そのままドラッグで移動（設定により伸縮）
         var pitch = Math.Clamp(YToPitch(pos.Y), 0, PitchCount - 1);
         var tick = SnapFloor(Math.Max(0, XToTick(pos.X)));
+        EditStarted?.Invoke(this, EventArgs.Empty);
         Track.Notes.Add(new Note(tick, _lastNoteLength, pitch, DefaultVelocity));
         var index = Track.Notes.Count - 1;
         _selection.Clear();
@@ -171,6 +199,10 @@ public sealed partial class PianoRollControl
             case DragMode.Resize:
                 DragResize(pos);
                 break;
+            case DragMode.Pan:
+                HorizontalOffset = _panStartOffset.X - (pos.X - _panStart.X);
+                VerticalOffset = _panStartOffset.Y - (pos.Y - _panStart.Y);
+                break;
         }
     }
 
@@ -181,6 +213,12 @@ public sealed partial class PianoRollControl
 
         if (_dragMode == DragMode.Resize && Track is not null && _dragAnchor >= 0 && _dragAnchor < Track.Notes.Count)
             _lastNoteLength = Track.Notes[_dragAnchor].Length;
+
+        if (_dragMode is DragMode.Move or DragMode.Resize)
+        {
+            EditCompleted?.Invoke(this, EventArgs.Empty);
+            UpdateScrollExtents();
+        }
 
         StopPreview();
         _dragMode = DragMode.None;
@@ -193,6 +231,9 @@ public sealed partial class PianoRollControl
     protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
     {
         base.OnPointerCaptureLost(e);
+        if (_dragMode is DragMode.Move or DragMode.Resize)
+            EditCompleted?.Invoke(this, EventArgs.Empty);
+
         StopPreview();
         _dragMode = DragMode.None;
         InvalidateVisual();
@@ -316,34 +357,52 @@ public sealed partial class PianoRollControl
             var anchorTick = XToTick(pos.X);
             var factor = e.Delta.Y > 0 ? 1.2 : 1 / 1.2;
             _pixelsPerBeat = Math.Clamp(_pixelsPerBeat * factor, 8, 600);
-            _scrollX = anchorTick * PixelsPerTick - (pos.X - KeyboardWidth);
+            HorizontalOffset = anchorTick * PixelsPerTick - (pos.X - KeyboardWidth);
         }
         else if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
         {
-            _scrollX -= e.Delta.Y * 80;
+            HorizontalOffset -= e.Delta.Y * 80;
         }
         else
         {
-            _scrollX -= e.Delta.X * 80;
-            _scrollY -= e.Delta.Y * NoteHeight * 3;
+            HorizontalOffset -= e.Delta.X * 80;
+            VerticalOffset -= e.Delta.Y * NoteHeight * 3;
         }
 
-        ClampScroll();
-        InvalidateVisual();
+        UpdateScrollExtents();
         e.Handled = true;
     }
 
     protected override void OnSizeChanged(SizeChangedEventArgs e)
     {
         base.OnSizeChanged(e);
-        ClampScroll();
+        UpdateScrollExtents();
     }
 
-    private void ClampScroll()
+    /// <summary>
+    /// スクロールバー用の最大値・表示幅を更新する。横は「最後のノート＋余白の小節」までスクロールできる。
+    /// </summary>
+    private void UpdateScrollExtents()
     {
-        var maxY = Math.Max(0, PitchCount * NoteHeight - EditArea.Height);
-        _scrollY = Math.Clamp(_scrollY, 0, maxY);
-        _scrollX = Math.Max(0, _scrollX);
+        var area = EditArea;
+        var lastTick = Song?.Tracks.OfType<NoteTrack>().SelectMany(t => t.Notes).Select(n => n.EndTick)
+            .DefaultIfEmpty(0).Max() ?? 0;
+        var contentTicks = lastTick + TicksPerBar * TrailingBars;
+
+        HorizontalViewport = area.Width;
+        VerticalViewport = area.Height;
+        HorizontalMaximum = Math.Max(0, contentTicks * PixelsPerTick - area.Width);
+        VerticalMaximum = Math.Max(0, PitchCount * NoteHeight - area.Height);
+        ClampOffsets();
+        InvalidateVisual();
+    }
+
+    private void ClampOffsets()
+    {
+        // ズーム直後などは横の最大値より先にいることがあるので、横は最大値で切らず 0 未満だけ防ぐ
+        if (HorizontalOffset < 0) HorizontalOffset = 0;
+        if (VerticalOffset < 0) VerticalOffset = 0;
+        else if (VerticalMaximum > 0 && VerticalOffset > VerticalMaximum) VerticalOffset = VerticalMaximum;
     }
 
     #endregion
@@ -359,7 +418,9 @@ public sealed partial class PianoRollControl
         switch (e.Key)
         {
             case AvaloniaKey.Delete or AvaloniaKey.Back:
+                EditStarted?.Invoke(this, EventArgs.Empty);
                 DeleteNotes(_selection.ToList());
+                EditCompleted?.Invoke(this, EventArgs.Empty);
                 break;
             case AvaloniaKey.Escape:
                 _selection.Clear();
@@ -375,10 +436,15 @@ public sealed partial class PianoRollControl
                 break;
             case AvaloniaKey.X when ctrl:
                 CopySelection();
+                EditStarted?.Invoke(this, EventArgs.Empty);
                 DeleteNotes(_selection.ToList());
+                EditCompleted?.Invoke(this, EventArgs.Empty);
                 break;
             case AvaloniaKey.V when ctrl:
+                EditStarted?.Invoke(this, EventArgs.Empty);
                 Paste();
+                EditCompleted?.Invoke(this, EventArgs.Empty);
+                UpdateScrollExtents();
                 break;
             default:
                 return;

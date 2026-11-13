@@ -144,6 +144,9 @@ public partial class MainWindowViewModel
             Mode = document.Song.Key.Mode;
             MinorDominant = document.MinorDominant;
             UseMelodyForChords = document.UseMelodyForChords;
+            PlayStartTick = 0;
+            ClearHistory();
+            NotesRevision++;
             RecomputeChords();
         }
         finally

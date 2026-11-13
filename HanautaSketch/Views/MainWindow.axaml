@@ -9,16 +9,33 @@
         Width="1280" Height="800">
     <Window.KeyBindings>
         <KeyBinding Gesture="Space" Command="{Binding TogglePlaybackCommand}" />
+        <KeyBinding Gesture="Ctrl+N" Command="{Binding NewCommand}" />
         <KeyBinding Gesture="Ctrl+O" Command="{Binding OpenCommand}" />
         <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCommand}" />
         <KeyBinding Gesture="Ctrl+Shift+S" Command="{Binding SaveAsCommand}" />
+        <KeyBinding Gesture="Ctrl+Z" Command="{Binding UndoCommand}" />
+        <KeyBinding Gesture="Ctrl+Y" Command="{Binding RedoCommand}" />
+        <KeyBinding Gesture="Ctrl+Shift+Z" Command="{Binding RedoCommand}" />
     </Window.KeyBindings>
     <DockPanel>
+        <!-- メニューバー -->
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="ファイル(_F)">
+                <MenuItem Header="新規作成(_N)" Command="{Binding NewCommand}" InputGesture="Ctrl+N" />
+                <MenuItem Header="開く(_O)..." Command="{Binding OpenCommand}" InputGesture="Ctrl+O" />
+                <Separator />
+                <MenuItem Header="上書き保存(_S)" Command="{Binding SaveCommand}" InputGesture="Ctrl+S" />
+                <MenuItem Header="名前を付けて保存(_A)..." Command="{Binding SaveAsCommand}" InputGesture="Ctrl+Shift+S" />
+            </MenuItem>
+            <MenuItem Header="編集(_E)">
+                <MenuItem Header="元に戻す(_U)" Command="{Binding UndoCommand}" InputGesture="Ctrl+Z" />
+                <MenuItem Header="やり直し(_R)" Command="{Binding RedoCommand}" InputGesture="Ctrl+Y" />
+            </MenuItem>
+        </Menu>
+
         <!-- ツールバー -->
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="8">
-            <Button Content="開く" Command="{Binding OpenCommand}" ToolTip.Tip="Ctrl+O" />
-            <Button Content="保存" Command="{Binding SaveCommand}" ToolTip.Tip="Ctrl+S（Ctrl+Shift+S で名前を付けて保存）" />
-            <ToggleButton Content="▶ 再生" Command="{Binding TogglePlaybackCommand}" IsChecked="{Binding IsPlaying, Mode=OneWay}" Width="80" Margin="16,0,0,0" />
+            <ToggleButton Content="▶ 再生" Command="{Binding TogglePlaybackCommand}" IsChecked="{Binding IsPlaying, Mode=OneWay}" Width="80" />
             <TextBlock Text="BPM" VerticalAlignment="Center" Margin="8,0,0,0" />
             <NumericUpDown Value="{Binding Bpm}" Minimum="20" Maximum="400" Increment="1" FormatString="0" Width="110" />
             <TextBlock Text="Key" VerticalAlignment="Center" Margin="16,0,0,0" />
@@ -47,14 +64,33 @@
             </ListBox.ItemTemplate>
         </ListBox>
 
-        <c:PianoRollControl Song="{Binding Song}"
-                            Track="{Binding SelectedTrack}"
-                            Key="{Binding Key}"
-                            SnapTicks="{Binding SelectedSnap.Ticks}"
-                            Chords="{Binding Chords}"
-                            PlayheadTick="{Binding PlayheadTick}"
-                            PlayStartTick="{Binding PlayStartTick}"
-                            NotesEdited="OnNotesEdited"
-                            NotePreview="OnNotePreview" />
+        <!-- ピアノロール＋スクロールバー -->
+        <Grid ColumnDefinitions="*,Auto" RowDefinitions="*,Auto">
+            <c:PianoRollControl x:Name="Roll"
+                                Song="{Binding Song}"
+                                Track="{Binding SelectedTrack}"
+                                Key="{Binding Key}"
+                                SnapTicks="{Binding SelectedSnap.Ticks}"
+                                Chords="{Binding Chords}"
+                                PlayheadTick="{Binding PlayheadTick}"
+                                PlayStartTick="{Binding PlayStartTick}"
+                                NotesRevision="{Binding NotesRevision}"
+                                NotesEdited="OnNotesEdited"
+                                NotePreview="OnNotePreview"
+                                EditStarted="OnEditStarted"
+                                EditCompleted="OnEditCompleted" />
+            <ScrollBar Grid.Column="1" Orientation="Vertical" AllowAutoHide="False"
+                       Minimum="0"
+                       Maximum="{Binding #Roll.VerticalMaximum}"
+                       ViewportSize="{Binding #Roll.VerticalViewport}"
+                       Value="{Binding #Roll.VerticalOffset, Mode=TwoWay}"
+                       SmallChange="12" LargeChange="120" />
+            <ScrollBar Grid.Row="1" Orientation="Horizontal" AllowAutoHide="False"
+                       Minimum="0"
+                       Maximum="{Binding #Roll.HorizontalMaximum}"
+                       ViewportSize="{Binding #Roll.HorizontalViewport}"
+                       Value="{Binding #Roll.HorizontalOffset, Mode=TwoWay}"
+                       SmallChange="40" LargeChange="320" />
+        </Grid>
     </DockPanel>
 </Window>

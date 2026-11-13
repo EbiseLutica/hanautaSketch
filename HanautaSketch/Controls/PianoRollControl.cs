@@ -41,6 +41,29 @@ public sealed partial class PianoRollControl : Control
         AvaloniaProperty.Register<PianoRollControl, int>(nameof(PlayStartTick),
             defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
 
+    public static readonly StyledProperty<int> NotesRevisionProperty =
+        AvaloniaProperty.Register<PianoRollControl, int>(nameof(NotesRevision));
+
+    public static readonly StyledProperty<double> HorizontalOffsetProperty =
+        AvaloniaProperty.Register<PianoRollControl, double>(nameof(HorizontalOffset),
+            defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
+
+    public static readonly StyledProperty<double> VerticalOffsetProperty =
+        AvaloniaProperty.Register<PianoRollControl, double>(nameof(VerticalOffset), (PitchCount - 1 - 84) * NoteHeight,
+            defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
+
+    public static readonly StyledProperty<double> HorizontalMaximumProperty =
+        AvaloniaProperty.Register<PianoRollControl, double>(nameof(HorizontalMaximum));
+
+    public static readonly StyledProperty<double> VerticalMaximumProperty =
+        AvaloniaProperty.Register<PianoRollControl, double>(nameof(VerticalMaximum));
+
+    public static readonly StyledProperty<double> HorizontalViewportProperty =
+        AvaloniaProperty.Register<PianoRollControl, double>(nameof(HorizontalViewport));
+
+    public static readonly StyledProperty<double> VerticalViewportProperty =
+        AvaloniaProperty.Register<PianoRollControl, double>(nameof(VerticalViewport));
+
     private const double KeyboardWidth = 56;
     private const double RulerHeight = 22;
     private const double ChordLaneHeight = 22;
@@ -48,15 +71,17 @@ public sealed partial class PianoRollControl : Control
     private const double NoteHeight = 12;
     private const int PitchCount = 128;
 
+    /// <summary>最後のノートの後ろに確保するスクロール余白（小節数）</summary>
+    private const int TrailingBars = 8;
+
     private PianoRollPalette _palette = PianoRollPalette.Light;
-    private double _scrollX;
-    private double _scrollY = (PitchCount - 1 - 84) * NoteHeight;
     private double _pixelsPerBeat = 80;
 
     static PianoRollControl()
     {
         AffectsRender<PianoRollControl>(SongProperty, TrackProperty, KeyProperty, SnapTicksProperty, ChordsProperty,
-            PlayheadTickProperty, PlayStartTickProperty);
+            PlayheadTickProperty, PlayStartTickProperty, NotesRevisionProperty, HorizontalOffsetProperty,
+            VerticalOffsetProperty);
         FocusableProperty.OverrideDefaultValue<PianoRollControl>(true);
         ClipToBoundsProperty.OverrideDefaultValue<PianoRollControl>(true);
     }
@@ -73,6 +98,57 @@ public sealed partial class PianoRollControl : Control
     {
         get => GetValue(PlayStartTickProperty);
         set => SetValue(PlayStartTickProperty, value);
+    }
+
+    /// <summary>
+    /// 外部（Undo・読み込みなど）でノーツを差し替えたときに増やす。選択を解除して描き直す
+    /// </summary>
+    public int NotesRevision
+    {
+        get => GetValue(NotesRevisionProperty);
+        set => SetValue(NotesRevisionProperty, value);
+    }
+
+    /// <summary>横スクロール位置（px）。スクロールバーと双方向に連動する</summary>
+    public double HorizontalOffset
+    {
+        get => GetValue(HorizontalOffsetProperty);
+        set => SetValue(HorizontalOffsetProperty, value);
+    }
+
+    /// <summary>縦スクロール位置（px）。スクロールバーと双方向に連動する</summary>
+    public double VerticalOffset
+    {
+        get => GetValue(VerticalOffsetProperty);
+        set => SetValue(VerticalOffsetProperty, value);
+    }
+
+    /// <summary>横スクロールの最大値（スクロールバー用、内部で更新する）</summary>
+    public double HorizontalMaximum
+    {
+        get => GetValue(HorizontalMaximumProperty);
+        private set => SetValue(HorizontalMaximumProperty, value);
+    }
+
+    /// <summary>縦スクロールの最大値（スクロールバー用、内部で更新する）</summary>
+    public double VerticalMaximum
+    {
+        get => GetValue(VerticalMaximumProperty);
+        private set => SetValue(VerticalMaximumProperty, value);
+    }
+
+    /// <summary>横方向の表示幅（スクロールバーのつまみの大きさ）</summary>
+    public double HorizontalViewport
+    {
+        get => GetValue(HorizontalViewportProperty);
+        private set => SetValue(HorizontalViewportProperty, value);
+    }
+
+    /// <summary>縦方向の表示高さ（スクロールバーのつまみの大きさ）</summary>
+    public double VerticalViewport
+    {
+        get => GetValue(VerticalViewportProperty);
+        private set => SetValue(VerticalViewportProperty, value);
     }
 
     /// <summary>空き領域を押したまま動かしたときの挙動</summary>
@@ -94,6 +170,12 @@ public sealed partial class PianoRollControl : Control
 
     /// <summary>入力中の確認音を鳴らす・止めるときに発生する</summary>
     public event EventHandler<NotePreviewEventArgs>? NotePreview;
+
+    /// <summary>一連の編集（ドラッグ・削除・貼り付けなど）を始める直前に発生する。Undo の区切りに使う</summary>
+    public event EventHandler? EditStarted;
+
+    /// <summary>一連の編集が終わったときに発生する</summary>
+    public event EventHandler? EditCompleted;
 
     public PianoRollControl()
     {
@@ -135,13 +217,13 @@ public sealed partial class PianoRollControl : Control
 
     #region 座標変換
 
-    private double TickToX(double tick) => KeyboardWidth + tick * PixelsPerTick - _scrollX;
+    private double TickToX(double tick) => KeyboardWidth + tick * PixelsPerTick - HorizontalOffset;
 
-    private double XToTick(double x) => (x - KeyboardWidth + _scrollX) / PixelsPerTick;
+    private double XToTick(double x) => (x - KeyboardWidth + HorizontalOffset) / PixelsPerTick;
 
-    private double PitchToY(int pitch) => HeaderHeight + (PitchCount - 1 - pitch) * NoteHeight - _scrollY;
+    private double PitchToY(int pitch) => HeaderHeight + (PitchCount - 1 - pitch) * NoteHeight - VerticalOffset;
 
-    private int YToPitch(double y) => PitchCount - 1 - (int)Math.Floor((y - HeaderHeight + _scrollY) / NoteHeight);
+    private int YToPitch(double y) => PitchCount - 1 - (int)Math.Floor((y - HeaderHeight + VerticalOffset) / NoteHeight);
 
     private Rect NoteRect(Note note) =>
         new(TickToX(note.Tick), PitchToY(note.Pitch), Math.Max(2, note.Length * PixelsPerTick), NoteHeight);
