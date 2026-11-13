@@ -484,3 +484,5 @@ $RECYCLE.BIN/
 # SoundFonts (large binaries, not committed)
 *.sf2
 
+# 作業用
+sketches/
