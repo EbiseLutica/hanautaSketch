@@ -106,6 +106,34 @@ public partial class MainWindowViewModel
         }
     }
 
+    /// <summary>
+    /// 曲を MIDI ファイルに書き出す。既定のファイル名はプロジェクト名。
+    /// </summary>
+    [RelayCommand]
+    private async Task ExportMidiAsync()
+    {
+        if (FileDialog is null) return;
+
+        var baseName = _currentFile is null ? UntitledName : Path.GetFileNameWithoutExtension(_currentFile.Name);
+        var file = await FileDialog.PickMidiExportAsync(baseName + MidiExporter.FileExtension);
+        if (file is null) return;
+
+        try
+        {
+            RegenerateSmartTracks();
+            await using (var stream = await file.OpenWriteAsync())
+            {
+                MidiExporter.Export(Song, stream);
+                if (stream.CanSeek) stream.SetLength(stream.Position);
+            }
+            Message = $"{file.Name} に書き出した";
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Message = $"書き出せなかった: {ex.Message}";
+        }
+    }
+
     private void SetCurrentFile(IStorageFile file)
     {
         _currentFile = file;

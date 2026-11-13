@@ -14,6 +14,9 @@ public interface IProjectFileDialog
 
     /// <summary>保存先を選ぶ。キャンセルなら null</summary>
     Task<IStorageFile?> PickSaveAsync(string suggestedName);
+
+    /// <summary>MIDI の書き出し先を選ぶ。キャンセルなら null</summary>
+    Task<IStorageFile?> PickMidiExportAsync(string suggestedName);
 }
 
 /// <summary>
@@ -24,6 +27,11 @@ public sealed class StorageProjectFileDialog(TopLevel topLevel) : IProjectFileDi
     private static readonly FilePickerFileType ProjectFileType = new("hanautaSketch プロジェクト")
     {
         Patterns = [$"*{ProjectSerializer.FileExtension}"],
+    };
+
+    private static readonly FilePickerFileType MidiFileType = new("Standard MIDI File")
+    {
+        Patterns = [$"*{MidiExporter.FileExtension}"],
     };
 
     public async Task<IStorageFile?> PickOpenAsync()
@@ -44,6 +52,16 @@ public sealed class StorageProjectFileDialog(TopLevel topLevel) : IProjectFileDi
             SuggestedFileName = suggestedName,
             DefaultExtension = ProjectSerializer.FileExtension.TrimStart('.'),
             FileTypeChoices = [ProjectFileType],
+            ShowOverwritePrompt = true,
+        });
+
+    public Task<IStorageFile?> PickMidiExportAsync(string suggestedName) =>
+        topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "MIDI 書き出し",
+            SuggestedFileName = suggestedName,
+            DefaultExtension = MidiExporter.FileExtension.TrimStart('.'),
+            FileTypeChoices = [MidiFileType],
             ShowOverwritePrompt = true,
         });
 }

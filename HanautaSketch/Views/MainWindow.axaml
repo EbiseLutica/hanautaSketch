@@ -14,6 +14,7 @@
         <KeyBinding Gesture="Ctrl+O" Command="{Binding OpenCommand}" />
         <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCommand}" />
         <KeyBinding Gesture="Ctrl+Shift+S" Command="{Binding SaveAsCommand}" />
+        <KeyBinding Gesture="Ctrl+E" Command="{Binding ExportMidiCommand}" />
         <KeyBinding Gesture="Ctrl+Z" Command="{Binding UndoCommand}" />
         <KeyBinding Gesture="Ctrl+Y" Command="{Binding RedoCommand}" />
         <KeyBinding Gesture="Ctrl+Shift+Z" Command="{Binding RedoCommand}" />
@@ -27,6 +28,8 @@
                 <Separator />
                 <MenuItem Header="上書き保存(_S)" Command="{Binding SaveCommand}" InputGesture="Ctrl+S" />
                 <MenuItem Header="名前を付けて保存(_A)..." Command="{Binding SaveAsCommand}" InputGesture="Ctrl+Shift+S" />
+                <Separator />
+                <MenuItem Header="MIDI 書き出し(_E)..." Command="{Binding ExportMidiCommand}" InputGesture="Ctrl+E" />
             </MenuItem>
             <MenuItem Header="編集(_E)">
                 <MenuItem Header="元に戻す(_U)" Command="{Binding UndoCommand}" InputGesture="Ctrl+Z" />
