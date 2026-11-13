@@ -58,7 +58,7 @@
                 <TextBlock Text="音色" />
                 <ComboBox ItemsSource="{Binding ProgramCategories}" SelectedIndex="{Binding SelectedProgramCategory}"
                           HorizontalAlignment="Stretch" />
-                <ComboBox ItemsSource="{Binding ProgramsInCategory}" SelectedItem="{Binding SelectedProgram}"
+                <ComboBox ItemsSource="{Binding ProgramsInCategory}" SelectedIndex="{Binding SelectedProgramIndex}"
                           HorizontalAlignment="Stretch" />
                 <DockPanel>
                     <TextBlock DockPanel.Dock="Left" Text="音量" VerticalAlignment="Center" Width="40" />

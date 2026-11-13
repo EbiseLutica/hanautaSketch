@@ -16,8 +16,11 @@ public sealed record ProgramOption(int Program, string Name)
 /// </summary>
 public partial class MainWindowViewModel
 {
-    /// <summary>音色名（キーは音色番号）。SF2 の読み込み後にプリセット名で上書きする</summary>
-    private readonly string[] _programNames = [.. GeneralMidi.ProgramNames];
+    /// <summary>
+    /// カテゴリごとの音色の選択肢。同じカテゴリでは同じリストを返し続け、選択のたびに一覧を差し替えない。
+    /// SF2 の読み込み後にプリセット名で作り直す。
+    /// </summary>
+    private IReadOnlyList<ProgramOption>[] _programsByCategory = BuildProgramOptions(GeneralMidi.ProgramNames);
 
     /// <summary>トラック一覧の行。Tracks と同じ並び</summary>
     public ObservableCollection<TrackItemViewModel> TrackItems { get; } = [];
@@ -39,22 +42,19 @@ public partial class MainWindowViewModel
     }
 
     /// <summary>選択中のカテゴリに含まれる音色</summary>
-    public IReadOnlyList<ProgramOption> ProgramsInCategory
-    {
-        get
-        {
-            var first = SelectedProgramCategory * GeneralMidi.ProgramsPerCategory;
-            return Enumerable.Range(first, GeneralMidi.ProgramsPerCategory)
-                .Select(p => new ProgramOption(p, _programNames[p])).ToList();
-        }
-    }
+    public IReadOnlyList<ProgramOption> ProgramsInCategory => _programsByCategory[SelectedProgramCategory];
 
-    public ProgramOption? SelectedProgram
+    /// <summary>
+    /// 選択中の音色の、カテゴリ内での位置（0〜7）。
+    /// ComboBox とは番号で結ぶ。オブジェクトで結ぶと、一覧の作り直しで選択が外れて null が書き戻されるため。
+    /// </summary>
+    public int SelectedProgramIndex
     {
-        get => SelectedTrack is { } t ? new ProgramOption(t.Program, _programNames[t.Program]) : null;
+        get => (SelectedTrack?.Program ?? 0) % GeneralMidi.ProgramsPerCategory;
         set
         {
-            if (value is not null) SetSelectedTrackProgram(value.Program);
+            if (value < 0 || value >= GeneralMidi.ProgramsPerCategory) return;
+            SetSelectedTrackProgram(SelectedProgramCategory * GeneralMidi.ProgramsPerCategory + value);
         }
     }
 
@@ -112,7 +112,7 @@ public partial class MainWindowViewModel
     {
         OnPropertyChanged(nameof(SelectedProgramCategory));
         OnPropertyChanged(nameof(ProgramsInCategory));
-        OnPropertyChanged(nameof(SelectedProgram));
+        OnPropertyChanged(nameof(SelectedProgramIndex));
     }
 
     /// <summary>
@@ -120,12 +120,21 @@ public partial class MainWindowViewModel
     /// </summary>
     private void ApplyPresetNames(IReadOnlyDictionary<int, string> presetNames)
     {
+        string[] names = [.. GeneralMidi.ProgramNames];
         foreach (var (program, name) in presetNames)
         {
-            if (!string.IsNullOrWhiteSpace(name)) _programNames[program] = name;
+            if (!string.IsNullOrWhiteSpace(name)) names[program] = name;
         }
+        _programsByCategory = BuildProgramOptions(names);
         NotifyProgramChanged();
     }
+
+    private static IReadOnlyList<ProgramOption>[] BuildProgramOptions(IReadOnlyList<string> names) =>
+        Enumerable.Range(0, GeneralMidi.Categories.Count)
+            .Select(category => (IReadOnlyList<ProgramOption>)Enumerable
+                .Range(category * GeneralMidi.ProgramsPerCategory, GeneralMidi.ProgramsPerCategory)
+                .Select(p => new ProgramOption(p, names[p])).ToList())
+            .ToArray();
 
     /// <summary>
     /// 音色・音量・ミュート・ソロが変わったときに呼ぶ。再生中ならすぐ反映する。
