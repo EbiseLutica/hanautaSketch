@@ -29,7 +29,8 @@ public sealed partial class PianoRollControl
     private int _dragAnchor = -1;
     private double _dragTickOffset;
     private Dictionary<int, Note> _dragOrigins = [];
-    private int? _previewPitch;
+    /// <summary>鳴らしているプレビュー音。同じ組み合わせなら鳴らし直さない</summary>
+    private (int Pitch, int Velocity)[] _previewNotes = [];
     private Point _selectStart;
     private Point _selectCurrent;
     private HashSet<int> _selectionBeforeBox = [];
@@ -45,6 +46,8 @@ public sealed partial class PianoRollControl
         Ruler,
         Keyboard,
         Pan,
+        Velocity,
+        VelocityResize,
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -83,6 +86,8 @@ public sealed partial class PianoRollControl
             BeginDrag(DragMode.Pan, e);
             return;
         }
+
+        if (TryBeginVelocityInput(e, pos, point)) return;
 
         if (pos.Y >= RulerHeight && pos.Y < HeaderHeight && pos.X >= KeyboardWidth)
         {
@@ -194,6 +199,12 @@ public sealed partial class PianoRollControl
             case DragMode.None:
                 UpdateHoverCursor(pos);
                 break;
+            case DragMode.Velocity:
+                ContinueVelocityStroke(pos);
+                break;
+            case DragMode.VelocityResize:
+                ResizeVelocityLane(pos);
+                break;
             case DragMode.Ruler:
                 SetPlayStartFromX(pos.X);
                 break;
@@ -225,7 +236,7 @@ public sealed partial class PianoRollControl
         if (_dragMode == DragMode.Resize && EditTrack is not null && _dragAnchor >= 0 && _dragAnchor < EditTrack.Notes.Count)
             _lastNoteLength = EditTrack.Notes[_dragAnchor].Length;
 
-        if (_dragMode is DragMode.Move or DragMode.Resize)
+        if (_dragMode is DragMode.Move or DragMode.Resize or DragMode.Velocity)
         {
             EditCompleted?.Invoke(this, EventArgs.Empty);
             UpdateScrollExtents();
@@ -242,7 +253,7 @@ public sealed partial class PianoRollControl
     protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
     {
         base.OnPointerCaptureLost(e);
-        if (_dragMode is DragMode.Move or DragMode.Resize)
+        if (_dragMode is DragMode.Move or DragMode.Resize or DragMode.Velocity)
             EditCompleted?.Invoke(this, EventArgs.Empty);
 
         StopPreview();
@@ -326,6 +337,12 @@ public sealed partial class PianoRollControl
 
     private void UpdateHoverCursor(Point pos)
     {
+        if (SplitterRect.Contains(pos))
+        {
+            Cursor = SplitterCursor;
+            return;
+        }
+
         var hit = HitTest(pos, out var onResizeHandle);
         Cursor = hit < 0 ? Cursor.Default : onResizeHandle ? ResizeCursor : MoveCursor;
     }
@@ -514,33 +531,36 @@ public sealed partial class PianoRollControl
     }
 
     /// <summary>
-    /// 確認音を鳴らす。同じ音高が鳴っていれば何もしない。
+    /// 確認音を1音鳴らす。同じ音高が鳴っていれば何もしない。
     /// </summary>
-    private void StartPreview(int pitch)
+    private void StartPreview(int pitch) => StartPreview([(pitch, DefaultVelocity)]);
+
+    /// <summary>
+    /// 確認音（和音も可）を鳴らす。同じ組み合わせが鳴っていれば何もしない。
+    /// </summary>
+    private void StartPreview((int Pitch, int Velocity)[] notes)
     {
-        if (_previewPitch == pitch) return;
-        _previewPitch = pitch;
-        NotePreview?.Invoke(this, new NotePreviewEventArgs(pitch, DefaultVelocity));
+        if (notes.AsSpan().SequenceEqual(_previewNotes)) return;
+        _previewNotes = notes;
+        NotePreview?.Invoke(this, new NotePreviewEventArgs(notes));
     }
 
     private void StopPreview()
     {
-        if (_previewPitch is null) return;
-        _previewPitch = null;
-        NotePreview?.Invoke(this, new NotePreviewEventArgs(null, 0));
+        if (_previewNotes.Length == 0) return;
+        _previewNotes = [];
+        NotePreview?.Invoke(this, new NotePreviewEventArgs([]));
     }
 
     #endregion
 }
 
 /// <summary>
-/// 確認音の発音・停止の通知。Pitch が null なら停止。
+/// 確認音の発音・停止の通知。Notes が空なら停止。
 /// </summary>
-public sealed class NotePreviewEventArgs(int? pitch, int velocity) : EventArgs
+public sealed class NotePreviewEventArgs(IReadOnlyList<(int Pitch, int Velocity)> notes) : EventArgs
 {
-    public int? Pitch { get; } = pitch;
-
-    public int Velocity { get; } = velocity;
+    public IReadOnlyList<(int Pitch, int Velocity)> Notes { get; } = notes;
 }
 
 /// <summary>

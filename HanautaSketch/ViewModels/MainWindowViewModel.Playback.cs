@@ -103,13 +103,13 @@ public partial class MainWindowViewModel
     }
 
     /// <summary>
-    /// 入力中の確認音。選択中トラックの音色で鳴らす。Pitch が null なら止める。
+    /// 入力中の確認音。選択中トラックの音色で鳴らす。空なら止める。
     /// </summary>
-    public void PreviewNote(int? pitch, int velocity)
+    public void PreviewNotes(IReadOnlyList<(int Pitch, int Velocity)> notes)
     {
         if (_audio is null) return;
-        if (pitch is { } p)
-            _audio.Engine.PreviewNoteOn(SelectedTrack?.Program ?? 0, p, velocity);
+        if (notes.Count > 0)
+            _audio.Engine.PreviewNotesOn(SelectedTrack?.Program ?? 0, notes);
         else
             _audio.Engine.PreviewNoteOff();
     }

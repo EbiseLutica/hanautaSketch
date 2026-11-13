@@ -219,8 +219,10 @@ public sealed partial class PianoRollControl : Control
 
     private double PixelsPerTick => _pixelsPerBeat / Ppq;
 
+    /// <summary>ノート編集領域。下にベロシティレーン（と境界）を空ける</summary>
     private Rect EditArea => new(KeyboardWidth, HeaderHeight,
-        Math.Max(0, Bounds.Width - KeyboardWidth), Math.Max(0, Bounds.Height - HeaderHeight));
+        Math.Max(0, Bounds.Width - KeyboardWidth),
+        Math.Max(0, Bounds.Height - HeaderHeight - VelocityLaneHeight - SplitterHeight));
 
     #region 座標変換
 
@@ -286,6 +288,8 @@ public sealed partial class PianoRollControl : Control
         }
 
         context.FillRectangle(_palette.Ruler, new Rect(0, 0, KeyboardWidth, HeaderHeight));
+
+        RenderVelocityLane(context);
     }
 
     /// <summary>

@@ -122,15 +122,16 @@ public sealed class PlaybackEngine
     }
 
     /// <summary>
-    /// 入力中の確認用に1音鳴らす。前のプレビュー音は止める。再生とは別のチャンネルを使う。
+    /// 入力中の確認用に音（和音も可）を鳴らす。前のプレビュー音は止める。再生とは別のチャンネルを使う。
     /// </summary>
-    public void PreviewNoteOn(int program, int pitch, int velocity)
+    public void PreviewNotesOn(int program, IEnumerable<(int Pitch, int Velocity)> notes)
     {
         lock (_lock)
         {
             _synth.NoteOffAll(PreviewChannel, false);
             _synth.ProcessMidiMessage(PreviewChannel, 0xC0, program, 0);
-            _synth.NoteOn(PreviewChannel, pitch, velocity);
+            foreach (var (pitch, velocity) in notes)
+                _synth.NoteOn(PreviewChannel, pitch, velocity);
         }
     }
 

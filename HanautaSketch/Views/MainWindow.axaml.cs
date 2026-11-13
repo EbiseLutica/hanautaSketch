@@ -74,7 +74,7 @@ public partial class MainWindow : Window
 
     private void OnEditCompleted(object? sender, EventArgs e) => ViewModel?.OnEditCompleted();
 
-    private void OnNotePreview(object? sender, NotePreviewEventArgs e) => ViewModel?.PreviewNote(e.Pitch, e.Velocity);
+    private void OnNotePreview(object? sender, NotePreviewEventArgs e) => ViewModel?.PreviewNotes(e.Notes);
 
     /// <summary>
     /// コードレーンのクリックで、候補コード・確定・自動に戻す のメニューをカーソル位置に出す。
