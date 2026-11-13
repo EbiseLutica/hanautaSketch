@@ -15,6 +15,7 @@
 - テスト：xUnit
 - 再生：MeltySynth（SF2）でシンセを鳴らし、NAudio 2.2.1（WASAPI 共有モード）で出力する。MeltySynth とシーケンサーは Engine（`PlaybackEngine`）、OS 依存の出力は App（`AudioOutput`）に置く
   - 音源は `HanautaSketch/SoundFonts/*.sf2` に置く（GM 互換の SGM-V2.01 を想定）。サイズが大きいので git 管理外（`.gitignore` で `*.sf2` を除外）。ビルド時に出力先へコピーされる
+- 保存形式：独自 JSON（`.hsk`、`ProjectSerializer`）。ファイル上の形式は DTO で固定し、`version` で互換性を管理する。ファイルダイアログは `IProjectFileDialog` 経由で VM から使う
 - 採用予定：MIDI 入出力は DryWetMIDI
 
 ### ドメインモデルの約束事
@@ -32,15 +33,16 @@ HanautaSketch.slnx
 HanautaSketch/               Avalonia アプリ（UI）
   Audio/                     WASAPI 出力（AudioOutput）
   Controls/                  自前描画のカスタムコントロール（PianoRollControl など）
+  Services/                  View 依存の処理を VM から使うための窓口（ファイルダイアログなど）
   SoundFonts/                SF2 置き場（git 管理外）
   ViewModels/
   Views/
 HanautaSketch.Engine/        UI 非依存のロジック。Tests に InternalsVisibleTo
   Audio/                     MeltySynth による再生エンジン（PlaybackEngine）
   Core/                      ドメインモデル（Song, Track, Note, Key）
+  IO/                        プロジェクトファイルの読み書き（今後 MIDI 書き出しも）
   Smart/Chords/              スマートコード（コード判別・遷移スコア）
   Smart/Rhythm/              ベースのリズム解析（コードの区切り判定、将来はドラムの FollowBass と共用）
-  （予定）IO/                MIDI・プロジェクトの入出力
 HanautaSketch.Tests/         Engine のテスト
 ```
 

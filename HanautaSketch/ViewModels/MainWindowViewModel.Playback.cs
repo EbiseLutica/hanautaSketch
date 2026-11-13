@@ -36,6 +36,7 @@ public partial class MainWindowViewModel
         {
             if (Math.Abs(Song.Bpm - value) < 0.001) return;
             Song.Bpm = Math.Clamp(value, 20, 400);
+            MarkDirty();
             OnPropertyChanged();
         }
     }

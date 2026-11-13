@@ -27,6 +27,7 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         _selectedSnap = SnapOptions[2];
         UpdateKey();
         InitializePlayback();
+        IsDirty = false;
     }
 
     public Song Song { get; } = new();
@@ -75,14 +76,32 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
 
     partial void OnModeChanged(Mode value) => UpdateKey();
 
-    partial void OnMinorDominantChanged(MinorDominantMode value) => RecomputeChords();
+    partial void OnMinorDominantChanged(MinorDominantMode value)
+    {
+        MarkDirty();
+        RecomputeChords();
+    }
 
-    partial void OnUseMelodyForChordsChanged(bool value) => RecomputeChords();
+    partial void OnUseMelodyForChordsChanged(bool value)
+    {
+        MarkDirty();
+        RecomputeChords();
+    }
 
     private void UpdateKey()
     {
         Key = new Key(Tonic, Mode);
         Song.Key = Key;
+        MarkDirty();
+        RecomputeChords();
+    }
+
+    /// <summary>
+    /// ピアノロールでノーツが編集されたときに呼ぶ。
+    /// </summary>
+    public void OnNotesEdited()
+    {
+        MarkDirty();
         RecomputeChords();
     }
 

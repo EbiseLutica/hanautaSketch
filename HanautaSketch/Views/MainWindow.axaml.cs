@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using HanautaSketch.Services;
 using HanautaSketch.ViewModels;
 
 namespace HanautaSketch.Views;
@@ -10,5 +11,12 @@ public partial class MainWindow : Window
         InitializeComponent();
     }
 
-    private void OnNotesEdited(object? sender, EventArgs e) => (DataContext as MainWindowViewModel)?.RecomputeChords();
+    protected override void OnDataContextChanged(EventArgs e)
+    {
+        base.OnDataContextChanged(e);
+        if (DataContext is MainWindowViewModel vm)
+            vm.FileDialog = new StorageProjectFileDialog(this);
+    }
+
+    private void OnNotesEdited(object? sender, EventArgs e) => (DataContext as MainWindowViewModel)?.OnNotesEdited();
 }

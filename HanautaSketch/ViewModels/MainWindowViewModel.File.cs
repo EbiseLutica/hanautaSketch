@@ -1,0 +1,154 @@
+using Avalonia.Platform.Storage;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using HanautaSketch.Engine.Core;
+using HanautaSketch.Engine.IO;
+using HanautaSketch.Services;
+
+namespace HanautaSketch.ViewModels;
+
+/// <summary>
+/// プロジェクトの保存・読み込み。
+/// </summary>
+public partial class MainWindowViewModel
+{
+    private const string AppName = "hanautaSketch";
+    private const string UntitledName = "無題";
+
+    private IStorageFile? _currentFile;
+    private bool _suppressDirty;
+
+    /// <summary>View 側から設定するファイルダイアログ</summary>
+    public IProjectFileDialog? FileDialog { get; set; }
+
+    [ObservableProperty]
+    private bool _isDirty;
+
+    [ObservableProperty]
+    private string _message = "";
+
+    public string WindowTitle => $"{(IsDirty ? "*" : "")}{_currentFile?.Name ?? UntitledName} - {AppName}";
+
+    partial void OnIsDirtyChanged(bool value) => OnPropertyChanged(nameof(WindowTitle));
+
+    /// <summary>
+    /// 曲に変更があったことを記録する。
+    /// </summary>
+    public void MarkDirty()
+    {
+        if (!_suppressDirty) IsDirty = true;
+    }
+
+    [RelayCommand]
+    private async Task OpenAsync()
+    {
+        if (FileDialog is null) return;
+
+        var file = await FileDialog.PickOpenAsync();
+        if (file is null) return;
+
+        try
+        {
+            await using var stream = await file.OpenReadAsync();
+            var document = await ProjectSerializer.LoadAsync(stream);
+            ApplyDocument(document);
+            SetCurrentFile(file);
+            Message = $"{file.Name} を開いた";
+        }
+        catch (Exception ex) when (ex is InvalidDataException or IOException or UnauthorizedAccessException)
+        {
+            Message = $"開けなかった: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private async Task SaveAsync()
+    {
+        if (_currentFile is null)
+        {
+            await SaveAsAsync();
+            return;
+        }
+
+        await WriteAsync(_currentFile);
+    }
+
+    [RelayCommand]
+    private async Task SaveAsAsync()
+    {
+        if (FileDialog is null) return;
+
+        var suggested = _currentFile?.Name ?? UntitledName + ProjectSerializer.FileExtension;
+        var file = await FileDialog.PickSaveAsync(suggested);
+        if (file is null) return;
+
+        await WriteAsync(file);
+    }
+
+    private async Task WriteAsync(IStorageFile file)
+    {
+        try
+        {
+            await using (var stream = await file.OpenWriteAsync())
+            {
+                await ProjectSerializer.SaveAsync(CreateDocument(), stream);
+
+                // 既存ファイルより短くなった場合に末尾が残らないよう切り詰める
+                if (stream.CanSeek) stream.SetLength(stream.Position);
+            }
+
+            SetCurrentFile(file);
+            Message = $"{file.Name} に保存した";
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Message = $"保存できなかった: {ex.Message}";
+        }
+    }
+
+    private void SetCurrentFile(IStorageFile file)
+    {
+        _currentFile = file;
+        IsDirty = false;
+        OnPropertyChanged(nameof(WindowTitle));
+    }
+
+    private ProjectDocument CreateDocument() => new(Song, MinorDominant, UseMelodyForChords);
+
+    /// <summary>
+    /// 読み込んだ内容を現在の曲に反映する。試作段階のためトラックは先頭から Melody / Bass に順に割り当てる。
+    /// </summary>
+    private void ApplyDocument(ProjectDocument document)
+    {
+        StopPlayback();
+        _suppressDirty = true;
+        try
+        {
+            var loaded = document.Song.Tracks.OfType<NoteTrack>().ToList();
+            NoteTrack[] targets = [_melody, _bass];
+            for (var i = 0; i < targets.Length; i++)
+            {
+                var target = targets[i];
+                target.Notes.Clear();
+                if (i >= loaded.Count) continue;
+
+                target.Name = loaded[i].Name;
+                target.Program = loaded[i].Program;
+                target.Volume = loaded[i].Volume;
+                target.Notes.AddRange(loaded[i].Notes);
+            }
+
+            Bpm = document.Song.Bpm;
+            Song.BeatsPerBar = document.Song.BeatsPerBar;
+            Tonic = document.Song.Key.Tonic;
+            Mode = document.Song.Key.Mode;
+            MinorDominant = document.MinorDominant;
+            UseMelodyForChords = document.UseMelodyForChords;
+            RecomputeChords();
+        }
+        finally
+        {
+            _suppressDirty = false;
+        }
+    }
+}
