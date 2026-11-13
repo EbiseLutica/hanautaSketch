@@ -7,10 +7,16 @@
         x:DataType="vm:MainWindowViewModel"
         Title="hanautaSketch"
         Width="1280" Height="800">
+    <Window.KeyBindings>
+        <KeyBinding Gesture="Space" Command="{Binding TogglePlaybackCommand}" />
+    </Window.KeyBindings>
     <DockPanel>
         <!-- ツールバー -->
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="8">
-            <TextBlock Text="Key" VerticalAlignment="Center" />
+            <ToggleButton Content="▶ 再生" Command="{Binding TogglePlaybackCommand}" IsChecked="{Binding IsPlaying, Mode=OneWay}" Width="80" />
+            <TextBlock Text="BPM" VerticalAlignment="Center" Margin="8,0,0,0" />
+            <NumericUpDown Value="{Binding Bpm}" Minimum="20" Maximum="400" Increment="1" FormatString="0" Width="110" />
+            <TextBlock Text="Key" VerticalAlignment="Center" Margin="16,0,0,0" />
             <ComboBox ItemsSource="{Binding TonicNames}" SelectedIndex="{Binding Tonic}" Width="80" />
             <ComboBox ItemsSource="{Binding Modes}" SelectedItem="{Binding Mode}" Width="100" />
             <TextBlock Text="Snap" VerticalAlignment="Center" Margin="16,0,0,0" />
@@ -19,6 +25,9 @@
             <ComboBox ItemsSource="{Binding MinorDominantModes}" SelectedItem="{Binding MinorDominant}" Width="100" />
             <CheckBox Content="メロディも参照" IsChecked="{Binding UseMelodyForChords}" />
         </StackPanel>
+
+        <!-- ステータスバー -->
+        <TextBlock DockPanel.Dock="Bottom" Text="{Binding AudioStatus}" Margin="8,4" Opacity="0.7" />
 
         <!-- トラックメニュー -->
         <ListBox DockPanel.Dock="Left" Width="160"
@@ -35,6 +44,7 @@
                             Key="{Binding Key}"
                             SnapTicks="{Binding SelectedSnap.Ticks}"
                             Chords="{Binding Chords}"
+                            PlayheadTick="{Binding PlayheadTick}"
                             NotesEdited="OnNotesEdited" />
     </DockPanel>
 </Window>

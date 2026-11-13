@@ -29,6 +29,7 @@ public sealed class PianoRollPalette
     public required IBrush ChordBlock { get; init; }
     public required IBrush ChordOverride { get; init; }
     public required IPen ChordBorder { get; init; }
+    public required IPen Playhead { get; init; }
 
     public static PianoRollPalette Light { get; } = new()
     {
@@ -52,6 +53,7 @@ public sealed class PianoRollPalette
         ChordBlock = Brush("#FFFFFF"),
         ChordOverride = Brush("#FFE9B8"),
         ChordBorder = Pen("#B5B9C2"),
+        Playhead = new ImmutablePen(Brush("#E5484D"), 2),
     };
 
     public static PianoRollPalette Dark { get; } = new()
@@ -76,6 +78,7 @@ public sealed class PianoRollPalette
         ChordBlock = Brush("#30323A"),
         ChordOverride = Brush("#5A4A22"),
         ChordBorder = Pen("#4A4D59"),
+        Playhead = new ImmutablePen(Brush("#FF6B6F"), 2),
     };
 
     public static PianoRollPalette For(ThemeVariant variant) => variant == ThemeVariant.Dark ? Dark : Light;

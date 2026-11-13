@@ -34,6 +34,9 @@ public sealed class PianoRollControl : Control
     public static readonly StyledProperty<IReadOnlyList<ChordSegment>?> ChordsProperty =
         AvaloniaProperty.Register<PianoRollControl, IReadOnlyList<ChordSegment>?>(nameof(Chords));
 
+    public static readonly StyledProperty<double> PlayheadTickProperty =
+        AvaloniaProperty.Register<PianoRollControl, double>(nameof(PlayheadTick), -1);
+
     private const double KeyboardWidth = 56;
     private const double RulerHeight = 22;
     private const double ChordLaneHeight = 22;
@@ -64,9 +67,17 @@ public sealed class PianoRollControl : Control
 
     static PianoRollControl()
     {
-        AffectsRender<PianoRollControl>(SongProperty, TrackProperty, KeyProperty, SnapTicksProperty, ChordsProperty);
+        AffectsRender<PianoRollControl>(SongProperty, TrackProperty, KeyProperty, SnapTicksProperty, ChordsProperty,
+            PlayheadTickProperty);
         FocusableProperty.OverrideDefaultValue<PianoRollControl>(true);
         ClipToBoundsProperty.OverrideDefaultValue<PianoRollControl>(true);
+    }
+
+    /// <summary>再生ヘッドの位置（tick）。負なら非表示</summary>
+    public double PlayheadTick
+    {
+        get => GetValue(PlayheadTickProperty);
+        set => SetValue(PlayheadTickProperty, value);
     }
 
     /// <summary>空き領域を押したまま動かしたときの挙動</summary>
@@ -158,6 +169,13 @@ public sealed class PianoRollControl : Control
             RenderGridLines(context, area);
             RenderGhostNotes(context);
             RenderNotes(context);
+        }
+
+        if (PlayheadTick >= 0)
+        {
+            var x = Math.Round(TickToX(PlayheadTick)) + 0.5;
+            if (x >= area.X && x <= area.Right)
+                context.DrawLine(_palette.Playhead, new Point(x, RulerHeight), new Point(x, area.Bottom));
         }
 
         using (context.PushClip(new Rect(0, HeaderHeight, KeyboardWidth, area.Height)))

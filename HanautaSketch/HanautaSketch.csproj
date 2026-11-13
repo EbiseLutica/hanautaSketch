@@ -13,10 +13,16 @@
     <PackageReference Include="Avalonia.Desktop" Version="12.1.6" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.6" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="NAudio.Wasapi" Version="2.2.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\HanautaSketch.Engine\HanautaSketch.Engine.csproj" />
+  </ItemGroup>
+
+  <!-- SoundFonts/ の SF2 は git 管理外。存在すれば出力先にコピーする -->
+  <ItemGroup>
+    <None Include="SoundFonts\*.sf2" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

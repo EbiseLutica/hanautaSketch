@@ -480,3 +480,7 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# SoundFonts (large binaries, not committed)
+*.sf2
+

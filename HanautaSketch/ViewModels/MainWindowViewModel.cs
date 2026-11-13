@@ -11,7 +11,7 @@ public sealed record SnapOption(string Label, int Ticks)
     public override string ToString() => Label;
 }
 
-public partial class MainWindowViewModel : ObservableObject
+public partial class MainWindowViewModel : ObservableObject, IDisposable
 {
     private readonly NoteTrack _melody = new() { Name = "Melody", Program = 0 };
     private readonly NoteTrack _bass = new() { Name = "Bass", Program = 33 };
@@ -26,6 +26,7 @@ public partial class MainWindowViewModel : ObservableObject
         _selectedTrack = Tracks[0];
         _selectedSnap = SnapOptions[2];
         UpdateKey();
+        InitializePlayback();
     }
 
     public Song Song { get; } = new();
