@@ -46,10 +46,18 @@ public static class ChordDetector
     private const double EmissionScale = 2.0;
 
     /// <summary>
-    /// コードを切り替える基本コスト。区切り位置の区切れやすさ（拍節＋ベースの発音）を差し引いて払う。
-    /// 1小節1コード＋経過音のベースを割らず、2拍ずつ明確に変わる進行は割れる値に調整している。
+    /// コードを切り替える基本コスト。区切り位置の区切れやすさ（拍節＋ベースの発音＋シンコペーション）を差し引いて払う。
     /// </summary>
-    private const double ChangeCost = 4.0;
+    private const double ChangeCost = 5.0;
+
+    /// <summary>区切れやすさがどれだけ高くても最低限払うコスト</summary>
+    private const double MinChangeCost = 0.5;
+
+    /// <summary>
+    /// 小節頭以外を区切り候補にするのに必要な区切れやすさ。
+    /// 発音のある半小節とシンコペーションは超え、オンビートの普通の発音（ウォーキングの2・4拍目など）は超えない。
+    /// </summary>
+    private const double CandidateThreshold = 1.9;
 
     /// <summary>
     /// [0, endTick) のコード進行を判別する。
@@ -128,12 +136,22 @@ public static class ChordDetector
                 _chords.Add(ov.Chord);
 
             var unit = settings.BoundaryUnitTicks > 0 ? settings.BoundaryUnitTicks : context.Ppq;
-            _minLength = settings.MinSegmentTicks > 0 ? settings.MinSegmentTicks : context.Ppq * 2;
+            _minLength = settings.MinSegmentTicks > 0 ? settings.MinSegmentTicks : context.Ppq / 2;
             _maxLength = settings.MaxSegmentTicks > 0 ? settings.MaxSegmentTicks : context.TicksPerBar * 2;
 
-            // 区切り候補位置: グリッド＋オーバーライド境界。オーバーライド内部は除く
+            // 区切り候補位置: 小節頭＋リズム的に区切れやすい位置（グリッド・ベースの発音位置から選ぶ）＋オーバーライド境界。
+            // オーバーライド内部は除く
             var positions = new SortedSet<int> { 0, endTick };
-            for (var t = unit; t < endTick; t += unit) positions.Add(t);
+            for (var t = context.TicksPerBar; t < endTick; t += context.TicksPerBar) positions.Add(t);
+
+            var rhythmic = new SortedSet<int>(BassRhythmAnalyzer.GetOnsets(bass));
+            for (var t = unit; t < endTick; t += unit) rhythmic.Add(t);
+            foreach (var t in rhythmic.Where(t => 0 < t && t < endTick))
+            {
+                if (BassRhythmAnalyzer.BoundaryStrength(bass, t, context.Ppq, context.TicksPerBar) >= CandidateThreshold)
+                    positions.Add(t);
+            }
+
             foreach (var ov in overrides)
             {
                 positions.Add(ov.Start);
@@ -210,7 +228,8 @@ public static class ChordDetector
             var start = _positions[i];
             var boundaryCost = isOverride || IsOverrideEdge(start)
                 ? 0
-                : ChangeCost - BassRhythmAnalyzer.BoundaryStrength(_bass, start, _context.Ppq, _context.TicksPerBar);
+                : Math.Max(MinChangeCost,
+                    ChangeCost - BassRhythmAnalyzer.BoundaryStrength(_bass, start, _context.Ppq, _context.TicksPerBar));
 
             for (var prev = 0; prev < _chords.Count; prev++)
             {

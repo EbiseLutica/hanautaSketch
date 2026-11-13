@@ -7,13 +7,15 @@ namespace HanautaSketch.Engine.Smart.Rhythm;
 /// </summary>
 public static class BassRhythmAnalyzer
 {
-    private const double BarHeadStrength = 1.0;
-    private const double HalfBarStrength = 0.6;
+    private const double BarHeadStrength = 2.0;
+    private const double HalfBarStrength = 1.2;
     private const double BeatStrength = 0.25;
     private const double SustainPenalty = -0.5;
+    private const double SyncopationStrength = 3.75;
 
     /// <summary>
-    /// 指定位置での「区切れやすさ」。拍節の強さとベースの発音の強さを足し、持続音をまたぐ位置は減点する。
+    /// 指定位置での「区切れやすさ」。拍節の強さ・ベースの発音の強さ・シンコペーションを足し、
+    /// 持続音をまたぐ位置は減点する。
     /// </summary>
     public static double BoundaryStrength(IReadOnlyList<Note> bass, int tick, int ppq, int ticksPerBar)
     {
@@ -21,6 +23,8 @@ public static class BassRhythmAnalyzer
         var strength = MetricStrength(tick, ppq, ticksPerBar) + onset;
         if (onset == 0 && bass.Any(n => n.Tick < tick && tick < n.EndTick))
             strength += SustainPenalty;
+        if (IsSyncopated(bass, tick, ppq))
+            strength += SyncopationStrength;
         return strength;
     }
 
@@ -48,4 +52,24 @@ public static class BassRhythmAnalyzer
         }
         return strength;
     }
+
+    /// <summary>
+    /// 拍の外で発音し、次の拍まで新しい発音がない（次の拍を先取りしている）か。
+    /// トレシーロ（3+3+2）や小節末の食いのような「キメ」を拾うための判定。
+    /// 後に続く発音がない（フレーズの末尾）場合は先取りとみなさない。
+    /// </summary>
+    public static bool IsSyncopated(IReadOnlyList<Note> bass, int tick, int ppq)
+    {
+        if (tick % ppq == 0) return false;
+        if (!bass.Any(n => n.Tick == tick)) return false;
+
+        var nextBeat = (tick / ppq + 1) * ppq;
+        return !bass.Any(n => n.Tick > tick && n.Tick <= nextBeat) && bass.Any(n => n.Tick > nextBeat);
+    }
+
+    /// <summary>
+    /// ベースの発音位置を重複なく昇順で返す。
+    /// </summary>
+    public static IReadOnlyList<int> GetOnsets(IReadOnlyList<Note> bass) =>
+        bass.Select(n => n.Tick).Distinct().Order().ToList();
 }

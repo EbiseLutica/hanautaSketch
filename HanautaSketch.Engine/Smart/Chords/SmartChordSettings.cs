@@ -28,7 +28,7 @@ public sealed record SmartChordSettings
     /// <summary>コードの区切り候補の間隔（既定: 1拍）</summary>
     public int BoundaryUnitTicks { get; init; }
 
-    /// <summary>コード区間の最小長（既定: 2拍）</summary>
+    /// <summary>コード区間の最小長（既定: 8分音符）。短い区間は区切りコストで抑える</summary>
     public int MinSegmentTicks { get; init; }
 
     /// <summary>コード区間の最大長（既定: 2小節）。同じコードが続く場合は結果上で連結される</summary>

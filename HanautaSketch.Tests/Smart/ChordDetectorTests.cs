@@ -61,6 +61,26 @@ public class ChordDetectorTests
     }
 
     [Fact]
+    public void SyncopatedBass_SplitsAtAnticipatedOnsets()
+    {
+        // C minor。前小節後半は D のオクターブ、次の小節は 3+3+2（16分単位）で C → Eb → G、残りは G 周辺
+        const int s = Ppq / 4;
+        (int Pos, int Len, int Pitch)[] raw =
+        [
+            (8, 2, 38), (10, 2, 50), (12, 2, 38), (14, 2, 50),
+            (16, 2, 36), (19, 1, 39), (22, 4, 43), (26, 2, 55), (28, 1, 43), (29, 1, 38), (30, 2, 31),
+        ];
+        var bass = raw.Select(r => new Note(r.Pos * s, r.Len * s, r.Pitch, 100)).ToList();
+        var cMinor = new ChordDetectionContext(new Key(0, Mode.Minor), Ppq, Bar);
+
+        var result = ChordDetector.Detect(bass, [], Bar * 2, cMinor, new(), []);
+        var secondBar = result.Where(r => r.Start >= Bar).ToList();
+
+        Assert.Equal(["Cm", "Eb", "Gm"], Names(secondBar, cMinor));
+        Assert.Equal([Bar, Bar + 3 * s, Bar + 6 * s], secondBar.Select(r => r.Start).ToArray());
+    }
+
+    [Fact]
     public void WalkingBassWithinOneChord_IsNotSplit()
     {
         // C E G A の4分音符 → 1小節 C のまま
