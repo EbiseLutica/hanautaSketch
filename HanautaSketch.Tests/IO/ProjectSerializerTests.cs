@@ -25,10 +25,10 @@ public class ProjectSerializerTests
     public async Task RoundTrip_PreservesNoteTracks()
     {
         var song = new Song { Bpm = 132, Key = new Key(0, Mode.Minor) };
-        var melody = new NoteTrack { Name = "Melody", Program = 0, Volume = 90 };
+        var melody = new NoteTrack { Name = "Melody", Program = 0, Volume = 90, Mute = true };
         melody.Notes.Add(new Note(0, 120, 60, 100));
         melody.Notes.Add(new Note(240, 480, 67, 80));
-        var bass = new NoteTrack { Name = "Bass", Program = 33 };
+        var bass = new NoteTrack { Name = "Bass", Program = 33, Solo = true };
         bass.Notes.Add(new Note(0, 240, 36, 110));
         song.Tracks.Add(melody);
         song.Tracks.Add(bass);
@@ -42,6 +42,8 @@ public class ProjectSerializerTests
         Assert.Equal(["Melody", "Bass"], tracks.Select(t => t.Name).ToArray());
         Assert.Equal(90, tracks[0].Volume);
         Assert.Equal(33, tracks[1].Program);
+        Assert.Equal((true, false), (tracks[0].Mute, tracks[0].Solo));
+        Assert.Equal((false, true), (tracks[1].Mute, tracks[1].Solo));
         Assert.Equal(melody.Notes, tracks[0].Notes);
         Assert.Equal(bass.Notes, tracks[1].Notes);
     }

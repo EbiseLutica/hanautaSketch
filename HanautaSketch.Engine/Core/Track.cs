@@ -13,6 +13,12 @@ public abstract class Track
     /// <summary>トラック音量（0〜127）</summary>
     public int Volume { get; set; } = 100;
 
+    /// <summary>再生時に鳴らさない。書き出しや判別には影響しない</summary>
+    public bool Mute { get; set; }
+
+    /// <summary>ソロのトラックが1つでもあれば、ソロ以外は再生時に鳴らさない</summary>
+    public bool Solo { get; set; }
+
     /// <summary>
     /// 再生・書き出しに使うノーツ。通常トラックは実体、スマートトラックは生成結果。
     /// </summary>

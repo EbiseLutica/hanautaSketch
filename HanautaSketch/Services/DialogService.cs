@@ -6,9 +6,19 @@ using HanautaSketch.Views;
 namespace HanautaSketch.Services;
 
 /// <summary>
-/// プロジェクトファイルを選ぶダイアログ。VM から TopLevel を直接触らないための窓口。
+/// 未保存の変更があるときの選択。
 /// </summary>
-public interface IProjectFileDialog
+public enum UnsavedChangesChoice
+{
+    Save,
+    Discard,
+    Cancel,
+}
+
+/// <summary>
+/// ファイル選択や確認などのダイアログ。VM からウィンドウを直接触らないための窓口。
+/// </summary>
+public interface IDialogService
 {
     /// <summary>開くファイルを選ぶ。キャンセルなら null</summary>
     Task<IStorageFile?> PickOpenAsync();
@@ -21,12 +31,15 @@ public interface IProjectFileDialog
 
     /// <summary>MIDI 書き出しのオプションを選ぶ。キャンセルなら null</summary>
     Task<MidiExportOptions?> PickMidiExportOptionsAsync(MidiExportOptions initial, string fileName);
+
+    /// <summary>未保存の変更をどうするか尋ねる</summary>
+    Task<UnsavedChangesChoice> AskUnsavedChangesAsync(string documentName);
 }
 
 /// <summary>
 /// <see cref="IStorageProvider"/> と、オーナーウィンドウ上のモーダル画面を使った実装。
 /// </summary>
-public sealed class StorageProjectFileDialog(Window owner) : IProjectFileDialog
+public sealed class DialogService(Window owner) : IDialogService
 {
     private static readonly FilePickerFileType ProjectFileType = new("hanautaSketch プロジェクト")
     {
@@ -71,4 +84,7 @@ public sealed class StorageProjectFileDialog(Window owner) : IProjectFileDialog
 
     public Task<MidiExportOptions?> PickMidiExportOptionsAsync(MidiExportOptions initial, string fileName) =>
         new MidiExportOptionsWindow(initial, fileName).ShowDialog<MidiExportOptions?>(owner);
+
+    public async Task<UnsavedChangesChoice> AskUnsavedChangesAsync(string documentName) =>
+        await new UnsavedChangesWindow(documentName).ShowDialog<UnsavedChangesChoice?>(owner) ?? UnsavedChangesChoice.Cancel;
 }

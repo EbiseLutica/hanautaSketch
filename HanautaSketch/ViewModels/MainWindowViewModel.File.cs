@@ -19,8 +19,8 @@ public partial class MainWindowViewModel
     private AppSettings _appSettings = AppSettingsStore.Load();
     private bool _suppressDirty;
 
-    /// <summary>View 側から設定するファイルダイアログ</summary>
-    public IProjectFileDialog? FileDialog { get; set; }
+    /// <summary>View 側から設定するダイアログ</summary>
+    public IDialogService? Dialogs { get; set; }
 
     [ObservableProperty]
     private bool _isDirty;
@@ -40,12 +40,32 @@ public partial class MainWindowViewModel
         if (!_suppressDirty) IsDirty = true;
     }
 
+    /// <summary>
+    /// 未保存の変更があれば、保存する・保存しない・キャンセルを尋ねる。続行してよければ true。
+    /// 「保存する」で保存をキャンセル・失敗した場合も false（変更を失わないため）。
+    /// </summary>
+    public async Task<bool> ConfirmDiscardChangesAsync()
+    {
+        if (!IsDirty || Dialogs is null) return true;
+
+        switch (await Dialogs.AskUnsavedChangesAsync(_currentFile?.Name ?? UntitledName))
+        {
+            case UnsavedChangesChoice.Save:
+                await SaveAsync();
+                return !IsDirty;
+            case UnsavedChangesChoice.Discard:
+                return true;
+            default:
+                return false;
+        }
+    }
+
     [RelayCommand]
     private async Task OpenAsync()
     {
-        if (FileDialog is null) return;
+        if (Dialogs is null || !await ConfirmDiscardChangesAsync()) return;
 
-        var file = await FileDialog.PickOpenAsync();
+        var file = await Dialogs.PickOpenAsync();
         if (file is null) return;
 
         try
@@ -77,10 +97,10 @@ public partial class MainWindowViewModel
     [RelayCommand]
     private async Task SaveAsAsync()
     {
-        if (FileDialog is null) return;
+        if (Dialogs is null) return;
 
         var suggested = _currentFile?.Name ?? UntitledName + ProjectSerializer.FileExtension;
-        var file = await FileDialog.PickSaveAsync(suggested);
+        var file = await Dialogs.PickSaveAsync(suggested);
         if (file is null) return;
 
         await WriteAsync(file);
@@ -114,13 +134,13 @@ public partial class MainWindowViewModel
     [RelayCommand]
     private async Task ExportMidiAsync()
     {
-        if (FileDialog is null) return;
+        if (Dialogs is null) return;
 
         var baseName = _currentFile is null ? UntitledName : Path.GetFileNameWithoutExtension(_currentFile.Name);
-        var file = await FileDialog.PickMidiExportAsync(baseName + MidiExporter.FileExtension);
+        var file = await Dialogs.PickMidiExportAsync(baseName + MidiExporter.FileExtension);
         if (file is null) return;
 
-        var options = await FileDialog.PickMidiExportOptionsAsync(_appSettings.MidiExport, file.Name);
+        var options = await Dialogs.PickMidiExportOptionsAsync(_appSettings.MidiExport, file.Name);
         if (options is null) return;
 
         _appSettings = _appSettings with { MidiExport = options };

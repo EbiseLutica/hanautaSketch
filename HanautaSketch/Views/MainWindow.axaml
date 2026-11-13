@@ -2,14 +2,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:HanautaSketch.ViewModels"
         xmlns:c="using:HanautaSketch.Controls"
-        xmlns:core="using:HanautaSketch.Engine.Core"
-        xmlns:chords="using:HanautaSketch.Engine.Smart.Chords"
         x:Class="HanautaSketch.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="{Binding WindowTitle}"
         Width="1280" Height="800">
     <Window.KeyBindings>
-        <KeyBinding Gesture="Space" Command="{Binding TogglePlaybackCommand}" />
         <KeyBinding Gesture="Ctrl+N" Command="{Binding NewCommand}" />
         <KeyBinding Gesture="Ctrl+O" Command="{Binding OpenCommand}" />
         <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCommand}" />
@@ -58,11 +55,18 @@
         <!-- トラックメニュー：一覧、追加・削除、選択中トラックの設定 -->
         <DockPanel DockPanel.Dock="Left" Width="220">
             <StackPanel DockPanel.Dock="Bottom" Margin="8" Spacing="6">
-                <StackPanel Orientation="Horizontal" Spacing="6">
-                    <TextBlock Text="音色 (GM)" VerticalAlignment="Center" Width="70" />
-                    <NumericUpDown Value="{Binding SelectedTrackProgram}" Minimum="0" Maximum="127" Increment="1"
-                                   FormatString="0" Width="130" />
-                </StackPanel>
+                <TextBlock Text="音色" />
+                <ComboBox ItemsSource="{Binding ProgramCategories}" SelectedIndex="{Binding SelectedProgramCategory}"
+                          HorizontalAlignment="Stretch" />
+                <ComboBox ItemsSource="{Binding ProgramsInCategory}" SelectedItem="{Binding SelectedProgram}"
+                          HorizontalAlignment="Stretch" />
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Left" Text="音量" VerticalAlignment="Center" Width="40" />
+                    <TextBlock DockPanel.Dock="Right" Text="{Binding SelectedTrackVolume}" VerticalAlignment="Center"
+                               Width="28" TextAlignment="Right" />
+                    <Slider Minimum="0" Maximum="127" SmallChange="1" LargeChange="8" IsSnapToTickEnabled="True"
+                            TickFrequency="1" Value="{Binding SelectedTrackVolume}" />
+                </DockPanel>
 
                 <!-- スマートコードトラックの設定 -->
                 <Panel IsVisible="{Binding SelectedSmartTrack, Converter={x:Static ObjectConverters.IsNotNull}}">
@@ -95,18 +99,26 @@
                 <Button Content="削除" Command="{Binding RemoveSelectedTrackCommand}" />
             </StackPanel>
 
-            <ListBox ItemsSource="{Binding Tracks}" SelectedItem="{Binding SelectedTrack}">
-                <ListBox.DataTemplates>
-                    <DataTemplate DataType="core:NoteTrack" x:DataType="core:NoteTrack">
-                        <TextBlock Text="{Binding Name}" />
+            <!-- 行: 名前（ダブルクリックで編集）、M（ミュート）・S（ソロ）。ドラッグで並び替え -->
+            <ListBox x:Name="TrackList" ItemsSource="{Binding TrackItems}" SelectedItem="{Binding SelectedTrackItem}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:TrackItemViewModel">
+                        <DockPanel Background="Transparent" DoubleTapped="OnTrackItemDoubleTapped">
+                            <ToggleButton DockPanel.Dock="Right" Content="S" IsChecked="{Binding Solo}" ToolTip.Tip="ソロ"
+                                          Padding="6,0" MinWidth="24" FontSize="11" Margin="2,0,0,0" />
+                            <ToggleButton DockPanel.Dock="Right" Content="M" IsChecked="{Binding Mute}" ToolTip.Tip="ミュート"
+                                          Padding="6,0" MinWidth="24" FontSize="11" />
+                            <TextBlock DockPanel.Dock="Right" Text="スマート" Opacity="0.6" FontSize="11"
+                                       VerticalAlignment="Center" Margin="0,0,6,0" IsVisible="{Binding IsSmart}" />
+                            <Panel VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis"
+                                           IsVisible="{Binding !IsEditing}" />
+                                <TextBox Text="{Binding EditingName}" IsVisible="{Binding IsEditing}" Padding="2,0"
+                                         MinHeight="0" KeyDown="OnRenameKeyDown" LostFocus="OnRenameLostFocus" />
+                            </Panel>
+                        </DockPanel>
                     </DataTemplate>
-                    <DataTemplate DataType="chords:SmartChordTrack" x:DataType="chords:SmartChordTrack">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <TextBlock Text="{Binding Name}" />
-                            <TextBlock Text="スマート" Opacity="0.6" FontSize="11" VerticalAlignment="Center" />
-                        </StackPanel>
-                    </DataTemplate>
-                </ListBox.DataTemplates>
+                </ListBox.ItemTemplate>
             </ListBox>
         </DockPanel>
 

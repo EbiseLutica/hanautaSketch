@@ -72,6 +72,7 @@ public partial class MainWindowViewModel
             _audio = await Task.Run(() => AudioOutput.Create(path));
             AudioStatus = Path.GetFileName(path);
             IsAudioReady = true;
+            ApplyPresetNames(_audio.Engine.GetPresetNames());
         }
         catch (Exception ex)
         {

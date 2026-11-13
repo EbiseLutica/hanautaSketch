@@ -18,6 +18,11 @@ public sealed class Song
 
     public List<Track> Tracks { get; } = [];
 
+    /// <summary>
+    /// 再生時に鳴らすトラックか。ミュートを除き、ソロがあればソロのトラックだけ。
+    /// </summary>
+    public bool IsAudible(Track track) => !track.Mute && (track.Solo || !Tracks.Any(t => t.Solo));
+
     /// <summary>1小節あたりのtick数（4分音符基準の拍子を前提）</summary>
     public int TicksPerBar => Ppq * BeatsPerBar;
 }

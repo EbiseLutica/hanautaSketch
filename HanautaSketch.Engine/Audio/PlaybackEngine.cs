@@ -20,6 +20,9 @@ public sealed class PlaybackEngine
     private readonly Synthesizer _synth;
     private readonly object _lock = new();
 
+    /// <summary>チャンネルごとに鳴らすか（ミュート・ソロの反映）</summary>
+    private readonly bool[] _audible = Enumerable.Repeat(true, 16).ToArray();
+
     private List<ScheduledEvent> _events = [];
     private int _nextEvent;
     private long _position;
@@ -36,6 +39,20 @@ public sealed class PlaybackEngine
     }
 
     public int SampleRate { get; }
+
+    /// <summary>
+    /// SF2 に入っているバンク0のプリセット名（キーは音色番号 0〜127）。
+    /// </summary>
+    public IReadOnlyDictionary<int, string> GetPresetNames()
+    {
+        lock (_lock)
+        {
+            return _synth.SoundFont.Presets
+                .Where(p => p.BankNumber == 0 && p.PatchNumber is >= 0 and < 128)
+                .GroupBy(p => p.PatchNumber)
+                .ToDictionary(g => g.Key, g => g.First().Name.Trim());
+        }
+    }
 
     public bool IsPlaying { get; private set; }
 
@@ -61,6 +78,7 @@ public sealed class PlaybackEngine
         lock (_lock)
         {
             _synth.Reset();
+            UpdateAudible(song);
             _song = song;
             _startTick = startTick;
             _events = events;
@@ -77,6 +95,29 @@ public sealed class PlaybackEngine
         {
             IsPlaying = false;
             _synth.NoteOffAll(false);
+        }
+    }
+
+    /// <summary>
+    /// トラックの音色・音量・ミュート・ソロを、再生中のチャンネルにすぐ反映する。
+    /// 鳴らさなくなったチャンネルは鳴っている音を止める。
+    /// </summary>
+    public void ApplyMixer(Song song)
+    {
+        lock (_lock)
+        {
+            foreach (var (track, channel) in AssignChannels(song))
+            {
+                _synth.ProcessMidiMessage(channel, 0xC0, track.Program, 0);
+                _synth.ProcessMidiMessage(channel, 0xB0, 7, track.Volume);
+            }
+
+            var before = (bool[])_audible.Clone();
+            UpdateAudible(song);
+            for (var channel = 0; channel < _audible.Length; channel++)
+            {
+                if (before[channel] && !_audible[channel]) _synth.NoteOffAll(channel, false);
+            }
         }
     }
 
@@ -140,7 +181,29 @@ public sealed class PlaybackEngine
         while (_nextEvent < _events.Count && _events[_nextEvent].Sample <= _position)
         {
             var e = _events[_nextEvent++];
+            if (e.Command == 0x90 && !_audible[e.Channel]) continue;
             _synth.ProcessMidiMessage(e.Channel, e.Command, e.Data1, e.Data2);
+        }
+    }
+
+    private void UpdateAudible(Song song)
+    {
+        Array.Fill(_audible, true);
+        foreach (var (track, channel) in AssignChannels(song))
+            _audible[channel] = song.IsAudible(track);
+    }
+
+    /// <summary>
+    /// トラックにチャンネルを割り当てる。トラック順に 0 から、ドラム（9）とプレビュー（15）は使わない。
+    /// </summary>
+    private static IEnumerable<(Track Track, int Channel)> AssignChannels(Song song)
+    {
+        var channel = 0;
+        foreach (var track in song.Tracks)
+        {
+            if (channel == DrumChannel) channel++;
+            if (channel >= PreviewChannel) yield break;
+            yield return (track, channel++);
         }
     }
 
@@ -155,12 +218,8 @@ public sealed class PlaybackEngine
     private List<ScheduledEvent> BuildEvents(Song song, int startTick)
     {
         var events = new List<ScheduledEvent>();
-        var channel = 0;
-        foreach (var track in song.Tracks)
+        foreach (var (track, channel) in AssignChannels(song))
         {
-            if (channel == DrumChannel) channel++;
-            if (channel >= PreviewChannel) break;
-
             events.Add(new ScheduledEvent(0, channel, 0xC0, track.Program, 0, 1));
             events.Add(new ScheduledEvent(0, channel, 0xB0, 7, track.Volume, 1));
 
@@ -174,8 +233,6 @@ public sealed class PlaybackEngine
                 events.Add(new ScheduledEvent(TickToSample(song, note.EndTick - startTick), channel, 0x80,
                     note.Pitch, 0, 0));
             }
-
-            channel++;
         }
 
         return events.OrderBy(e => e.Sample).ThenBy(e => e.Order).ToList();

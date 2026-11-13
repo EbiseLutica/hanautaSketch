@@ -133,8 +133,10 @@ public partial class MainWindowViewModel
     /// 空の曲にする。トラック構成は既定（Melody / Bass）に戻す。
     /// </summary>
     [RelayCommand]
-    private void New()
+    private async Task NewAsync()
     {
+        if (!await ConfirmDiscardChangesAsync()) return;
+
         StopPlayback();
         _suppressDirty = true;
         try

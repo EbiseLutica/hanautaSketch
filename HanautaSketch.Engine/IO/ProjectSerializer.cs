@@ -82,7 +82,14 @@ public static class ProjectSerializer
 
     private static TrackDto? ToDto(Track track, IList<Track> tracks)
     {
-        var dto = new TrackDto { Name = track.Name, Program = track.Program, Volume = track.Volume };
+        var dto = new TrackDto
+        {
+            Name = track.Name,
+            Program = track.Program,
+            Volume = track.Volume,
+            Mute = track.Mute ? true : null,
+            Solo = track.Solo ? true : null,
+        };
         switch (track)
         {
             case NoteTrack note:
@@ -150,6 +157,8 @@ public static class ProjectSerializer
             track.Name = trackDto.Name ?? "";
             track.Program = Math.Clamp(trackDto.Program, 0, 127);
             track.Volume = Math.Clamp(trackDto.Volume, 0, 127);
+            track.Mute = trackDto.Mute ?? false;
+            track.Solo = trackDto.Solo ?? false;
             song.Tracks.Add(track);
         }
 
@@ -259,6 +268,10 @@ public static class ProjectSerializer
         public string? Name { get; set; }
         public int Program { get; set; }
         public int Volume { get; set; } = 100;
+
+        // 0.2 の途中で追加した任意項目。古いアプリでは無視されるだけなのでバージョンは上げていない
+        public bool? Mute { get; set; }
+        public bool? Solo { get; set; }
 
         // ノートトラック
         public List<NoteDto>? Notes { get; set; }

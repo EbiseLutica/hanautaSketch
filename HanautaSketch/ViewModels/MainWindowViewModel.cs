@@ -16,6 +16,7 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
 {
     public MainWindowViewModel()
     {
+        InitializeTrackItems();
         ReplaceTracks(CreateDefaultTracks());
         _selectedSnap = SnapOptions[2];
         UpdateKey();
@@ -64,19 +65,6 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private IReadOnlyList<ChordSegment> _chords = [];
 
-    /// <summary>選択中トラックの音色（GM 番号）</summary>
-    public int SelectedTrackProgram
-    {
-        get => SelectedTrack?.Program ?? 0;
-        set
-        {
-            if (SelectedTrack is null || SelectedTrack.Program == value) return;
-            SelectedTrack.Program = Math.Clamp(value, 0, 127);
-            MarkDirty();
-            OnPropertyChanged();
-        }
-    }
-
     /// <summary>
     /// コードレーンに表示し、override の対象にするスマートコードトラック。
     /// 選択中がスマートコードトラックならそれ、そうでなければ最初の1本。
@@ -91,7 +79,7 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     partial void OnSelectedTrackChanged(Track? value)
     {
         SelectedSmartTrack = value is SmartChordTrack smart ? new SmartChordTrackViewModel(smart, this) : null;
-        OnPropertyChanged(nameof(SelectedTrackProgram));
+        SyncSelectedTrackItem();
         RefreshChordLane();
     }
 

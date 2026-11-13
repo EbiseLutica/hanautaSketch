@@ -1,4 +1,10 @@
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
+using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.Threading;
+using Avalonia.VisualTree;
 using HanautaSketch.Controls;
 using HanautaSketch.Services;
 using HanautaSketch.ViewModels;
@@ -7,33 +13,75 @@ namespace HanautaSketch.Views;
 
 public partial class MainWindow : Window
 {
+    /// <summary>この距離（px）以上動かしたら、トラック一覧のドラッグとみなす</summary>
+    private const double DragThreshold = 6;
+
+    private bool _closeConfirmed;
+    private TrackItemViewModel? _dragItem;
+    private Point _dragStart;
+    private bool _isDragging;
+
     public MainWindow()
     {
         InitializeComponent();
+
+        // Space はボタンやトグルより先に受け取り、テキスト入力中以外は再生の切り替えに使う
+        AddHandler(KeyDownEvent, OnPreviewKeyDown, RoutingStrategies.Tunnel);
+
+        TrackList.AddHandler(PointerPressedEvent, OnTrackListPointerPressed, RoutingStrategies.Tunnel);
+        TrackList.AddHandler(PointerMovedEvent, OnTrackListPointerMoved, RoutingStrategies.Tunnel);
+        TrackList.AddHandler(PointerReleasedEvent, OnTrackListPointerReleased, RoutingStrategies.Tunnel);
     }
+
+    private MainWindowViewModel? ViewModel => DataContext as MainWindowViewModel;
 
     protected override void OnDataContextChanged(EventArgs e)
     {
         base.OnDataContextChanged(e);
-        if (DataContext is MainWindowViewModel vm)
-            vm.FileDialog = new StorageProjectFileDialog(this);
+        if (ViewModel is { } vm)
+            vm.Dialogs = new DialogService(this);
     }
 
-    private void OnNotesEdited(object? sender, EventArgs e) => (DataContext as MainWindowViewModel)?.OnNotesEdited();
+    /// <summary>
+    /// 未保存の変更があれば、閉じる前に確認する。確認は非同期なので一度キャンセルし、続行なら改めて閉じる。
+    /// </summary>
+    protected override async void OnClosing(WindowClosingEventArgs e)
+    {
+        base.OnClosing(e);
+        if (_closeConfirmed || ViewModel is not { IsDirty: true } vm) return;
 
-    private void OnEditStarted(object? sender, EventArgs e) => (DataContext as MainWindowViewModel)?.OnEditStarted();
+        e.Cancel = true;
+        if (!await vm.ConfirmDiscardChangesAsync()) return;
 
-    private void OnEditCompleted(object? sender, EventArgs e) => (DataContext as MainWindowViewModel)?.OnEditCompleted();
+        _closeConfirmed = true;
+        Close();
+    }
 
-    private void OnNotePreview(object? sender, NotePreviewEventArgs e) =>
-        (DataContext as MainWindowViewModel)?.PreviewNote(e.Pitch, e.Velocity);
+    private void OnPreviewKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Space || e.KeyModifiers != KeyModifiers.None) return;
+        if (FocusManager?.GetFocusedElement() is TextBox) return;
+
+        ViewModel?.TogglePlaybackCommand.Execute(null);
+        e.Handled = true;
+    }
+
+    #region ピアノロール
+
+    private void OnNotesEdited(object? sender, EventArgs e) => ViewModel?.OnNotesEdited();
+
+    private void OnEditStarted(object? sender, EventArgs e) => ViewModel?.OnEditStarted();
+
+    private void OnEditCompleted(object? sender, EventArgs e) => ViewModel?.OnEditCompleted();
+
+    private void OnNotePreview(object? sender, NotePreviewEventArgs e) => ViewModel?.PreviewNote(e.Pitch, e.Velocity);
 
     /// <summary>
     /// コードレーンのクリックで、候補コード・確定・自動に戻す のメニューをカーソル位置に出す。
     /// </summary>
     private void OnChordSegmentClicked(object? sender, ChordSegmentClickedEventArgs e)
     {
-        if (DataContext is not MainWindowViewModel vm || sender is not Control target) return;
+        if (ViewModel is not { } vm || sender is not Control target) return;
 
         var segment = e.Segment;
         var flyout = new MenuFlyout();
@@ -61,4 +109,106 @@ public partial class MainWindow : Window
 
         flyout.ShowAt(target, true);
     }
+
+    #endregion
+
+    #region トラック名の編集
+
+    /// <summary>
+    /// 行のダブルクリックで名前の編集を始め、入力欄を全選択状態にする。
+    /// </summary>
+    private void OnTrackItemDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (sender is not Control row || row.DataContext is not TrackItemViewModel item) return;
+        if (e.Source is Visual source && source.FindAncestorOfType<ToggleButton>(includeSelf: true) is not null) return;
+
+        item.BeginRename();
+        var textBox = row.GetVisualDescendants().OfType<TextBox>().FirstOrDefault();
+        if (textBox is null) return;
+
+        Dispatcher.UIThread.Post(() =>
+        {
+            textBox.Focus();
+            textBox.SelectAll();
+        }, DispatcherPriority.Background);
+    }
+
+    private void OnRenameKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (sender is not TextBox { DataContext: TrackItemViewModel item }) return;
+
+        switch (e.Key)
+        {
+            case Key.Enter:
+                item.CommitRename();
+                TrackList.Focus();
+                e.Handled = true;
+                break;
+            case Key.Escape:
+                item.CancelRename();
+                TrackList.Focus();
+                e.Handled = true;
+                break;
+        }
+    }
+
+    private void OnRenameLostFocus(object? sender, RoutedEventArgs e)
+    {
+        if (sender is TextBox { DataContext: TrackItemViewModel item }) item.CommitRename();
+    }
+
+    #endregion
+
+    #region トラックの並び替え
+
+    private void OnTrackListPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        _dragItem = null;
+        _isDragging = false;
+        if (!e.GetCurrentPoint(TrackList).Properties.IsLeftButtonPressed) return;
+
+        // M/S や名前の入力欄から始まった操作はドラッグにしない
+        if (e.Source is Visual source && (source.FindAncestorOfType<ToggleButton>(includeSelf: true) is not null
+                                          || source.FindAncestorOfType<TextBox>(includeSelf: true) is not null))
+            return;
+
+        _dragItem = FindTrackItem(e.Source);
+        _dragStart = e.GetPosition(TrackList);
+    }
+
+    private void OnTrackListPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (_dragItem is null || !e.GetCurrentPoint(TrackList).Properties.IsLeftButtonPressed) return;
+
+        var delta = e.GetPosition(TrackList) - _dragStart;
+        if (!_isDragging && Math.Abs(delta.Y) < DragThreshold) return;
+
+        _isDragging = true;
+        TrackList.Cursor = new Cursor(StandardCursorType.DragMove);
+    }
+
+    /// <summary>
+    /// ドラッグを離した位置の行へトラックを移動する。
+    /// </summary>
+    private void OnTrackListPointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        var item = _dragItem;
+        var wasDragging = _isDragging;
+        _dragItem = null;
+        _isDragging = false;
+        TrackList.Cursor = Cursor.Default;
+        if (!wasDragging || item is null || ViewModel is not { } vm) return;
+
+        var target = FindTrackItem(TrackList.InputHitTest(e.GetPosition(TrackList)));
+        var index = target is not null
+            ? vm.TrackItems.IndexOf(target)
+            : e.GetPosition(TrackList).Y < 0 ? 0 : vm.TrackItems.Count - 1;
+        vm.MoveTrack(item.Track, index);
+        e.Handled = true;
+    }
+
+    private static TrackItemViewModel? FindTrackItem(object? source) =>
+        (source as Visual)?.FindAncestorOfType<ListBoxItem>(includeSelf: true)?.DataContext as TrackItemViewModel;
+
+    #endregion
 }
