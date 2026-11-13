@@ -20,7 +20,7 @@ public static class ProjectSerializer
 
     /// <summary>
     /// 現在のファイル形式のバージョン。互換性のない変更をしたら上げる。
-    /// v1: トラックはノートのみ、スマートコードの設定は曲全体に1つ
+    /// v1: トラックはノートのみ（曲全体のスマートコード設定 smartChord は読み込み時に無視する）
     /// v2: スマートコードトラック（ソース参照・設定・override）を追加
     /// </summary>
     public const int CurrentVersion = 2;
@@ -157,8 +157,6 @@ public static class ProjectSerializer
             track.MelodySource = ResolveNoteTrack(song, trackDto.MelodySource);
         }
 
-        if (dto.Version < 2) MigrateFromV1(dto, song);
-
         return new ProjectDocument(song);
     }
 
@@ -200,25 +198,6 @@ public static class ProjectSerializer
     private static NoteTrack? ResolveNoteTrack(Song song, int? index) =>
         index is { } i && i >= 0 && i < song.Tracks.Count ? song.Tracks[i] as NoteTrack : null;
 
-    /// <summary>
-    /// v1 は曲全体のスマートコード設定だけを持っていたので、先頭2トラック（Melody / Bass）を
-    /// ソースにしたスマートコードトラックを1本作る。
-    /// </summary>
-    private static void MigrateFromV1(ProjectDto dto, Song song)
-    {
-        var noteTracks = song.Tracks.OfType<NoteTrack>().ToList();
-        if (noteTracks.Count < 2) return;
-
-        var smart = dto.SmartChord ?? new SmartChordDto();
-        song.Tracks.Add(new SmartChordTrack
-        {
-            Name = "Chord",
-            BassSource = noteTracks[1],
-            MelodySource = smart.UseMelody ? noteTracks[0] : null,
-            ChordSettings = new SmartChordSettings { MinorDominant = smart.MinorDominant },
-        });
-    }
-
     #endregion
 
     #region DTO
@@ -233,9 +212,6 @@ public static class ProjectSerializer
     {
         public int Version { get; set; }
         public SongDto? Song { get; set; }
-
-        /// <summary>v1 のみ。v2 以降はスマートコードトラックが持つ</summary>
-        public SmartChordDto? SmartChord { get; set; }
     }
 
     private sealed class SongDto
@@ -288,12 +264,6 @@ public static class ProjectSerializer
         public int Root { get; set; }
         public ChordQuality Quality { get; set; }
         public int? Bass { get; set; }
-    }
-
-    private sealed class SmartChordDto
-    {
-        public MinorDominantMode MinorDominant { get; set; }
-        public bool UseMelody { get; set; } = true;
     }
 
     #endregion

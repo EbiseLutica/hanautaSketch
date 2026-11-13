@@ -135,14 +135,12 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
 
     #region トラック管理
 
-    /// <summary>新規作成時のトラック構成: Melody / Bass と、それをソースにしたスマートコード</summary>
-    private static List<Track> CreateDefaultTracks()
-    {
-        var melody = new NoteTrack { Name = "Melody", Program = 0 };
-        var bass = new NoteTrack { Name = "Bass", Program = 33 };
-        var chord = new SmartChordTrack { Name = "Chord", Program = 0, BassSource = bass, MelodySource = melody };
-        return [melody, bass, chord];
-    }
+    /// <summary>新規作成時のトラック構成: Melody / Bass。スマートトラックは必要に応じて追加する</summary>
+    private static List<Track> CreateDefaultTracks() =>
+    [
+        new NoteTrack { Name = "Melody", Program = 0 },
+        new NoteTrack { Name = "Bass", Program = 33 },
+    ];
 
     /// <summary>
     /// トラック構成を丸ごと差し替える。

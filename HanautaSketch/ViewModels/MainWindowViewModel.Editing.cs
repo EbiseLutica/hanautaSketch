@@ -130,7 +130,7 @@ public partial class MainWindowViewModel
     }
 
     /// <summary>
-    /// 空の曲にする。トラック構成は既定（Melody / Bass / Chord）に戻す。
+    /// 空の曲にする。トラック構成は既定（Melody / Bass）に戻す。
     /// </summary>
     [RelayCommand]
     private void New()

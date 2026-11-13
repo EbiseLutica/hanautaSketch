@@ -79,7 +79,7 @@ public class ProjectSerializerTests
     }
 
     [Fact]
-    public async Task LoadV1_CreatesSmartChordTrackFromSettings()
+    public async Task LoadV1_ReadsNoteTracksAndIgnoresGlobalChordSettings()
     {
         var loaded = await LoadJson("""
             { "version": 1,
@@ -87,11 +87,8 @@ public class ProjectSerializerTests
               "smartChord": { "minorDominant": "major", "useMelody": false } }
             """);
 
-        var tracks = loaded.Song.Tracks;
-        var smart = Assert.IsType<SmartChordTrack>(Assert.Single(tracks.OfType<SmartChordTrack>()));
-        Assert.Same(tracks[1], smart.BassSource);
-        Assert.Null(smart.MelodySource);
-        Assert.Equal(MinorDominantMode.Major, smart.ChordSettings.MinorDominant);
+        Assert.Equal(["Melody", "Bass"], loaded.Song.Tracks.Select(t => t.Name).ToArray());
+        Assert.All(loaded.Song.Tracks, t => Assert.IsType<NoteTrack>(t));
     }
 
     [Fact]

@@ -19,10 +19,21 @@ public partial class ChordFixtureTests
     public async Task Fixture_MatchesExpectedProgression(string file, string expected)
     {
         var song = (await LoadFixture(file)).Song;
-        var track = Assert.Single(song.Tracks.OfType<SmartChordTrack>());
+        var track = song.Tracks.OfType<SmartChordTrack>().FirstOrDefault() ?? AddDefaultChordTrack(song);
         track.Regenerate(song);
 
         Assert.Equal(Format(ParseExpected(expected, song.Ppq), song.Ppq), Format(track.Chords, song.Key, song.Ppq));
+    }
+
+    /// <summary>
+    /// スマートコードトラックのないフィクスチャ用。先頭を Melody、2本目を Bass としてソースにする。
+    /// </summary>
+    private static SmartChordTrack AddDefaultChordTrack(Song song)
+    {
+        var noteTracks = song.Tracks.OfType<NoteTrack>().ToList();
+        var track = new SmartChordTrack { BassSource = noteTracks[1], MelodySource = noteTracks[0] };
+        song.Tracks.Add(track);
+        return track;
     }
 
     private static async Task<ProjectDocument> LoadFixture(string file)
