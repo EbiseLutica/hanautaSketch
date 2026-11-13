@@ -90,7 +90,7 @@ public partial class ChordFixtureTests
         segments.Select(s => $"{s.Name}@{(double)s.Start / ppq:0.##}+{(double)s.Length / ppq:0.##}").ToArray();
 
     private static string[] Format(IReadOnlyList<ChordSegment> segments, Key key, int ppq) =>
-        Format(segments.Select(s => (s.Chord.RootPosition.GetName(key), s.Start, s.Length)), ppq);
+        Format(segments.Select(s => (s.Chord?.RootPosition.GetName(key) ?? ChordSegment.NoChordName, s.Start, s.Length)), ppq);
 
     #endregion
 }

@@ -85,6 +85,18 @@ public partial class MainWindowViewModel
     }
 
     /// <summary>
+    /// セクションレーンの端のドラッグで、セクションを伸縮する。
+    /// </summary>
+    public void ResizeDrumSection(DrumSection section, int start, int end)
+    {
+        if (SelectedTrack is not SmartDrumTrack drum || end <= start) return;
+
+        DrumSection? resized = null;
+        EditDrumTrack(drum, () => resized = drum.ResizeSection(section, start, end));
+        SelectDrumSection(resized);
+    }
+
+    /// <summary>
     /// ドラムトラックへの変更を Undo できる1操作としてまとめ、再生成と表示の更新まで行う。
     /// </summary>
     public void EditDrumTrack(SmartDrumTrack track, Action edit)

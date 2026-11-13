@@ -25,9 +25,10 @@ public static class ProjectSerializer
     /// 0.1: トラックはノートのみ（曲全体のスマートコード設定 smartChord は読み込み時に無視する）
     /// 0.2: スマートコードトラック（ソース参照・設定・override）を追加
     /// 0.3: スマートドラムトラック（ソース参照・区間・fix した実体ノーツ）を追加
+    /// 0.4: コードの N.C. override（noChord）。ドラム区間のベース追従を真偽値 followBass から bassFollow（none / fill / full）へ
     /// 初期のファイルは整数（1 / 2）で書かれているので、それぞれ 0.1 / 0.2 として読む。
     /// </summary>
-    public static Version CurrentVersion { get; } = new(0, 3);
+    public static Version CurrentVersion { get; } = new(0, 4);
 
     private static readonly JsonSerializerOptions Options = new()
     {
@@ -112,9 +113,10 @@ public static class ProjectSerializer
                 {
                     Start = o.Start,
                     Length = o.Length,
-                    Root = o.Chord.Root,
-                    Quality = o.Chord.Quality,
-                    Bass = o.Chord.Bass,
+                    NoChord = o.Chord is null ? true : null,
+                    Root = o.Chord?.Root ?? 0,
+                    Quality = o.Chord?.Quality ?? default,
+                    Bass = o.Chord?.Bass,
                 }).ToList();
                 return dto;
             case SmartDrumTrack drum:
@@ -130,7 +132,7 @@ public static class ProjectSerializer
                     Pattern = s.Pattern,
                     Swing = s.Swing,
                     SwingAmount = s.SwingAmount,
-                    FollowBass = s.FollowBass,
+                    BassFollow = s.BassFollow,
                     Fixed = s.IsFixed,
                 }).ToList();
                 return dto;
@@ -219,7 +221,8 @@ public static class ProjectSerializer
                 Pattern = s.Pattern,
                 Swing = s.Swing,
                 SwingAmount = Math.Clamp(s.SwingAmount, 0, 1),
-                FollowBass = s.FollowBass,
+                // 0.3 までは「キックをベースに合わせる」の真偽値
+                BassFollow = s.BassFollow ?? (s.FollowBass == true ? DrumBassFollow.Full : DrumBassFollow.None),
                 IsFixed = s.Fixed,
             });
         }
@@ -245,7 +248,8 @@ public static class ProjectSerializer
         {
             if (o.Length <= 0 || o.Start < 0) continue;
             var bass = o.Bass is { } b ? Math.Clamp(b, 0, 11) : (int?)null;
-            track.Overrides.Add(new ChordOverride(o.Start, o.Length, new Chord(Math.Clamp(o.Root, 0, 11), o.Quality, bass)));
+            Chord? chord = o.NoChord == true ? null : new Chord(Math.Clamp(o.Root, 0, 11), o.Quality, bass);
+            track.Overrides.Add(new ChordOverride(o.Start, o.Length, chord));
         }
 
         pending.Add((track, dto));
@@ -343,7 +347,11 @@ public static class ProjectSerializer
         public DrumPattern Pattern { get; set; }
         public bool Swing { get; set; }
         public double SwingAmount { get; set; } = 0.67;
-        public bool FollowBass { get; set; }
+        public DrumBassFollow? BassFollow { get; set; }
+
+        /// <summary>0.3 まで。読み込み専用（null のまま書き出さない）</summary>
+        public bool? FollowBass { get; set; }
+
         public bool Fixed { get; set; }
     }
 
@@ -359,6 +367,8 @@ public static class ProjectSerializer
     {
         public int Start { get; set; }
         public int Length { get; set; }
+        /// <summary>true なら N.C.（Root などは無視）</summary>
+        public bool? NoChord { get; set; }
         public int Root { get; set; }
         public ChordQuality Quality { get; set; }
         public int? Bass { get; set; }

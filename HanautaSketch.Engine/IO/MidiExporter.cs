@@ -68,7 +68,7 @@ public static class MidiExporter
         if (options.IncludeChordMarkers && song.Tracks.OfType<SmartChordTrack>().FirstOrDefault() is { } chordTrack)
         {
             foreach (var segment in chordTrack.Chords)
-                builder.AddText(segment.Start, SmfMeta.Marker, segment.Chord.GetName(song.Key), encoding);
+                builder.AddText(segment.Start, SmfMeta.Marker, segment.GetName(song.Key), encoding);
         }
 
         return builder;

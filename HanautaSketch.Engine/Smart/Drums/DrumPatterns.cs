@@ -13,6 +13,21 @@ public enum DrumPattern
 }
 
 /// <summary>
+/// ドラムをベースのリズムにどれだけ合わせるか。
+/// </summary>
+public enum DrumBassFollow
+{
+    /// <summary>パターンのまま</summary>
+    None,
+
+    /// <summary>フィル小節（区間の最後の小節と、4小節ごとの区切りの直前の小節）の後半だけ、ベースの発音位置でフィルを打つ</summary>
+    Fill,
+
+    /// <summary>キックをパターンではなくベースの発音位置に置く</summary>
+    Full,
+}
+
+/// <summary>
 /// GM ドラムの音（ノート番号）。
 /// </summary>
 public static class GmDrum
@@ -22,6 +37,11 @@ public static class GmDrum
     public const int ClosedHiHat = 42;
     public const int OpenHiHat = 46;
     public const int Crash = 49;
+    public const int HighTom = 50;
+    public const int HighMidTom = 48;
+    public const int LowMidTom = 47;
+    public const int LowTom = 45;
+    public const int HighFloorTom = 43;
 }
 
 /// <summary>

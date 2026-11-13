@@ -6,7 +6,8 @@ namespace HanautaSketch.Engine.Smart.Chords;
 /// <summary>
 /// ユーザーが指定したコード区間。判別時は確定区間として扱う。
 /// </summary>
-public sealed record ChordOverride(int Start, int Length, Chord Chord)
+/// <param name="Chord">指定したコード。null なら N.C.（鳴らさない）</param>
+public sealed record ChordOverride(int Start, int Length, Chord? Chord)
 {
     public int End => Start + Length;
 }
@@ -14,9 +15,15 @@ public sealed record ChordOverride(int Start, int Length, Chord Chord)
 /// <summary>
 /// 判別結果の1区間。同じコードが続く区間は連結済み。
 /// </summary>
-public sealed record ChordSegment(int Start, int Length, Chord Chord, bool IsOverride)
+/// <param name="Chord">区間のコード。null なら N.C.（鳴らさない）</param>
+public sealed record ChordSegment(int Start, int Length, Chord? Chord, bool IsOverride)
 {
     public int End => Start + Length;
+
+    /// <summary>コード名。N.C. なら "N.C."</summary>
+    public string GetName(Key key) => Chord?.GetName(key) ?? NoChordName;
+
+    public const string NoChordName = "N.C.";
 }
 
 /// <summary>
@@ -105,7 +112,7 @@ public static class ChordDetector
 
     #region 探索
 
-    private readonly record struct PathSegment(int Start, int End, Chord Chord, bool IsOverride);
+    private readonly record struct PathSegment(int Start, int End, Chord? Chord, bool IsOverride);
 
     /// <summary>
     /// 1回の判別に必要な前計算と、semi-Markov Viterbi 本体。
@@ -118,7 +125,8 @@ public static class ChordDetector
         private readonly SmartChordSettings _settings;
         private readonly List<ChordOverride> _overrides;
         private readonly IReadOnlyList<ChordCandidate> _candidates;
-        private readonly List<Chord> _chords;
+        /// <summary>状態として扱うコード。null は N.C. の override 専用の状態</summary>
+        private readonly List<Chord?> _chords;
         private readonly int[] _positions;
         private readonly int _minLength;
         private readonly int _maxLength;
@@ -133,8 +141,8 @@ public static class ChordDetector
             _overrides = overrides;
             _candidates = DiatonicChords.GetCandidates(context.Key, settings.MinorDominant);
 
-            // 状態として扱うコード: 候補 → オーバーライド専用コードの順
-            _chords = _candidates.Select(c => c.Chord).ToList();
+            // 状態として扱うコード: 候補 → オーバーライド専用コード（N.C. を含む）の順
+            _chords = _candidates.Select(c => (Chord?)c.Chord).ToList();
             foreach (var ov in overrides.Where(ov => !_chords.Contains(ov.Chord)))
                 _chords.Add(ov.Chord);
 
@@ -219,7 +227,7 @@ public static class ChordDetector
         {
             if (i == 0)
             {
-                var s = score + ChordTransitions.Score(_context.Key, null, _chords[k]);
+                var s = score + TransitionScore(null, _chords[k]);
                 if (s > dp[j, k])
                 {
                     dp[j, k] = s;
@@ -241,7 +249,7 @@ public static class ChordDetector
                 // 同じコードの継続は区切りとみなさない（結果上で連結される）
                 var change = _chords[prev] == _chords[k]
                     ? 0
-                    : ChordTransitions.Score(_context.Key, _chords[prev], _chords[k]) - boundaryCost;
+                    : TransitionScore(_chords[prev], _chords[k]) - boundaryCost;
                 var s = dp[i, prev] + change + score;
                 if (s > dp[j, k])
                 {
@@ -250,6 +258,12 @@ public static class ChordDetector
                 }
             }
         }
+
+        /// <summary>
+        /// コード遷移のスコア。N.C. の後は曲頭と同じ扱いにし、N.C. へ入る遷移は評価しない。
+        /// </summary>
+        private double TransitionScore(Chord? from, Chord? to) =>
+            to is { } next ? ChordTransitions.Score(_context.Key, from, next) : 0;
 
         private List<PathSegment> Backtrack(double[,] dp, (int Pos, int Chord)[,] back)
         {
@@ -398,7 +412,8 @@ public static class ChordDetector
 
         return merged
             .Select(s => new ChordSegment(s.Start, s.End - s.Start,
-                s.IsOverride ? s.Chord : WithInversion(s.Chord, bass, s.Start, s.End), s.IsOverride))
+                s.IsOverride || s.Chord is not { } chord ? s.Chord : WithInversion(chord, bass, s.Start, s.End),
+                s.IsOverride))
             .ToList();
     }
 

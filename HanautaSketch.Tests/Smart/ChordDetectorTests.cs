@@ -16,7 +16,7 @@ public class ChordDetectorTests
         pitches.Select((p, i) => new Note(i * Bar, Bar, p, 100)).ToList();
 
     private static string[] Names(IReadOnlyList<ChordSegment> segments, ChordDetectionContext? context = null) =>
-        segments.Select(s => s.Chord.GetName((context ?? CMajor).Key)).ToArray();
+        segments.Select(s => s.GetName((context ?? CMajor).Key)).ToArray();
 
     private static IReadOnlyList<ChordSegment> Detect(List<Note> bass, ChordDetectionContext context,
         SmartChordSettings? settings = null, List<Note>? melody = null, List<ChordOverride>? overrides = null) =>
@@ -178,6 +178,20 @@ public class ChordDetectorTests
         Assert.Equal(["C", "Dm", "G", "C"], Names(result));
         Assert.True(result[1].IsOverride);
         Assert.False(result[0].IsOverride);
+    }
+
+    [Fact]
+    public void NoChordOverride_IsSilentAndRestIsDetected()
+    {
+        var bass = WholeNoteBass(48, 53, 55, 48);
+        var result = Detect(bass, CMajor, overrides: [new ChordOverride(0, Bar, null)]);
+
+        Assert.Equal(["N.C.", "F", "G", "C"], Names(result));
+        Assert.Null(result[0].Chord);
+        Assert.True(result[0].IsOverride);
+
+        var notes = ChordAccompaniment.Generate(result, bass, new AccompanimentSettings(), Ppq);
+        Assert.All(notes, n => Assert.True(n.Tick >= Bar));
     }
 
     [Fact]

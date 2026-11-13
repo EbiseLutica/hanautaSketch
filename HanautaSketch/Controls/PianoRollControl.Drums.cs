@@ -21,8 +21,14 @@ public sealed partial class PianoRollControl
     /// <summary>この距離（px）以上動かしたら、クリックではなく範囲のドラッグとみなす</summary>
     private const double SectionDragThreshold = 4;
 
+    /// <summary>セクションの端とみなす幅（px）</summary>
+    private const double SectionEdgeWidth = 5;
+
     private double _sectionDragStartX;
     private double _sectionDragCurrentX;
+
+    /// <summary>端のドラッグで伸縮中のセクションと、動かしている端（true なら右端）</summary>
+    private (DrumSection Section, bool IsEnd)? _sectionResize;
 
     /// <summary>表示中のドラムトラックのセクション</summary>
     public IReadOnlyList<DrumSection>? DrumSections
@@ -40,6 +46,9 @@ public sealed partial class PianoRollControl
 
     /// <summary>セクションレーンのドラッグで、小節単位の範囲 [Start, End) のセクション作成を依頼する</summary>
     public event EventHandler<DrumSectionRequestedEventArgs>? DrumSectionRequested;
+
+    /// <summary>セクションの端のドラッグで、小節単位の新しい範囲への伸縮を依頼する</summary>
+    public event EventHandler<DrumSectionResizeRequestedEventArgs>? DrumSectionResizeRequested;
 
     #region 描画
 
@@ -63,7 +72,7 @@ public sealed partial class PianoRollControl
 
         if (_dragMode == DragMode.DrumSection && IsSectionDrag)
         {
-            var (start, end) = DraggedBarRange();
+            var (start, end) = _sectionResize is { } resize ? ResizedRange(resize.Section, resize.IsEnd) : DraggedBarRange();
             context.DrawRectangle(_palette.SelectionFill, _palette.SelectionBorder, LaneRect(start, end));
         }
     }
@@ -95,7 +104,8 @@ public sealed partial class PianoRollControl
         };
         var parts = new List<string> { pattern };
         if (section.Swing) parts.Add($"Swing {section.SwingAmount * 100:0}%");
-        if (section.FollowBass) parts.Add("ベース追従");
+        if (section.BassFollow == DrumBassFollow.Fill) parts.Add("フィル");
+        if (section.BassFollow == DrumBassFollow.Full) parts.Add("ベース追従");
         if (section.IsFixed) parts.Add("fix");
         return string.Join(" / ", parts);
     }
@@ -109,7 +119,41 @@ public sealed partial class PianoRollControl
     private void BeginDrumSectionInput(PointerPressedEventArgs e, Point pos)
     {
         _sectionDragStartX = _sectionDragCurrentX = pos.X;
+        _sectionResize = HitSectionEdge(pos);
         BeginDrag(DragMode.DrumSection, e);
+    }
+
+    /// <summary>
+    /// セクションの端にいるか。隣り合う区間の境目では、選択中のセクションを優先し、なければ左の区間の右端にする。
+    /// </summary>
+    private (DrumSection Section, bool IsEnd)? HitSectionEdge(Point pos)
+    {
+        if (Track is not SmartDrumTrack || pos.X < KeyboardWidth || pos.Y < RulerHeight || pos.Y >= HeaderHeight) return null;
+
+        (DrumSection, bool)? hit = null;
+        foreach (var section in DrumSections ?? [])
+        {
+            foreach (var (tick, isEnd) in new[] { (section.Start, false), (section.End, true) })
+            {
+                if (Math.Abs(TickToX(tick) - pos.X) > SectionEdgeWidth) continue;
+                if (section == SelectedDrumSection) return (section, isEnd);
+                hit ??= (section, isEnd);
+            }
+        }
+        return hit;
+    }
+
+    private bool IsOverDrumSectionEdge(Point pos) => HitSectionEdge(pos) is not null;
+
+    /// <summary>
+    /// 端をドラッグした後の範囲。動かした端を最寄りの小節線に寄せ、最低1小節は残す。
+    /// </summary>
+    private (int Start, int End) ResizedRange(DrumSection section, bool isEnd)
+    {
+        var bar = (int)Math.Round(Math.Max(0, XToTick(_sectionDragCurrentX)) / TicksPerBar) * TicksPerBar;
+        return isEnd
+            ? (section.Start, Math.Max(section.Start + (int)TicksPerBar, bar))
+            : (Math.Min(section.End - (int)TicksPerBar, bar), section.End);
     }
 
     private void UpdateDrumSectionDrag(Point pos)
@@ -123,6 +167,18 @@ public sealed partial class PianoRollControl
     /// </summary>
     private void CompleteDrumSectionInput()
     {
+        if (_sectionResize is { } resize)
+        {
+            _sectionResize = null;
+            if (!IsSectionDrag) return;
+
+            var (newStart, newEnd) = ResizedRange(resize.Section, resize.IsEnd);
+            if (newStart != resize.Section.Start || newEnd != resize.Section.End)
+                DrumSectionResizeRequested?.Invoke(this,
+                    new DrumSectionResizeRequestedEventArgs(resize.Section, newStart, newEnd));
+            return;
+        }
+
         if (IsSectionDrag)
         {
             var (start, end) = DraggedBarRange();
@@ -147,6 +203,18 @@ public sealed partial class PianoRollControl
     }
 
     #endregion
+}
+
+/// <summary>
+/// セクションの伸縮の依頼（小節単位の新しい範囲）。
+/// </summary>
+public sealed class DrumSectionResizeRequestedEventArgs(DrumSection section, int start, int end) : EventArgs
+{
+    public DrumSection Section { get; } = section;
+
+    public int Start { get; } = start;
+
+    public int End { get; } = end;
 }
 
 /// <summary>

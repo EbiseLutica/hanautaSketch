@@ -65,6 +65,7 @@ public class ProjectSerializerTests
             Accompaniment = new AccompanimentSettings { Pattern = AccompanimentPattern.Arpeggio, DivisionTicks = 120, Velocity = 70 },
         };
         chord.SetOverride(960, 960, new Chord(2, ChordQuality.Minor, 5));
+        chord.SetOverride(1920, 480, null);
         song.Tracks.Add(melody);
         song.Tracks.Add(bass);
         song.Tracks.Add(chord);
@@ -91,7 +92,7 @@ public class ProjectSerializerTests
         var second = drums.AddSection(1920, 3840);
         drums.ReplaceSection(second, second with
         {
-            Pattern = DrumPattern.SixteenBeat, Swing = true, SwingAmount = 0.5, FollowBass = true,
+            Pattern = DrumPattern.SixteenBeat, Swing = true, SwingAmount = 0.5, BassFollow = DrumBassFollow.Fill,
         });
         song.Tracks.Add(bass);
         song.Tracks.Add(drums);
@@ -137,7 +138,7 @@ public class ProjectSerializerTests
         await ProjectSerializer.SaveAsync(new ProjectDocument(new Song()), stream);
         var json = Encoding.UTF8.GetString(stream.ToArray());
 
-        Assert.Contains("\"version\": \"0.3\"", json);
+        Assert.Contains("\"version\": \"0.4\"", json);
     }
 
     [Theory]
@@ -145,6 +146,8 @@ public class ProjectSerializerTests
     [InlineData("2")]
     [InlineData("\"0.1\"")]
     [InlineData("\"0.2\"")]
+    [InlineData("\"0.3\"")]
+    [InlineData("\"0.4\"")]
     public async Task Load_AcceptsCurrentAndOlderVersions(string version)
     {
         var loaded = await LoadJson($$"""{ "version": {{version}}, "song": { "tracks": [] } }""");
@@ -152,12 +155,27 @@ public class ProjectSerializerTests
     }
 
     [Theory]
-    [InlineData("\"0.4\"")]
+    [InlineData("\"0.5\"")]
     [InlineData("\"1.0\"")]
     [InlineData("999")]
     public async Task Load_RejectsNewerVersion(string version)
     {
         await Assert.ThrowsAsync<InvalidDataException>(() => LoadJson($$"""{ "version": {{version}} }"""));
+    }
+
+    [Theory]
+    [InlineData("true", DrumBassFollow.Full)]
+    [InlineData("false", DrumBassFollow.None)]
+    public async Task LoadV03_ConvertsFollowBassFlag(string followBass, DrumBassFollow expected)
+    {
+        var loaded = await LoadJson($$"""
+            { "version": "0.3", "song": { "tracks": [
+              { "type": "smartDrum", "sections": [ { "start": 0, "length": 1920, "followBass": {{followBass}} } ] }
+            ] } }
+            """);
+
+        var drums = Assert.IsType<SmartDrumTrack>(Assert.Single(loaded.Song.Tracks));
+        Assert.Equal(expected, Assert.Single(drums.Sections).BassFollow);
     }
 
     [Fact]

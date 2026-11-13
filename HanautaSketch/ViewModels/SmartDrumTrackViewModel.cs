@@ -5,6 +5,12 @@ using HanautaSketch.Engine.Smart.Drums;
 
 namespace HanautaSketch.ViewModels;
 
+/// <summary>ベースへの合わせ方の選択肢</summary>
+public sealed record DrumBassFollowOption(string Label, DrumBassFollow Value)
+{
+    public override string ToString() => Label;
+}
+
 /// <summary>ドラムパターンの選択肢</summary>
 public sealed record DrumPatternOption(string Label, DrumPattern Pattern)
 {
@@ -38,6 +44,13 @@ public sealed partial class SmartDrumTrackViewModel : ObservableObject
         new("16ビート", DrumPattern.SixteenBeat),
     ];
 
+    public IReadOnlyList<DrumBassFollowOption> BassFollowOptions { get; } =
+    [
+        new("なし", DrumBassFollow.None),
+        new("フィルだけ", DrumBassFollow.Fill),
+        new("キックを全部", DrumBassFollow.Full),
+    ];
+
     public SourceOption? BassSource
     {
         get => BassSourceOptions.FirstOrDefault(o => o.Track == _track.BassSource);
@@ -51,7 +64,7 @@ public sealed partial class SmartDrumTrackViewModel : ObservableObject
     /// <summary>設定対象のセクション。null ならセクションの設定は出さない</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSection), nameof(Pattern), nameof(Swing), nameof(SwingAmount),
-        nameof(FollowBass), nameof(FixLabel), nameof(IsFixed))]
+        nameof(BassFollow), nameof(FixLabel), nameof(IsFixed))]
     private DrumSection? _section;
 
     public bool HasSection => Section is not null;
@@ -92,10 +105,13 @@ public sealed partial class SmartDrumTrackViewModel : ObservableObject
         }
     }
 
-    public bool FollowBass
+    public DrumBassFollowOption? BassFollow
     {
-        get => Section?.FollowBass ?? false;
-        set => UpdateSection(s => s with { FollowBass = value });
+        get => BassFollowOptions.FirstOrDefault(o => o.Value == Section?.BassFollow);
+        set
+        {
+            if (value is not null) UpdateSection(s => s with { BassFollow = value.Value });
+        }
     }
 
     [RelayCommand]

@@ -87,6 +87,9 @@ public partial class MainWindow : Window
     private void OnDrumSectionRequested(object? sender, DrumSectionRequestedEventArgs e) =>
         ViewModel?.CreateDrumSection(e.Start, e.End);
 
+    private void OnDrumSectionResizeRequested(object? sender, DrumSectionResizeRequestedEventArgs e) =>
+        ViewModel?.ResizeDrumSection(e.Section, e.Start, e.End);
+
     /// <summary>
     /// コードレーンのクリックで、候補コード・確定・自動に戻す のメニューをカーソル位置に出す。
     /// </summary>
@@ -98,11 +101,15 @@ public partial class MainWindow : Window
         var flyout = new MenuFlyout();
         foreach (var chord in vm.GetChordSuggestions(segment))
         {
-            var isCurrent = chord == segment.Chord.RootPosition;
+            var isCurrent = chord == segment.Chord?.RootPosition;
             var item = new MenuItem { Header = (isCurrent ? "● " : "　") + chord.GetName(vm.Key) };
             item.Click += (_, _) => vm.SetChordOverride(segment, chord);
             flyout.Items.Add(item);
         }
+
+        var noChord = new MenuItem { Header = (segment.Chord is null ? "● " : "　") + "N.C.（鳴らさない）" };
+        noChord.Click += (_, _) => vm.SetChordOverride(segment, null);
+        flyout.Items.Add(noChord);
 
         flyout.Items.Add(new Separator());
         if (segment.IsOverride)
@@ -114,7 +121,7 @@ public partial class MainWindow : Window
         else
         {
             var fix = new MenuItem { Header = "このコードで確定" };
-            fix.Click += (_, _) => vm.SetChordOverride(segment, segment.Chord.RootPosition);
+            fix.Click += (_, _) => vm.SetChordOverride(segment, segment.Chord?.RootPosition);
             flyout.Items.Add(fix);
         }
 

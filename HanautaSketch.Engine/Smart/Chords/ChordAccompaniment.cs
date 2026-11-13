@@ -25,7 +25,9 @@ public static class ChordAccompaniment
 
         foreach (var segment in chords)
         {
-            var voicing = Voice(segment.Chord, previous);
+            if (segment.Chord is not { } chord) continue;
+
+            var voicing = Voice(chord, previous);
             previous = voicing;
 
             switch (settings.Pattern)

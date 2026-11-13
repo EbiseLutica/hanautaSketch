@@ -379,6 +379,12 @@ public sealed partial class PianoRollControl
 
     private void UpdateHoverCursor(Point pos)
     {
+        if (IsOverDrumSectionEdge(pos))
+        {
+            Cursor = ResizeCursor;
+            return;
+        }
+
         if (SplitterRect.Contains(pos))
         {
             Cursor = SplitterCursor;

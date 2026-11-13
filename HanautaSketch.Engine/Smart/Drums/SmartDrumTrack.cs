@@ -23,8 +23,8 @@ public sealed record DrumSection
     /// <summary>スウィングの強さ（0 = ストレート、1 = 3連符の 2:1）</summary>
     public double SwingAmount { get; init; } = 0.67;
 
-    /// <summary>キックをパターンではなくベースの発音位置に置く</summary>
-    public bool FollowBass { get; init; }
+    /// <summary>ベースのリズムへの合わせ方</summary>
+    public DrumBassFollow BassFollow { get; init; }
 
     /// <summary>生成をやめ、実体ノーツを編集できる状態か</summary>
     public bool IsFixed { get; init; }
@@ -77,7 +77,29 @@ public sealed class SmartDrumTrack : Track, INoteEditable
     {
         var template = Sections.FirstOrDefault(s => s.Start < end && start < s.End) ?? new DrumSection();
         var section = template with { Start = start, Length = end - start, IsFixed = false };
+        Place(section);
+        return section;
+    }
 
+    /// <summary>
+    /// 区間の範囲を [start, end) に変える。設定と fix 状態は保ち、重なる他の区間は切り詰める。
+    /// fix した区間の外に出た実体ノーツは捨てる。
+    /// </summary>
+    public DrumSection ResizeSection(DrumSection section, int start, int end)
+    {
+        if (end <= start || !Sections.Remove(section)) return section;
+
+        var resized = section with { Start = start, Length = end - start };
+        Place(resized);
+        return resized;
+    }
+
+    /// <summary>
+    /// 区間を置き、重なる既存の区間を切り詰める（完全に覆われたものは取り除く）。
+    /// </summary>
+    private void Place(DrumSection section)
+    {
+        var (start, end) = (section.Start, section.End);
         var rest = new List<DrumSection>();
         foreach (var s in Sections)
         {
@@ -95,7 +117,6 @@ public sealed class SmartDrumTrack : Track, INoteEditable
         Sections.Clear();
         Sections.AddRange(rest.OrderBy(s => s.Start));
         FixedNotes.RemoveAll(n => !Sections.Any(s => s.IsFixed && s.Contains(n.Tick)));
-        return section;
     }
 
     public void ReplaceSection(DrumSection oldSection, DrumSection newSection)
@@ -146,6 +167,13 @@ public static class DrumGenerator
     /// <summary>ドラムのノートの長さ（16分音符）。ドラムは長さに意味がないので短く置く</summary>
     private const int NoteLengthDivisor = 4;
 
+    /// <summary>フィルを入れる間隔（小節）。区間頭から数えてこの小節数ごとの最後の小節がフィル小節</summary>
+    private const int FillPeriodBars = 4;
+
+    /// <summary>フィルで使う音。後ろの発音ほど低いタムにする</summary>
+    private static readonly int[] FillVoices =
+        [GmDrum.Snare, GmDrum.HighTom, GmDrum.HighMidTom, GmDrum.LowMidTom, GmDrum.LowTom, GmDrum.HighFloorTom];
+
     public static IReadOnlyList<Note> Generate(DrumSection section, IReadOnlyList<Note> bass, int ppq, int ticksPerBar)
     {
         var template = DrumTemplate.For(section.Pattern);
@@ -153,18 +181,37 @@ public static class DrumGenerator
         var noteLength = ppq / NoteLengthDivisor;
         var result = new List<Note>();
 
-        for (var bar = section.Start; bar < section.End; bar += ticksPerBar)
+        var onsets = BassRhythmAnalyzer.GetOnsets(bass);
+        var followFull = section.BassFollow == DrumBassFollow.Full;
+
+        for (var (bar, index) = (section.Start, 0); bar < section.End; bar += ticksPerBar, index++)
         {
+            var barEnd = Math.Min(bar + ticksPerBar, section.End);
+
+            // フィル小節では、後半にベースの発音があれば後半をパターンからフィルに替える
+            var fillStart = int.MaxValue;
+            if (section.BassFollow == DrumBassFollow.Fill && IsFillBar(section, bar, index, ticksPerBar))
+            {
+                var half = bar + ticksPerBar / 2;
+                var fillOnsets = onsets.Where(t => half <= t && t < barEnd).ToList();
+                if (fillOnsets.Count > 0)
+                {
+                    fillStart = half;
+                    AddFill(result, fillOnsets, half, bar + ticksPerBar, ppq, noteLength);
+                    if (barEnd < section.End) result.Add(new Note(barEnd, noteLength, GmDrum.Crash, 100));
+                }
+            }
+
             foreach (var (pitch, step, velocity) in template.Hits)
             {
-                if (section.FollowBass && pitch == GmDrum.Kick) continue;
+                if (followFull && pitch == GmDrum.Kick) continue;
 
                 var tick = bar + step * stepTicks + SwingOffset(section, step, ppq);
-                if (tick < section.End) result.Add(new Note(tick, noteLength, pitch, velocity));
+                if (tick < barEnd && tick < fillStart) result.Add(new Note(tick, noteLength, pitch, velocity));
             }
         }
 
-        if (section.FollowBass) AddKicksFromBass(result, section, bass, noteLength);
+        if (followFull) AddKicksFromBass(result, section, onsets, noteLength);
 
         // 区間の頭にクラッシュ
         result.Add(new Note(section.Start, noteLength, GmDrum.Crash, 100));
@@ -189,12 +236,35 @@ public static class DrumGenerator
     }
 
     /// <summary>
+    /// フィル小節か。区間の最後の小節と、区間頭から4小節ごとの区切りの直前の小節。
+    /// </summary>
+    private static bool IsFillBar(DrumSection section, int bar, int index, int ticksPerBar) =>
+        bar + ticksPerBar >= section.End || (index + 1) % FillPeriodBars == 0;
+
+    /// <summary>
+    /// [start, end) のベースの発音位置にフィルを打つ。スネアから始めて後ろほど低いタムにし、だんだん強くする。
+    /// 拍頭の発音にはキックも重ねる。
+    /// </summary>
+    private static void AddFill(List<Note> result, List<int> onsets, int start, int end, int ppq, int noteLength)
+    {
+        var span = end - start;
+        for (var i = 0; i < onsets.Count; i++)
+        {
+            var tick = onsets[i];
+            var voice = FillVoices[Math.Min(FillVoices.Length - 1, (tick - start) * FillVoices.Length / span)];
+            var velocity = 85 + 30 * i / Math.Max(1, onsets.Count - 1);
+            result.Add(new Note(tick, noteLength, voice, velocity));
+            if (tick % ppq == 0) result.Add(new Note(tick, noteLength, GmDrum.Kick, 100));
+        }
+    }
+
+    /// <summary>
     /// ベースの発音位置にキックを置く。スネアと同じ位置は避ける。
     /// </summary>
-    private static void AddKicksFromBass(List<Note> result, DrumSection section, IReadOnlyList<Note> bass, int noteLength)
+    private static void AddKicksFromBass(List<Note> result, DrumSection section, IReadOnlyList<int> onsets, int noteLength)
     {
         var snareTicks = result.Where(n => n.Pitch == GmDrum.Snare).Select(n => n.Tick).ToHashSet();
-        foreach (var onset in BassRhythmAnalyzer.GetOnsets(bass))
+        foreach (var onset in onsets)
         {
             if (!section.Contains(onset) || snareTicks.Contains(onset)) continue;
             result.Add(new Note(onset, noteLength, GmDrum.Kick, 100));

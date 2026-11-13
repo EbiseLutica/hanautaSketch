@@ -77,9 +77,9 @@ public sealed class SmartChordTrack : Track
     }
 
     /// <summary>
-    /// 指定区間をコードで上書きする。重なる既存の override は取り除く。
+    /// 指定区間をコードで上書きする。null なら N.C.（鳴らさない）にする。重なる既存の override は取り除く。
     /// </summary>
-    public void SetOverride(int start, int length, Chord chord)
+    public void SetOverride(int start, int length, Chord? chord)
     {
         ClearOverrides(start, length);
         Overrides.Add(new ChordOverride(start, length, chord));

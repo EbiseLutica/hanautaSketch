@@ -250,19 +250,20 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     {
         if (ChordLaneTrack is not { } track) return [];
 
-        var previous = Chords.LastOrDefault(c => c.End <= segment.Start)?.Chord.RootPosition;
+        var previous = Chords.LastOrDefault(c => c.End <= segment.Start)?.Chord?.RootPosition;
         var minorDominant = track.ChordSettings.MinorDominant;
         IEnumerable<Chord> suggestions = previous is { } p
             ? ChordTransitions.SuggestNext(Key, p, minorDominant).Append(p)
             : ChordTransitions.GetDiatonicChords(Key, minorDominant);
 
-        return suggestions.Prepend(segment.Chord.RootPosition).Distinct().ToList();
+        if (segment.Chord is { } current) suggestions = suggestions.Prepend(current.RootPosition);
+        return suggestions.Distinct().ToList();
     }
 
     /// <summary>
-    /// 区間のコードを手動で指定する。
+    /// 区間のコードを手動で指定する。null なら N.C.（鳴らさない）にする。
     /// </summary>
-    public void SetChordOverride(ChordSegment segment, Chord chord)
+    public void SetChordOverride(ChordSegment segment, Chord? chord)
     {
         if (ChordLaneTrack is not { } track) return;
         OnEditStarted();

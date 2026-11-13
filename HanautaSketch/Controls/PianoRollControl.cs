@@ -458,7 +458,7 @@ public sealed partial class PianoRollControl : Control
                 _palette.ChordBorder, rect, 3, 3);
             using (context.PushClip(rect))
             {
-                DrawText(context, block.Chord.GetName(Key), new Point(rect.X + 4, rect.Y + 1), _palette.Text, 12);
+                DrawText(context, block.GetName(Key), new Point(rect.X + 4, rect.Y + 1), _palette.Text, 12);
             }
         }
     }
