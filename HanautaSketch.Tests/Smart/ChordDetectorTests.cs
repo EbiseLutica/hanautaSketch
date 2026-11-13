@@ -208,12 +208,24 @@ public class ChordDetectorTests
     }
 
     [Fact]
-    public void EmptySegment_InheritsPreviousChord()
+    public void EmptySegment_InheritsPreviousChordAsSeparateSegment()
     {
+        // 休みの小節は前のコードを引き継ぐが、N.C. にできるよう区間は分ける
         List<Note> bass = [new(0, Bar, 48, 100), new(Bar * 2, Bar, 55, 100)];
         var result = Detect(bass, CMajor);
-        Assert.Equal(["C", "G"], Names(result));
-        Assert.Equal(Bar * 2, result[0].Length);
+        Assert.Equal(["C", "C", "G"], Names(result));
+        Assert.Equal([(0, Bar), (Bar, Bar), (Bar * 2, Bar)], result.Select(s => (s.Start, s.Length)).ToArray());
+    }
+
+    [Fact]
+    public void LeadingRest_IsSplitFromWhereBassStarts()
+    {
+        // 頭の2小節は休み、3小節目の2拍目からベース
+        List<Note> bass = [new(Bar * 2 + Ppq, Ppq * 3, 48, 100), new(Bar * 3, Bar, 55, 100)];
+        var result = Detect(bass, CMajor);
+        Assert.Equal(0, result[0].Start);
+        Assert.Equal(Bar * 2 + Ppq, result[0].End);
+        Assert.Contains(result, s => s.Start == Bar * 2 + Ppq);
     }
 
     [Fact]

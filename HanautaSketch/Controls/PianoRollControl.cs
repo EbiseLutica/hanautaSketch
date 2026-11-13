@@ -443,7 +443,7 @@ public sealed partial class PianoRollControl : Control
     }
 
     /// <summary>
-    /// 判別されたコードを区間ごとに表示する。同じコードが続く区間はまとめて1つにする。
+    /// 判別されたコードを区間ごとに表示する。
     /// </summary>
     private void RenderChordLane(DrawingContext context, Rect area)
     {
@@ -464,23 +464,9 @@ public sealed partial class PianoRollControl : Control
     }
 
     /// <summary>
-    /// 表示上のコードブロック。同じコードが続く区間はまとめて1つにする。
+    /// 表示上のコードブロック。判別結果の区間をそのまま使う（ベースの休みで分けた区間を別々に指定できるように）。
     /// </summary>
-    private List<ChordSegment> GetChordBlocks()
-    {
-        var blocks = new List<ChordSegment>();
-        if (Chords is not { Count: > 0 } chords) return blocks;
-
-        foreach (var segment in chords)
-        {
-            if (blocks.Count > 0 && blocks[^1].Chord == segment.Chord && blocks[^1].IsOverride == segment.IsOverride
-                && blocks[^1].End == segment.Start)
-                blocks[^1] = blocks[^1] with { Length = segment.End - blocks[^1].Start };
-            else
-                blocks.Add(segment);
-        }
-        return blocks;
-    }
+    private IReadOnlyList<ChordSegment> GetChordBlocks() => Chords ?? [];
 
     private Rect ChordBlockRect(ChordSegment block) =>
         new Rect(TickToX(block.Start), RulerHeight + 2, block.Length * PixelsPerTick, ChordLaneHeight - 4)

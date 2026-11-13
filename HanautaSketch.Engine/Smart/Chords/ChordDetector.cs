@@ -88,7 +88,7 @@ public static class ChordDetector
 
         var problem = new Problem(bass, melody, endTick, context, settings, validOverrides);
         var path = problem.Solve();
-        return BuildResult(path, bass, validOverrides);
+        return BuildResult(path, bass, context);
     }
 
     /// <summary>
@@ -396,10 +396,10 @@ public static class ChordDetector
     #region 結果の組み立て
 
     /// <summary>
-    /// 同じコードが続く区間を連結し、区間頭のベース音から転回形を付ける。
+    /// 同じコードが続く区間を連結し、ベースの休み（1小節以上）の境目で区切り直し、区間頭のベース音から転回形を付ける。
     /// </summary>
     private static IReadOnlyList<ChordSegment> BuildResult(List<PathSegment> path, IReadOnlyList<Note> bass,
-        List<ChordOverride> overrides)
+        ChordDetectionContext context)
     {
         var merged = new List<PathSegment>();
         foreach (var seg in path)
@@ -410,11 +410,56 @@ public static class ChordDetector
                 merged.Add(seg);
         }
 
+        merged = SplitAtRests(merged, bass, context);
+
         return merged
             .Select(s => new ChordSegment(s.Start, s.End - s.Start,
                 s.IsOverride || s.Chord is not { } chord ? s.Chord : WithInversion(chord, bass, s.Start, s.End),
                 s.IsOverride))
             .ToList();
+    }
+
+    /// <summary>
+    /// ベースが1小節以上休んでいる区間の両端（休み始めは次の拍頭に寄せる）で、判別した区間を分ける。
+    /// 休みの区間だけを N.C. などで指定し直せるようにするため。override の区間は分けない。
+    /// </summary>
+    private static List<PathSegment> SplitAtRests(List<PathSegment> segments, IReadOnlyList<Note> bass,
+        ChordDetectionContext context)
+    {
+        if (segments.Count == 0) return segments;
+
+        var cuts = new SortedSet<int>();
+        var cursor = 0;
+        foreach (var note in bass.OrderBy(n => n.Tick))
+        {
+            if (note.Tick > cursor) AddRest(cursor, note.Tick);
+            cursor = Math.Max(cursor, note.EndTick);
+        }
+        AddRest(cursor, segments[^1].End);
+
+        var result = new List<PathSegment>();
+        foreach (var seg in segments)
+        {
+            var start = seg.Start;
+            if (!seg.IsOverride)
+            {
+                foreach (var cut in cuts.GetViewBetween(seg.Start + 1, seg.End - 1))
+                {
+                    result.Add(seg with { Start = start, End = cut });
+                    start = cut;
+                }
+            }
+            result.Add(seg with { Start = start });
+        }
+        return result;
+
+        void AddRest(int from, int to)
+        {
+            var start = (from + context.Ppq - 1) / context.Ppq * context.Ppq;
+            if (to - start < context.TicksPerBar) return;
+            cuts.Add(start);
+            cuts.Add(to);
+        }
     }
 
     /// <summary>
