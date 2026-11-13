@@ -14,7 +14,7 @@ namespace HanautaSketch.Controls;
 /// 選択中トラックのノーツを編集するピアノロール。
 /// 左に鍵盤、上にルーラーを持ち、残りがノート編集領域。
 /// </summary>
-public sealed class PianoRollControl : Control
+public sealed partial class PianoRollControl : Control
 {
     public static readonly StyledProperty<Song?> SongProperty =
         AvaloniaProperty.Register<PianoRollControl, Song?>(nameof(Song));
@@ -37,38 +37,26 @@ public sealed class PianoRollControl : Control
     public static readonly StyledProperty<double> PlayheadTickProperty =
         AvaloniaProperty.Register<PianoRollControl, double>(nameof(PlayheadTick), -1);
 
+    public static readonly StyledProperty<int> PlayStartTickProperty =
+        AvaloniaProperty.Register<PianoRollControl, int>(nameof(PlayStartTick),
+            defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
+
     private const double KeyboardWidth = 56;
     private const double RulerHeight = 22;
     private const double ChordLaneHeight = 22;
     private const double HeaderHeight = RulerHeight + ChordLaneHeight;
     private const double NoteHeight = 12;
-    private const double ResizeHandleWidth = 6;
     private const int PitchCount = 128;
-
-    private static readonly Cursor ResizeCursor = new(StandardCursorType.SizeWestEast);
-    private static readonly Cursor MoveCursor = new(StandardCursorType.SizeAll);
 
     private PianoRollPalette _palette = PianoRollPalette.Light;
     private double _scrollX;
     private double _scrollY = (PitchCount - 1 - 84) * NoteHeight;
     private double _pixelsPerBeat = 80;
-    private int _lastNoteLength = Song.DefaultPpq / 2;
-
-    private DragMode _dragMode;
-    private int _dragIndex = -1;
-    private double _dragTickOffset;
-
-    private enum DragMode
-    {
-        None,
-        Move,
-        Resize,
-    }
 
     static PianoRollControl()
     {
         AffectsRender<PianoRollControl>(SongProperty, TrackProperty, KeyProperty, SnapTicksProperty, ChordsProperty,
-            PlayheadTickProperty);
+            PlayheadTickProperty, PlayStartTickProperty);
         FocusableProperty.OverrideDefaultValue<PianoRollControl>(true);
         ClipToBoundsProperty.OverrideDefaultValue<PianoRollControl>(true);
     }
@@ -78,6 +66,13 @@ public sealed class PianoRollControl : Control
     {
         get => GetValue(PlayheadTickProperty);
         set => SetValue(PlayheadTickProperty, value);
+    }
+
+    /// <summary>再生開始位置（tick）。ルーラーのクリックで変わり、貼り付け先にもなる</summary>
+    public int PlayStartTick
+    {
+        get => GetValue(PlayStartTickProperty);
+        set => SetValue(PlayStartTickProperty, value);
     }
 
     /// <summary>空き領域を押したまま動かしたときの挙動</summary>
@@ -96,6 +91,9 @@ public sealed class PianoRollControl : Control
 
     /// <summary>ノーツが編集されたときに発生する</summary>
     public event EventHandler? NotesEdited;
+
+    /// <summary>入力中の確認音を鳴らす・止めるときに発生する</summary>
+    public event EventHandler<NotePreviewEventArgs>? NotePreview;
 
     public PianoRollControl()
     {
@@ -169,6 +167,10 @@ public sealed class PianoRollControl : Control
             RenderGridLines(context, area);
             RenderGhostNotes(context);
             RenderNotes(context);
+            RenderSelectionBox(context);
+
+            var startX = Math.Round(TickToX(PlayStartTick)) + 0.5;
+            context.DrawLine(_palette.PlayStartLine, new Point(startX, area.Y), new Point(startX, area.Bottom));
         }
 
         if (PlayheadTick >= 0)
@@ -186,6 +188,7 @@ public sealed class PianoRollControl : Control
         using (context.PushClip(new Rect(KeyboardWidth, 0, area.Width, RulerHeight)))
         {
             RenderRuler(context, area);
+            RenderPlayStartMarker(context);
         }
 
         using (context.PushClip(new Rect(KeyboardWidth, RulerHeight, area.Width, ChordLaneHeight)))
@@ -257,15 +260,37 @@ public sealed class PianoRollControl : Control
     private void RenderNotes(DrawingContext context)
     {
         if (Track is null) return;
-        foreach (var note in Track.Notes)
+        for (var i = 0; i < Track.Notes.Count; i++)
         {
+            var note = Track.Notes[i];
             var rect = NoteRect(note).Deflate(new Thickness(0, 0.5));
+            var selected = _selection.Contains(i);
             var opacity = 0.45 + 0.55 * note.Velocity / 127.0;
             using (context.PushOpacity(opacity))
             {
-                context.DrawRectangle(_palette.Note, _palette.NoteBorder, rect, 2, 2);
+                context.DrawRectangle(selected ? _palette.NoteSelected : _palette.Note,
+                    selected ? _palette.NoteSelectedBorder : _palette.NoteBorder, rect, 2, 2);
             }
         }
+    }
+
+    /// <summary>
+    /// Ctrl+ドラッグ中の矩形選択範囲。
+    /// </summary>
+    private void RenderSelectionBox(DrawingContext context)
+    {
+        if (_dragMode != DragMode.Select) return;
+        context.DrawRectangle(_palette.SelectionFill, _palette.SelectionBorder, new Rect(_selectStart, _selectCurrent));
+    }
+
+    /// <summary>
+    /// ルーラー上の再生開始位置マーカー（下向きの三角）。
+    /// </summary>
+    private void RenderPlayStartMarker(DrawingContext context)
+    {
+        var x = TickToX(PlayStartTick);
+        var geometry = new PolylineGeometry([new Point(x - 6, 2), new Point(x + 6, 2), new Point(x, RulerHeight - 4)], true);
+        context.DrawGeometry(_palette.PlayStartMarker, null, geometry);
     }
 
     private void RenderKeyboard(DrawingContext context)
@@ -350,174 +375,6 @@ public sealed class PianoRollControl : Control
 
     #endregion
 
-    #region 入力
-
-    protected override void OnPointerPressed(PointerPressedEventArgs e)
-    {
-        base.OnPointerPressed(e);
-        if (Track is null) return;
-
-        var pos = e.GetPosition(this);
-        if (!EditArea.Contains(pos)) return;
-
-        var props = e.GetCurrentPoint(this).Properties;
-        var hit = HitTest(pos, out var onResizeHandle);
-
-        if (props.IsRightButtonPressed)
-        {
-            // 右クリックで削除
-            if (hit >= 0)
-            {
-                Track.Notes.RemoveAt(hit);
-                NotesEdited?.Invoke(this, EventArgs.Empty);
-                InvalidateVisual();
-            }
-            e.Handled = true;
-            return;
-        }
-
-        if (!props.IsLeftButtonPressed) return;
-
-        if (hit >= 0)
-        {
-            var note = Track.Notes[hit];
-            _dragIndex = hit;
-            _dragMode = onResizeHandle ? DragMode.Resize : DragMode.Move;
-            _dragTickOffset = XToTick(pos.X) - note.Tick;
-        }
-        else
-        {
-            // 空き領域クリックで新規配置し、そのままドラッグで移動（設定により伸縮）
-            var pitch = Math.Clamp(YToPitch(pos.Y), 0, PitchCount - 1);
-            var tick = SnapFloor(Math.Max(0, XToTick(pos.X)));
-            Track.Notes.Add(new Note(tick, _lastNoteLength, pitch, 100));
-            NotesEdited?.Invoke(this, EventArgs.Empty);
-            _dragIndex = Track.Notes.Count - 1;
-            _dragMode = NewNoteDrag == NewNoteDragBehavior.Resize ? DragMode.Resize : DragMode.Move;
-            _dragTickOffset = XToTick(pos.X) - tick;
-            InvalidateVisual();
-        }
-
-        e.Pointer.Capture(this);
-        e.Handled = true;
-    }
-
-    protected override void OnPointerMoved(PointerEventArgs e)
-    {
-        base.OnPointerMoved(e);
-        if (Track is null) return;
-
-        var pos = e.GetPosition(this);
-
-        if (_dragMode == DragMode.None)
-        {
-            var hit = HitTest(pos, out var onResizeHandle);
-            Cursor = hit < 0 ? Cursor.Default : onResizeHandle ? ResizeCursor : MoveCursor;
-            return;
-        }
-
-        var note = Track.Notes[_dragIndex];
-        switch (_dragMode)
-        {
-            case DragMode.Move:
-            {
-                var tick = Math.Max(0, SnapRound(XToTick(pos.X) - _dragTickOffset));
-                var pitch = Math.Clamp(YToPitch(pos.Y), 0, PitchCount - 1);
-                note = note with { Tick = tick, Pitch = pitch };
-                break;
-            }
-            case DragMode.Resize:
-            {
-                var end = SnapRound(XToTick(pos.X));
-                note = note with { Length = Math.Max(SnapTicks, end - note.Tick) };
-                break;
-            }
-        }
-
-        if (note != Track.Notes[_dragIndex])
-        {
-            Track.Notes[_dragIndex] = note;
-            NotesEdited?.Invoke(this, EventArgs.Empty);
-            InvalidateVisual();
-        }
-    }
-
-    protected override void OnPointerReleased(PointerReleasedEventArgs e)
-    {
-        base.OnPointerReleased(e);
-        if (_dragMode == DragMode.None) return;
-
-        if (Track is not null && _dragIndex >= 0 && _dragIndex < Track.Notes.Count)
-            _lastNoteLength = Track.Notes[_dragIndex].Length;
-
-        _dragMode = DragMode.None;
-        _dragIndex = -1;
-        e.Pointer.Capture(null);
-    }
-
-    protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
-    {
-        base.OnPointerWheelChanged(e);
-        var pos = e.GetPosition(this);
-
-        if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
-        {
-            // Ctrl+ホイール：カーソル位置を基準に横ズーム
-            var anchorTick = XToTick(pos.X);
-            var factor = e.Delta.Y > 0 ? 1.2 : 1 / 1.2;
-            _pixelsPerBeat = Math.Clamp(_pixelsPerBeat * factor, 8, 600);
-            _scrollX = anchorTick * PixelsPerTick - (pos.X - KeyboardWidth);
-        }
-        else if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
-        {
-            _scrollX -= e.Delta.Y * 80;
-        }
-        else
-        {
-            _scrollX -= e.Delta.X * 80;
-            _scrollY -= e.Delta.Y * NoteHeight * 3;
-        }
-
-        ClampScroll();
-        InvalidateVisual();
-        e.Handled = true;
-    }
-
-    protected override void OnSizeChanged(SizeChangedEventArgs e)
-    {
-        base.OnSizeChanged(e);
-        ClampScroll();
-    }
-
-    private void ClampScroll()
-    {
-        var maxY = Math.Max(0, PitchCount * NoteHeight - EditArea.Height);
-        _scrollY = Math.Clamp(_scrollY, 0, maxY);
-        _scrollX = Math.Max(0, _scrollX);
-    }
-
-    /// <summary>
-    /// 座標にあるノーツのインデックスを返す。前面（後に追加された方）を優先。
-    /// </summary>
-    private int HitTest(Point pos, out bool onResizeHandle)
-    {
-        onResizeHandle = false;
-        if (Track is null || !EditArea.Contains(pos)) return -1;
-
-        for (var i = Track.Notes.Count - 1; i >= 0; i--)
-        {
-            var rect = NoteRect(Track.Notes[i]);
-            if (!rect.Contains(pos)) continue;
-
-            var handle = Math.Min(ResizeHandleWidth, rect.Width / 3);
-            onResizeHandle = pos.X >= rect.Right - handle;
-            return i;
-        }
-
-        return -1;
-    }
-
-    #endregion
 }
 
 /// <summary>

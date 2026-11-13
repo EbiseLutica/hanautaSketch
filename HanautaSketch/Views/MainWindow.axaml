@@ -53,6 +53,8 @@
                             SnapTicks="{Binding SelectedSnap.Ticks}"
                             Chords="{Binding Chords}"
                             PlayheadTick="{Binding PlayheadTick}"
-                            NotesEdited="OnNotesEdited" />
+                            PlayStartTick="{Binding PlayStartTick}"
+                            NotesEdited="OnNotesEdited"
+                            NotePreview="OnNotePreview" />
     </DockPanel>
 </Window>

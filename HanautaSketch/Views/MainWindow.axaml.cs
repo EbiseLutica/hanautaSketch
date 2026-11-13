@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using HanautaSketch.Controls;
 using HanautaSketch.Services;
 using HanautaSketch.ViewModels;
 
@@ -19,4 +20,7 @@ public partial class MainWindow : Window
     }
 
     private void OnNotesEdited(object? sender, EventArgs e) => (DataContext as MainWindowViewModel)?.OnNotesEdited();
+
+    private void OnNotePreview(object? sender, NotePreviewEventArgs e) =>
+        (DataContext as MainWindowViewModel)?.PreviewNote(e.Pitch, e.Velocity);
 }

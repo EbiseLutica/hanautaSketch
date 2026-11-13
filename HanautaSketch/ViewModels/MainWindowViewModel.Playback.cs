@@ -29,6 +29,16 @@ public partial class MainWindowViewModel
     [ObservableProperty]
     private double _playheadTick = -1;
 
+    /// <summary>再生開始位置（tick）。ピアノロールのルーラーで設定する</summary>
+    [ObservableProperty]
+    private int _playStartTick;
+
+    /// <summary>再生中に開始位置が変わったら、そこから再生し直す</summary>
+    partial void OnPlayStartTickChanged(int value)
+    {
+        if (IsPlaying) StartPlayback();
+    }
+
     public double Bpm
     {
         get => Song.Bpm;
@@ -80,9 +90,27 @@ public partial class MainWindowViewModel
             return;
         }
 
-        _audio.Engine.Play(Song);
+        StartPlayback();
+    }
+
+    private void StartPlayback()
+    {
+        if (_audio is null) return;
+        _audio.Engine.Play(Song, PlayStartTick);
         IsPlaying = true;
         _playheadTimer?.Start();
+    }
+
+    /// <summary>
+    /// 入力中の確認音。選択中トラックの音色で鳴らす。Pitch が null なら止める。
+    /// </summary>
+    public void PreviewNote(int? pitch, int velocity)
+    {
+        if (_audio is null) return;
+        if (pitch is { } p)
+            _audio.Engine.PreviewNoteOn(SelectedTrack?.Program ?? 0, p, velocity);
+        else
+            _audio.Engine.PreviewNoteOff();
     }
 
     private void StopPlayback()

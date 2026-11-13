@@ -14,6 +14,9 @@ public sealed class PlaybackEngine
 
     private const int DrumChannel = 9;
 
+    /// <summary>入力プレビュー専用のチャンネル。曲のトラックには割り当てない</summary>
+    private const int PreviewChannel = 15;
+
     private readonly Synthesizer _synth;
     private readonly object _lock = new();
 
@@ -78,6 +81,30 @@ public sealed class PlaybackEngine
     }
 
     /// <summary>
+    /// 入力中の確認用に1音鳴らす。前のプレビュー音は止める。再生とは別のチャンネルを使う。
+    /// </summary>
+    public void PreviewNoteOn(int program, int pitch, int velocity)
+    {
+        lock (_lock)
+        {
+            _synth.NoteOffAll(PreviewChannel, false);
+            _synth.ProcessMidiMessage(PreviewChannel, 0xC0, program, 0);
+            _synth.NoteOn(PreviewChannel, pitch, velocity);
+        }
+    }
+
+    /// <summary>
+    /// プレビュー音を止める。
+    /// </summary>
+    public void PreviewNoteOff()
+    {
+        lock (_lock)
+        {
+            _synth.NoteOffAll(PreviewChannel, false);
+        }
+    }
+
+    /// <summary>
     /// オーディオスレッドから呼ばれ、left / right にサンプルを書き込む。
     /// イベントはサンプル単位の位置で発行する。
     /// </summary>
@@ -132,7 +159,7 @@ public sealed class PlaybackEngine
         foreach (var track in song.Tracks.OfType<NoteTrack>())
         {
             if (channel == DrumChannel) channel++;
-            if (channel > 15) break;
+            if (channel >= PreviewChannel) break;
 
             events.Add(new ScheduledEvent(0, channel, 0xC0, track.Program, 0, 1));
             events.Add(new ScheduledEvent(0, channel, 0xB0, 7, track.Volume, 1));

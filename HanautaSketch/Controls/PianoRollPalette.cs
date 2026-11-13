@@ -30,6 +30,12 @@ public sealed class PianoRollPalette
     public required IBrush ChordOverride { get; init; }
     public required IPen ChordBorder { get; init; }
     public required IPen Playhead { get; init; }
+    public required IBrush NoteSelected { get; init; }
+    public required IPen NoteSelectedBorder { get; init; }
+    public required IBrush SelectionFill { get; init; }
+    public required IPen SelectionBorder { get; init; }
+    public required IPen PlayStartLine { get; init; }
+    public required IBrush PlayStartMarker { get; init; }
 
     public static PianoRollPalette Light { get; } = new()
     {
@@ -54,6 +60,12 @@ public sealed class PianoRollPalette
         ChordOverride = Brush("#FFE9B8"),
         ChordBorder = Pen("#B5B9C2"),
         Playhead = new ImmutablePen(Brush("#E5484D"), 2),
+        NoteSelected = Brush("#FF9F43"),
+        NoteSelectedBorder = Pen("#B35F00"),
+        SelectionFill = Brush("#264F7BFF"),
+        SelectionBorder = Pen("#4F7BFF"),
+        PlayStartLine = Pen("#5530A46C"),
+        PlayStartMarker = Brush("#30A46C"),
     };
 
     public static PianoRollPalette Dark { get; } = new()
@@ -79,6 +91,12 @@ public sealed class PianoRollPalette
         ChordOverride = Brush("#5A4A22"),
         ChordBorder = Pen("#4A4D59"),
         Playhead = new ImmutablePen(Brush("#FF6B6F"), 2),
+        NoteSelected = Brush("#FFB86B"),
+        NoteSelectedBorder = Pen("#8A4B00"),
+        SelectionFill = Brush("#337C9CFF"),
+        SelectionBorder = Pen("#7C9CFF"),
+        PlayStartLine = Pen("#664CC38A"),
+        PlayStartMarker = Brush("#4CC38A"),
     };
 
     public static PianoRollPalette For(ThemeVariant variant) => variant == ThemeVariant.Dark ? Dark : Light;
