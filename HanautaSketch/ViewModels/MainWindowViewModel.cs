@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HanautaSketch.Engine.Core;
 using HanautaSketch.Engine.Smart.Chords;
+using HanautaSketch.Engine.Smart.Drums;
 
 namespace HanautaSketch.ViewModels;
 
@@ -80,6 +81,7 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     {
         SelectedSmartTrack = value is SmartChordTrack smart ? new SmartChordTrackViewModel(smart, this) : null;
         SyncSelectedTrackItem();
+        SyncDrumTrackSelection();
         RefreshChordLane();
     }
 
@@ -116,7 +118,10 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     {
         foreach (var track in Tracks.OfType<SmartChordTrack>())
             track.Regenerate(Song);
+        foreach (var track in Tracks.OfType<SmartDrumTrack>())
+            track.Regenerate(Song);
         RefreshChordLane();
+        RefreshDrumLane();
     }
 
     private void RefreshChordLane() => Chords = ChordLaneTrack?.Chords.ToList() ?? [];
@@ -201,6 +206,11 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
             {
                 if (smart.BassSource == noteTrack) smart.BassSource = null;
                 if (smart.MelodySource == noteTrack) smart.MelodySource = null;
+            }
+
+            foreach (var drum in Tracks.OfType<SmartDrumTrack>())
+            {
+                if (drum.BassSource == noteTrack) drum.BassSource = null;
             }
         }
 

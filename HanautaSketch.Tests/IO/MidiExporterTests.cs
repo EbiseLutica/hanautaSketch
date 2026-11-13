@@ -131,6 +131,24 @@ public class MidiExporterTests
     }
 
     [Fact]
+    public void DrumTrack_UsesChannel10WithoutProgramChange()
+    {
+        var song = CreateSong();
+        var drums = new HanautaSketch.Engine.Smart.Drums.SmartDrumTrack { Name = "Drums" };
+        drums.AddSection(0, 1920);
+        song.Tracks.Insert(0, drums);
+        drums.Regenerate(song);
+
+        var chunks = ExportAndRead(song).GetTrackChunks().ToList();
+
+        Assert.All(chunks[1].GetNotes(), n => Assert.Equal(9, (int)n.Channel));
+        Assert.Empty(chunks[1].Events.OfType<ProgramChangeEvent>());
+        // 後ろのメロディ・ベースは 1ch・2ch のまま
+        Assert.Equal(0, (int)chunks[2].GetNotes().First().Channel);
+        Assert.Equal(1, (int)chunks[3].GetNotes().First().Channel);
+    }
+
+    [Fact]
     public void SmartChordTrack_ExportsGeneratedNotesAndChordMarkers()
     {
         var song = CreateSong();

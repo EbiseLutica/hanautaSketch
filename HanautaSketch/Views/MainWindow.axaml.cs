@@ -76,6 +76,9 @@ public partial class MainWindow : Window
 
     private void OnNotePreview(object? sender, NotePreviewEventArgs e) => ViewModel?.PreviewNotes(e.Notes);
 
+    private void OnDrumSectionRequested(object? sender, DrumSectionRequestedEventArgs e) =>
+        ViewModel?.CreateDrumSection(e.Start, e.End);
+
     /// <summary>
     /// コードレーンのクリックで、候補コード・確定・自動に戻す のメニューをカーソル位置に出す。
     /// </summary>

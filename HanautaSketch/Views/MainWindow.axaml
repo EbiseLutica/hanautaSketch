@@ -56,16 +56,19 @@
         <DockPanel DockPanel.Dock="Left" Width="220">
             <StackPanel DockPanel.Dock="Bottom" Margin="8" Spacing="6">
                 <TextBlock Text="音色" />
-                <ComboBox ItemsSource="{Binding ProgramCategories}" SelectedIndex="{Binding SelectedProgramCategory}"
-                          HorizontalAlignment="Stretch" />
-                <ComboBox ItemsSource="{Binding ProgramSlots}" SelectedIndex="{Binding SelectedProgramIndex}"
-                          HorizontalAlignment="Stretch">
-                    <ComboBox.ItemTemplate>
-                        <DataTemplate x:DataType="vm:ProgramSlot">
-                            <TextBlock Text="{Binding Label}" />
-                        </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                </ComboBox>
+                <StackPanel Spacing="6" IsVisible="{Binding !IsSelectedTrackDrum}">
+                    <ComboBox ItemsSource="{Binding ProgramCategories}" SelectedIndex="{Binding SelectedProgramCategory}"
+                              HorizontalAlignment="Stretch" />
+                    <ComboBox ItemsSource="{Binding ProgramSlots}" SelectedIndex="{Binding SelectedProgramIndex}"
+                              HorizontalAlignment="Stretch">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ProgramSlot">
+                                <TextBlock Text="{Binding Label}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+                <TextBlock Text="GM ドラム（10ch）" Opacity="0.7" IsVisible="{Binding IsSelectedTrackDrum}" />
                 <DockPanel>
                     <TextBlock DockPanel.Dock="Left" Text="音量" VerticalAlignment="Center" Width="40" />
                     <TextBlock DockPanel.Dock="Right" Text="{Binding SelectedTrackVolume}" VerticalAlignment="Center"
@@ -97,11 +100,37 @@
                     </StackPanel>
                 </StackPanel>
                 </Panel>
+
+                <!-- スマートドラムトラックの設定 -->
+                <Panel IsVisible="{Binding SelectedDrumTrack, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <StackPanel Spacing="6" DataContext="{Binding SelectedDrumTrack}" x:DataType="vm:SmartDrumTrackViewModel">
+                    <TextBlock Text="スマートドラム" FontWeight="SemiBold" Margin="0,6,0,0" />
+                    <TextBlock Text="ベース（ベース追従用）" />
+                    <ComboBox ItemsSource="{Binding BassSourceOptions}" SelectedItem="{Binding BassSource}" HorizontalAlignment="Stretch" />
+                    <TextBlock Text="上のレーンをドラッグでセクションを作成、クリックで選択" Opacity="0.6" FontSize="11" TextWrapping="Wrap" />
+                    <StackPanel Spacing="6" IsVisible="{Binding HasSection}">
+                        <TextBlock Text="パターン" />
+                        <ComboBox ItemsSource="{Binding PatternOptions}" SelectedItem="{Binding Pattern}" HorizontalAlignment="Stretch" />
+                        <CheckBox Content="スウィング" IsChecked="{Binding Swing}" />
+                        <DockPanel IsEnabled="{Binding Swing}">
+                            <TextBlock DockPanel.Dock="Left" Text="強さ" VerticalAlignment="Center" Width="40" />
+                            <TextBlock DockPanel.Dock="Right" Text="{Binding SwingAmount, StringFormat={}{0}%}" VerticalAlignment="Center"
+                                       Width="36" TextAlignment="Right" />
+                            <Slider Minimum="0" Maximum="100" SmallChange="1" LargeChange="10" IsSnapToTickEnabled="True"
+                                    TickFrequency="1" Value="{Binding SwingAmount}" />
+                        </DockPanel>
+                        <CheckBox Content="キックをベースに合わせる" IsChecked="{Binding FollowBass}" />
+                        <Button Content="{Binding FixLabel}" Command="{Binding ToggleFixCommand}" HorizontalAlignment="Stretch" />
+                        <Button Content="セクションを削除" Command="{Binding DeleteSectionCommand}" HorizontalAlignment="Stretch" />
+                    </StackPanel>
+                </StackPanel>
+                </Panel>
             </StackPanel>
 
             <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="6" Margin="8,4">
                 <Button Content="＋ ノート" Command="{Binding AddNoteTrackCommand}" />
                 <Button Content="＋ コード" Command="{Binding AddSmartChordTrackCommand}" ToolTip.Tip="スマートコードトラックを追加" />
+                <Button Content="＋ ドラム" Command="{Binding AddSmartDrumTrackCommand}" ToolTip.Tip="スマートドラムトラックを追加" />
                 <Button Content="削除" Command="{Binding RemoveSelectedTrackCommand}" />
             </StackPanel>
 
@@ -143,7 +172,10 @@
                                 NotePreview="OnNotePreview"
                                 EditStarted="OnEditStarted"
                                 EditCompleted="OnEditCompleted"
-                                ChordSegmentClicked="OnChordSegmentClicked" />
+                                ChordSegmentClicked="OnChordSegmentClicked"
+                                DrumSections="{Binding DrumSections}"
+                                SelectedDrumSection="{Binding SelectedDrumSection}"
+                                DrumSectionRequested="OnDrumSectionRequested" />
             <ScrollBar Grid.Column="1" Orientation="Vertical" AllowAutoHide="False"
                        Minimum="0"
                        Maximum="{Binding #Roll.VerticalMaximum}"

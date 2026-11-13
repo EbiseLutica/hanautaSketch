@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using HanautaSketch.Engine.Core;
 using HanautaSketch.Engine.Smart.Chords;
+using HanautaSketch.Engine.Smart.Drums;
 
 namespace HanautaSketch.ViewModels;
 
@@ -11,7 +12,7 @@ public sealed partial class TrackItemViewModel(Track track, MainWindowViewModel 
 {
     public Track Track { get; } = track;
 
-    public bool IsSmart => Track is SmartChordTrack;
+    public bool IsSmart => Track is SmartChordTrack or SmartDrumTrack;
 
     public string Name => Track.Name;
 

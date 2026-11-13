@@ -2,6 +2,7 @@ using System.Text;
 using HanautaSketch.Engine.Core;
 using HanautaSketch.Engine.IO;
 using HanautaSketch.Engine.Smart.Chords;
+using HanautaSketch.Engine.Smart.Drums;
 
 namespace HanautaSketch.Tests.IO;
 
@@ -81,6 +82,31 @@ public class ProjectSerializerTests
     }
 
     [Fact]
+    public async Task RoundTrip_PreservesSmartDrumTrack()
+    {
+        var song = new Song();
+        var bass = new NoteTrack { Name = "Bass" };
+        var drums = new SmartDrumTrack { Name = "Drums", BassSource = bass, Volume = 90 };
+        drums.AddSection(0, 1920);
+        var second = drums.AddSection(1920, 3840);
+        drums.ReplaceSection(second, second with
+        {
+            Pattern = DrumPattern.SixteenBeat, Swing = true, SwingAmount = 0.5, FollowBass = true,
+        });
+        song.Tracks.Add(bass);
+        song.Tracks.Add(drums);
+        drums.Fix(drums.Sections[0], song);
+
+        var loaded = await RoundTrip(new ProjectDocument(song));
+        var loadedDrums = Assert.IsType<SmartDrumTrack>(loaded.Song.Tracks[1]);
+
+        Assert.Same(loaded.Song.Tracks[0], loadedDrums.BassSource);
+        Assert.Equal(drums.Sections, loadedDrums.Sections);
+        Assert.Equal(drums.FixedNotes.OrderBy(n => n.Tick).ThenBy(n => n.Pitch), loadedDrums.FixedNotes);
+        Assert.Equal(90, loadedDrums.Volume);
+    }
+
+    [Fact]
     public async Task LoadV1_ReadsNoteTracksAndIgnoresGlobalChordSettings()
     {
         var loaded = await LoadJson("""
@@ -111,7 +137,7 @@ public class ProjectSerializerTests
         await ProjectSerializer.SaveAsync(new ProjectDocument(new Song()), stream);
         var json = Encoding.UTF8.GetString(stream.ToArray());
 
-        Assert.Contains("\"version\": \"0.2\"", json);
+        Assert.Contains("\"version\": \"0.3\"", json);
     }
 
     [Theory]
@@ -126,7 +152,7 @@ public class ProjectSerializerTests
     }
 
     [Theory]
-    [InlineData("\"0.3\"")]
+    [InlineData("\"0.4\"")]
     [InlineData("\"1.0\"")]
     [InlineData("999")]
     public async Task Load_RejectsNewerVersion(string version)

@@ -6,6 +6,7 @@ using Avalonia.Media;
 using Avalonia.Media.Immutable;
 using HanautaSketch.Engine.Core;
 using HanautaSketch.Engine.Smart.Chords;
+using HanautaSketch.Engine.Smart.Drums;
 using Key = HanautaSketch.Engine.Core.Key;
 
 namespace HanautaSketch.Controls;
@@ -81,7 +82,7 @@ public sealed partial class PianoRollControl : Control
     {
         AffectsRender<PianoRollControl>(SongProperty, TrackProperty, KeyProperty, SnapTicksProperty, ChordsProperty,
             PlayheadTickProperty, PlayStartTickProperty, NotesRevisionProperty, HorizontalOffsetProperty,
-            VerticalOffsetProperty);
+            VerticalOffsetProperty, DrumSectionsProperty, SelectedDrumSectionProperty);
         FocusableProperty.OverrideDefaultValue<PianoRollControl>(true);
         ClipToBoundsProperty.OverrideDefaultValue<PianoRollControl>(true);
     }
@@ -180,8 +181,8 @@ public sealed partial class PianoRollControl : Control
     /// <summary>コードレーンのコードがクリックされたときに発生する</summary>
     public event EventHandler<ChordSegmentClickedEventArgs>? ChordSegmentClicked;
 
-    /// <summary>編集できるトラック（ノートトラック）。スマートトラック表示中は null</summary>
-    private NoteTrack? EditTrack => Track as NoteTrack;
+    /// <summary>編集できるノーツを持つトラック（ノートトラック、ドラムの fix 区間）。それ以外のスマートトラックでは null</summary>
+    private INoteEditable? EditTrack => Track as INoteEditable;
 
     public PianoRollControl()
     {
@@ -284,7 +285,10 @@ public sealed partial class PianoRollControl : Control
 
         using (context.PushClip(new Rect(KeyboardWidth, RulerHeight, area.Width, ChordLaneHeight)))
         {
-            RenderChordLane(context, area);
+            if (Track is SmartDrumTrack)
+                RenderDrumSectionLane(context, area);
+            else
+                RenderChordLane(context, area);
         }
 
         context.FillRectangle(_palette.Ruler, new Rect(0, 0, KeyboardWidth, HeaderHeight));
@@ -352,15 +356,19 @@ public sealed partial class PianoRollControl : Control
 
     private void RenderNotes(DrawingContext context)
     {
-        if (Track is not NoteTrack track)
+        if (Track is SmartDrumTrack drum)
+            RenderDrumGeneratedNotes(context, drum);
+
+        if (Track is not INoteEditable track)
         {
             RenderGeneratedNotes(context);
             return;
         }
 
-        for (var i = 0; i < track.Notes.Count; i++)
+        var notes = track.EditableNotes;
+        for (var i = 0; i < notes.Count; i++)
         {
-            var note = track.Notes[i];
+            var note = notes[i];
             var rect = NoteRect(note).Deflate(new Thickness(0, 0.5));
             var selected = _selection.Contains(i);
             var opacity = 0.45 + 0.55 * note.Velocity / 127.0;

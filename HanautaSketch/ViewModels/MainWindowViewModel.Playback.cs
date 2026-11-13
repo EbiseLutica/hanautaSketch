@@ -109,7 +109,7 @@ public partial class MainWindowViewModel
     {
         if (_audio is null) return;
         if (notes.Count > 0)
-            _audio.Engine.PreviewNotesOn(SelectedTrack?.Program ?? 0, notes);
+            _audio.Engine.PreviewNotesOn(SelectedTrack?.Program ?? 0, notes, SelectedTrack?.IsDrum ?? false);
         else
             _audio.Engine.PreviewNoteOff();
     }

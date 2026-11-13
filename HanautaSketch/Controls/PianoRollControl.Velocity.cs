@@ -3,6 +3,7 @@ using Avalonia.Input;
 using Avalonia.Media;
 using HanautaSketch.Engine.Core;
 using HanautaSketch.Engine.Editing;
+using HanautaSketch.Engine.Smart.Drums;
 
 namespace HanautaSketch.Controls;
 
@@ -58,14 +59,25 @@ public sealed partial class PianoRollControl
             var middle = Math.Round(VelocityToY(64)) + 0.5;
             context.DrawLine(_palette.BeatLine, new Point(area.X, middle), new Point(area.Right, middle));
 
-            if (Track is NoteTrack track)
+            if (Track is INoteEditable track)
             {
-                for (var i = 0; i < track.Notes.Count; i++)
+                // ドラムの生成区間は読み取り専用で先に描く
+                if (Track is SmartDrumTrack drum)
+                {
+                    foreach (var note in drum.PlaybackNotes)
+                    {
+                        if (!drum.Sections.Any(s => s.IsFixed && s.Contains(note.Tick)))
+                            RenderVelocityBar(context, note, _palette.GeneratedNote);
+                    }
+                }
+
+                var notes = track.EditableNotes;
+                for (var i = 0; i < notes.Count; i++)
                 {
                     var brush = _selection.Count == 0 ? _palette.Note
                         : _selection.Contains(i) ? _palette.NoteSelected
                         : _palette.GhostNote;
-                    RenderVelocityBar(context, track.Notes[i], brush);
+                    RenderVelocityBar(context, notes[i], brush);
                 }
             }
             else if (Track is not null)
@@ -128,7 +140,7 @@ public sealed partial class PianoRollControl
         if (EditTrack is not { } track) return;
 
         var tolerance = VelocityHitTolerance / PixelsPerTick;
-        var changed = VelocityEditing.ApplyStroke(track.Notes, _velocityTargets,
+        var changed = VelocityEditing.ApplyStroke(track.EditableNotes, _velocityTargets,
             XToTick(from.X), YToVelocity(from.Y), XToTick(to.X), YToVelocity(to.Y), tolerance);
         if (changed) RaiseNotesEdited();
 
@@ -138,10 +150,10 @@ public sealed partial class PianoRollControl
     /// <summary>
     /// カーソルの横位置で発音するノート（和音ならまとめて）を鳴らす。なければ止める。
     /// </summary>
-    private void PreviewNotesUnderCursor(NoteTrack track, double x, double tolerance)
+    private void PreviewNotesUnderCursor(INoteEditable track, double x, double tolerance)
     {
         var tick = XToTick(x);
-        var notes = track.Notes
+        var notes = track.EditableNotes
             .Where((n, i) => (_velocityTargets is null || _velocityTargets.Contains(i)) && Math.Abs(n.Tick - tick) <= tolerance)
             .Select(n => (n.Pitch, n.Velocity))
             .OrderBy(n => n.Pitch)

@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using HanautaSketch.Engine.Core;
 using HanautaSketch.Engine.Smart.Chords;
+using HanautaSketch.Engine.Smart.Drums;
 
 namespace HanautaSketch.Engine.IO;
 
@@ -23,9 +24,10 @@ public static class ProjectSerializer
     /// 0.x の間はマイナーアップでも互換が崩れ得るので、ファイルの方が新しければマイナーまで含めて弾く。
     /// 0.1: トラックはノートのみ（曲全体のスマートコード設定 smartChord は読み込み時に無視する）
     /// 0.2: スマートコードトラック（ソース参照・設定・override）を追加
+    /// 0.3: スマートドラムトラック（ソース参照・区間・fix した実体ノーツ）を追加
     /// 初期のファイルは整数（1 / 2）で書かれているので、それぞれ 0.1 / 0.2 として読む。
     /// </summary>
-    public static Version CurrentVersion { get; } = new(0, 2);
+    public static Version CurrentVersion { get; } = new(0, 3);
 
     private static readonly JsonSerializerOptions Options = new()
     {
@@ -115,6 +117,23 @@ public static class ProjectSerializer
                     Bass = o.Chord.Bass,
                 }).ToList();
                 return dto;
+            case SmartDrumTrack drum:
+                dto.Type = TrackType.SmartDrum;
+                dto.BassSource = IndexOf(tracks, drum.BassSource);
+                dto.Notes = drum.FixedNotes.OrderBy(n => n.Tick).ThenBy(n => n.Pitch)
+                    .Select(n => new NoteDto { Tick = n.Tick, Length = n.Length, Pitch = n.Pitch, Velocity = n.Velocity })
+                    .ToList();
+                dto.Sections = drum.Sections.Select(s => new DrumSectionDto
+                {
+                    Start = s.Start,
+                    Length = s.Length,
+                    Pattern = s.Pattern,
+                    Swing = s.Swing,
+                    SwingAmount = s.SwingAmount,
+                    FollowBass = s.FollowBass,
+                    Fixed = s.IsFixed,
+                }).ToList();
+                return dto;
             default:
                 return null;
         }
@@ -144,12 +163,14 @@ public static class ProjectSerializer
 
         // ソース参照はトラックの並び順で持つので、全トラックを作ってから解決する
         var pending = new List<(SmartChordTrack Track, TrackDto Dto)>();
+        var pendingDrums = new List<(SmartDrumTrack Track, TrackDto Dto)>();
         foreach (var trackDto in songDto.Tracks ?? [])
         {
             Track? track = trackDto.Type switch
             {
                 TrackType.Note => CreateNoteTrack(trackDto),
                 TrackType.SmartChord => CreateSmartChordTrack(trackDto, pending),
+                TrackType.SmartDrum => CreateSmartDrumTrack(trackDto, pendingDrums),
                 _ => null,
             };
             if (track is null) continue;
@@ -168,17 +189,42 @@ public static class ProjectSerializer
             track.MelodySource = ResolveNoteTrack(song, trackDto.MelodySource);
         }
 
+        foreach (var (track, trackDto) in pendingDrums)
+            track.BassSource = ResolveNoteTrack(song, trackDto.BassSource);
+
         return new ProjectDocument(song);
     }
 
     private static NoteTrack CreateNoteTrack(TrackDto dto)
     {
         var track = new NoteTrack();
-        foreach (var n in dto.Notes ?? [])
+        track.Notes.AddRange(ReadNotes(dto));
+        return track;
+    }
+
+    private static IEnumerable<Note> ReadNotes(TrackDto dto) =>
+        (dto.Notes ?? [])
+            .Where(n => n.Length > 0 && n.Tick >= 0)
+            .Select(n => new Note(n.Tick, n.Length, Math.Clamp(n.Pitch, 0, 127), Math.Clamp(n.Velocity, 1, 127)));
+
+    private static SmartDrumTrack CreateSmartDrumTrack(TrackDto dto, List<(SmartDrumTrack, TrackDto)> pending)
+    {
+        var track = new SmartDrumTrack();
+        foreach (var s in (dto.Sections ?? []).Where(s => s.Length > 0 && s.Start >= 0).OrderBy(s => s.Start))
         {
-            if (n.Length <= 0 || n.Tick < 0) continue;
-            track.Notes.Add(new Note(n.Tick, n.Length, Math.Clamp(n.Pitch, 0, 127), Math.Clamp(n.Velocity, 1, 127)));
+            track.Sections.Add(new DrumSection
+            {
+                Start = s.Start,
+                Length = s.Length,
+                Pattern = s.Pattern,
+                Swing = s.Swing,
+                SwingAmount = Math.Clamp(s.SwingAmount, 0, 1),
+                FollowBass = s.FollowBass,
+                IsFixed = s.Fixed,
+            });
         }
+        track.FixedNotes.AddRange(ReadNotes(dto));
+        pending.Add((track, dto));
         return track;
     }
 
@@ -217,6 +263,7 @@ public static class ProjectSerializer
     {
         Note,
         SmartChord,
+        SmartDrum,
     }
 
     private sealed class ProjectDto
@@ -284,6 +331,20 @@ public static class ProjectSerializer
         public int? DivisionTicks { get; set; }
         public int? Velocity { get; set; }
         public List<OverrideDto>? Overrides { get; set; }
+
+        // スマートドラムトラック（Notes は fix した区間の実体ノーツ）
+        public List<DrumSectionDto>? Sections { get; set; }
+    }
+
+    private sealed class DrumSectionDto
+    {
+        public int Start { get; set; }
+        public int Length { get; set; }
+        public DrumPattern Pattern { get; set; }
+        public bool Swing { get; set; }
+        public double SwingAmount { get; set; } = 0.67;
+        public bool FollowBass { get; set; }
+        public bool Fixed { get; set; }
     }
 
     private sealed class NoteDto

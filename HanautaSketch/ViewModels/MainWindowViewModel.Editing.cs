@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using HanautaSketch.Engine.Core;
 using HanautaSketch.Engine.Editing;
 using HanautaSketch.Engine.Smart.Chords;
+using HanautaSketch.Engine.Smart.Drums;
 
 namespace HanautaSketch.ViewModels;
 
@@ -31,25 +32,39 @@ public partial class MainWindowViewModel
     }
 
     /// <summary>
+    /// スマートドラムトラック1本分の編集対象の写し。
+    /// </summary>
+    private sealed record DrumTrackState(DrumSection[] Sections, Note[] FixedNotes, NoteTrack? BassSource)
+    {
+        public bool ContentEquals(DrumTrackState other) =>
+            Sections.SequenceEqual(other.Sections) && FixedNotes.SequenceEqual(other.FixedNotes)
+            && BassSource == other.BassSource;
+    }
+
+    /// <summary>
     /// 編集対象の写し。トラック構成（並びと参照）と、各トラックの中身を持つ。
     /// トラックはオブジェクトごと保持するので、削除したトラックも Undo で元に戻せる。
     /// </summary>
     private sealed record EditSnapshot(
         Track[] Tracks,
         Dictionary<NoteTrack, Note[]> Notes,
-        Dictionary<SmartChordTrack, SmartTrackState> SmartTracks)
+        Dictionary<SmartChordTrack, SmartTrackState> SmartTracks,
+        Dictionary<SmartDrumTrack, DrumTrackState> DrumTracks)
     {
         public bool ContentEquals(EditSnapshot other) =>
             Tracks.SequenceEqual(other.Tracks)
             && Notes.All(p => other.Notes.TryGetValue(p.Key, out var n) && p.Value.SequenceEqual(n))
-            && SmartTracks.All(p => other.SmartTracks.TryGetValue(p.Key, out var s) && p.Value.ContentEquals(s));
+            && SmartTracks.All(p => other.SmartTracks.TryGetValue(p.Key, out var s) && p.Value.ContentEquals(s))
+            && DrumTracks.All(p => other.DrumTracks.TryGetValue(p.Key, out var d) && p.Value.ContentEquals(d));
     }
 
     private EditSnapshot TakeSnapshot() => new(
         Song.Tracks.ToArray(),
         Song.Tracks.OfType<NoteTrack>().ToDictionary(t => t, t => t.Notes.ToArray()),
         Song.Tracks.OfType<SmartChordTrack>().ToDictionary(
-            t => t, t => new SmartTrackState(t.Overrides.ToArray(), t.BassSource, t.MelodySource)));
+            t => t, t => new SmartTrackState(t.Overrides.ToArray(), t.BassSource, t.MelodySource)),
+        Song.Tracks.OfType<SmartDrumTrack>().ToDictionary(
+            t => t, t => new DrumTrackState(t.Sections.ToArray(), t.FixedNotes.ToArray(), t.BassSource)));
 
     private void RestoreSnapshot(EditSnapshot snapshot)
     {
@@ -69,6 +84,15 @@ public partial class MainWindowViewModel
             track.Overrides.AddRange(state.Overrides);
             track.BassSource = state.BassSource;
             track.MelodySource = state.MelodySource;
+        }
+
+        foreach (var (track, state) in snapshot.DrumTracks)
+        {
+            track.Sections.Clear();
+            track.Sections.AddRange(state.Sections);
+            track.FixedNotes.Clear();
+            track.FixedNotes.AddRange(state.FixedNotes);
+            track.BassSource = state.BassSource;
         }
 
         SelectedTrack = selected is not null && Tracks.Contains(selected) ? selected : Tracks.FirstOrDefault();

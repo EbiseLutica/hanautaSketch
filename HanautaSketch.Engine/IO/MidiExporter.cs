@@ -31,9 +31,6 @@ public static class MidiExporter
 {
     public const string FileExtension = ".mid";
 
-    private const int DrumChannel = 9;
-    private const int MaxChannel = 15;
-
     static MidiExporter()
     {
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
@@ -50,13 +47,8 @@ public static class MidiExporter
         var encoding = textEncoding ?? DefaultTextEncoding;
         var tracks = new List<SmfTrackBuilder>(song.Tracks.Count + 1) { BuildConductor(song, options, encoding) };
 
-        var channel = 0;
-        foreach (var track in song.Tracks)
-        {
-            if (channel == DrumChannel) channel++;
-            tracks.Add(BuildTrack(track, Math.Min(channel, MaxChannel), options, encoding));
-            channel++;
-        }
+        foreach (var (track, channel) in MidiChannels.Assign(song.Tracks))
+            tracks.Add(BuildTrack(track, channel, options, encoding));
 
         WriteFile(output, song.Ppq, tracks);
     }
@@ -87,7 +79,7 @@ public static class MidiExporter
         var notes = track.PlaybackNotes;
         var builder = new SmfTrackBuilder(notes.Count * 2 + 3);
         builder.AddText(0, SmfMeta.TrackName, track.Name, encoding);
-        if (options.IncludeProgramChange)
+        if (options.IncludeProgramChange && !track.IsDrum)
             builder.AddChannelMessage(0, SmfStatus.ProgramChange, channel, track.Program);
         if (options.IncludeControlChange)
             builder.AddChannelMessage(0, SmfStatus.ControlChange, channel, 7, track.Volume);

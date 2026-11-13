@@ -12,8 +12,6 @@ public sealed class PlaybackEngine
     /// <summary>最後のノートオフ後、余韻のために鳴らし続ける秒数</summary>
     private const double ReleaseTailSeconds = 1.5;
 
-    private const int DrumChannel = 9;
-
     /// <summary>入力プレビュー専用のチャンネル。曲のトラックには割り当てない</summary>
     private const int PreviewChannel = 15;
 
@@ -24,6 +22,9 @@ public sealed class PlaybackEngine
     private readonly bool[] _audible = Enumerable.Repeat(true, 16).ToArray();
 
     private List<ScheduledEvent> _events = [];
+
+    /// <summary>鳴らしているプレビュー音（チャンネル、音高）</summary>
+    private readonly List<(int Channel, int Pitch)> _previewing = [];
     private int _nextEvent;
     private long _position;
     private long _endPosition;
@@ -108,7 +109,7 @@ public sealed class PlaybackEngine
         {
             foreach (var (track, channel) in AssignChannels(song))
             {
-                _synth.ProcessMidiMessage(channel, 0xC0, track.Program, 0);
+                if (!track.IsDrum) _synth.ProcessMidiMessage(channel, 0xC0, track.Program, 0);
                 _synth.ProcessMidiMessage(channel, 0xB0, 7, track.Volume);
             }
 
@@ -122,16 +123,21 @@ public sealed class PlaybackEngine
     }
 
     /// <summary>
-    /// 入力中の確認用に音（和音も可）を鳴らす。前のプレビュー音は止める。再生とは別のチャンネルを使う。
+    /// 入力中の確認用に音（和音も可）を鳴らす。前のプレビュー音は止める。
+    /// 通常はプレビュー専用のチャンネル、ドラムは 10ch で鳴らす（10ch は再生中の音を止めないよう、プレビューした音だけ止める）。
     /// </summary>
-    public void PreviewNotesOn(int program, IEnumerable<(int Pitch, int Velocity)> notes)
+    public void PreviewNotesOn(int program, IEnumerable<(int Pitch, int Velocity)> notes, bool isDrum = false)
     {
         lock (_lock)
         {
-            _synth.NoteOffAll(PreviewChannel, false);
-            _synth.ProcessMidiMessage(PreviewChannel, 0xC0, program, 0);
+            StopPreviewNotes();
+            var channel = isDrum ? MidiChannels.Drum : PreviewChannel;
+            if (!isDrum) _synth.ProcessMidiMessage(channel, 0xC0, program, 0);
             foreach (var (pitch, velocity) in notes)
-                _synth.NoteOn(PreviewChannel, pitch, velocity);
+            {
+                _synth.NoteOn(channel, pitch, velocity);
+                _previewing.Add((channel, pitch));
+            }
         }
     }
 
@@ -142,8 +148,15 @@ public sealed class PlaybackEngine
     {
         lock (_lock)
         {
-            _synth.NoteOffAll(PreviewChannel, false);
+            StopPreviewNotes();
         }
+    }
+
+    private void StopPreviewNotes()
+    {
+        foreach (var (channel, pitch) in _previewing)
+            _synth.NoteOff(channel, pitch);
+        _previewing.Clear();
     }
 
     /// <summary>
@@ -187,26 +200,22 @@ public sealed class PlaybackEngine
         }
     }
 
+    /// <summary>
+    /// チャンネルごとに鳴らすかを決める。複数のトラックが同じチャンネル（ドラムの 10ch など）を使うときは、
+    /// どれか1つでも鳴らす状態なら鳴らす。
+    /// </summary>
     private void UpdateAudible(Song song)
     {
         Array.Fill(_audible, true);
-        foreach (var (track, channel) in AssignChannels(song))
-            _audible[channel] = song.IsAudible(track);
+        foreach (var group in AssignChannels(song).GroupBy(a => a.Channel))
+            _audible[group.Key] = group.Any(a => song.IsAudible(a.Track));
     }
 
     /// <summary>
-    /// トラックにチャンネルを割り当てる。トラック順に 0 から、ドラム（9）とプレビュー（15）は使わない。
+    /// トラックにチャンネルを割り当てる。ドラムは 10ch、それ以外はプレビュー用（15）を除いてトラック順。
     /// </summary>
-    private static IEnumerable<(Track Track, int Channel)> AssignChannels(Song song)
-    {
-        var channel = 0;
-        foreach (var track in song.Tracks)
-        {
-            if (channel == DrumChannel) channel++;
-            if (channel >= PreviewChannel) yield break;
-            yield return (track, channel++);
-        }
-    }
+    private static IEnumerable<(Track Track, int Channel)> AssignChannels(Song song) =>
+        MidiChannels.Assign(song.Tracks, PreviewChannel);
 
     #region イベント生成
 
@@ -221,7 +230,7 @@ public sealed class PlaybackEngine
         var events = new List<ScheduledEvent>();
         foreach (var (track, channel) in AssignChannels(song))
         {
-            events.Add(new ScheduledEvent(0, channel, 0xC0, track.Program, 0, 1));
+            if (!track.IsDrum) events.Add(new ScheduledEvent(0, channel, 0xC0, track.Program, 0, 1));
             events.Add(new ScheduledEvent(0, channel, 0xB0, 7, track.Volume, 1));
 
             foreach (var note in track.PlaybackNotes)

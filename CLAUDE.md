@@ -15,7 +15,7 @@
 - テスト：xUnit
 - 再生：MeltySynth（SF2）でシンセを鳴らし、NAudio 2.2.1（WASAPI 共有モード）で出力する。MeltySynth とシーケンサーは Engine（`PlaybackEngine`）、OS 依存の出力は App（`AudioOutput`）に置く
   - 音源は `HanautaSketch/SoundFonts/*.sf2` に置く（GM 互換の SGM-V2.01 を想定）。サイズが大きいので git 管理外（`.gitignore` で `*.sf2` を除外）。ビルド時に出力先へコピーされる
-- 保存形式：独自 JSON（`.hsk`、`ProjectSerializer`）。ファイル上の形式は DTO で固定し、`version` で互換性を管理する（`"version": "0.2"` のメジャー.マイナー表記。正式版で 1.0 にする。0.x の間はマイナーまで含めて新しいファイルを弾く。初期の整数表記 1 / 2 は 0.1 / 0.2 として読む。0.2 は 0.1 にトラック種別を足した上位互換で、0.1 の曲全体のスマートコード設定は読み込み時に無視する）。ファイル選択・確認などのダイアログは `IDialogService` 経由で VM から使う。曲に依存しないアプリ設定は `%APPDATA%\hanautaSketch\settings.json`（`AppSettingsStore`）
+- 保存形式：独自 JSON（`.hsk`、`ProjectSerializer`）。ファイル上の形式は DTO で固定し、`version` で互換性を管理する（`"version": "0.3"` のメジャー.マイナー表記。正式版で 1.0 にする。0.x の間はマイナーまで含めて新しいファイルを弾く。初期の整数表記 1 / 2 は 0.1 / 0.2 として読む。0.2 でスマートコード、0.3 でスマートドラムのトラック種別を追加。0.1 の曲全体のスマートコード設定は読み込み時に無視する）。ファイル選択・確認などのダイアログは `IDialogService` 経由で VM から使う。曲に依存しないアプリ設定は `%APPDATA%\hanautaSketch\settings.json`（`AppSettingsStore`）
 - 採用予定：MIDI 入出力は DryWetMIDI
 
 ### ドメインモデルの約束事
@@ -26,6 +26,8 @@
 - スマートトラックの出力は派生データとして扱い、保存しない。ユーザーの判断は override として保持する
   - `SmartChordTrack` はソース（ベース・メロディの `NoteTrack` 参照）、判別設定、伴奏設定、override を持ち、`Regenerate(song)` で判別と伴奏生成をやり直す。再生は全トラック共通の `Track.PlaybackNotes` を使う
   - ソース参照は保存時にトラックの並び順（インデックス）で書き出す
+- MIDI チャンネルは `MidiChannels.Assign` で決める（ドラムは 10ch、それ以外はトラック順。再生と書き出しで共通）
+- ピアノロールで編集するのは `INoteEditable`（ノートトラック、ドラムの fix 区間）。スマートトラックの生成ノーツは読み取り専用
 - 判別アルゴリズムの回帰テストは `HanautaSketch.Tests/Fixtures/*.hsk` と MML 風の期待値（`ChordFixtureTests`）で行う
 - 試作段階のため、テンポ・拍子・キーは `Song` 上で曲全体に1つの固定値。後で Conductor（途中変更対応）に置き換える
 
@@ -46,7 +48,8 @@ HanautaSketch.Engine/        UI 非依存のロジック。Tests に InternalsVi
   Editing/                   編集の補助（Undo/Redo 履歴）
   IO/                        プロジェクトファイルの読み書き（今後 MIDI 書き出しも）
   Smart/Chords/              スマートコード（トラック、コード判別、遷移スコア、伴奏生成）
-  Smart/Rhythm/              ベースのリズム解析（コードの区切り判定、将来はドラムの FollowBass と共用）
+  Smart/Drums/               スマートドラム（トラック、セクション、パターン生成、fix）
+  Smart/Rhythm/              ベースのリズム解析（コードの区切り判定、ドラムのベース追従）
 HanautaSketch.Tests/         Engine のテスト
 ```
 
