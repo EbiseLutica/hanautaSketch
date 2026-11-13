@@ -3,6 +3,7 @@
         xmlns:vm="using:HanautaSketch.ViewModels"
         xmlns:c="using:HanautaSketch.Controls"
         xmlns:core="using:HanautaSketch.Engine.Core"
+        xmlns:chords="using:HanautaSketch.Engine.Smart.Chords"
         x:Class="HanautaSketch.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="{Binding WindowTitle}"
@@ -43,9 +44,6 @@
             <ComboBox ItemsSource="{Binding Modes}" SelectedItem="{Binding Mode}" Width="100" />
             <TextBlock Text="Snap" VerticalAlignment="Center" Margin="16,0,0,0" />
             <ComboBox ItemsSource="{Binding SnapOptions}" SelectedItem="{Binding SelectedSnap}" Width="90" />
-            <TextBlock Text="Minor V" VerticalAlignment="Center" Margin="16,0,0,0" />
-            <ComboBox ItemsSource="{Binding MinorDominantModes}" SelectedItem="{Binding MinorDominant}" Width="100" />
-            <CheckBox Content="メロディも参照" IsChecked="{Binding UseMelodyForChords}" />
         </StackPanel>
 
         <!-- ステータスバー -->
@@ -54,15 +52,59 @@
             <TextBlock Text="{Binding Message}" Opacity="0.7" />
         </DockPanel>
 
-        <!-- トラックメニュー -->
-        <ListBox DockPanel.Dock="Left" Width="160"
-                 ItemsSource="{Binding Tracks}" SelectedItem="{Binding SelectedTrack}">
-            <ListBox.ItemTemplate>
-                <DataTemplate x:DataType="core:NoteTrack">
-                    <TextBlock Text="{Binding Name}" />
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
+        <!-- トラックメニュー：一覧、追加・削除、選択中トラックの設定 -->
+        <DockPanel DockPanel.Dock="Left" Width="220">
+            <StackPanel DockPanel.Dock="Bottom" Margin="8" Spacing="6">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="音色 (GM)" VerticalAlignment="Center" Width="70" />
+                    <NumericUpDown Value="{Binding SelectedTrackProgram}" Minimum="0" Maximum="127" Increment="1"
+                                   FormatString="0" Width="130" />
+                </StackPanel>
+
+                <!-- スマートコードトラックの設定 -->
+                <Panel IsVisible="{Binding SelectedSmartTrack, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <StackPanel Spacing="6" DataContext="{Binding SelectedSmartTrack}" x:DataType="vm:SmartChordTrackViewModel">
+                    <TextBlock Text="スマートコード" FontWeight="SemiBold" Margin="0,6,0,0" />
+                    <TextBlock Text="ベース" />
+                    <ComboBox ItemsSource="{Binding BassSourceOptions}" SelectedItem="{Binding BassSource}" HorizontalAlignment="Stretch" />
+                    <TextBlock Text="メロディ（ヒント）" />
+                    <ComboBox ItemsSource="{Binding MelodySourceOptions}" SelectedItem="{Binding MelodySource}" HorizontalAlignment="Stretch" />
+                    <TextBlock Text="マイナーの5度" />
+                    <ComboBox ItemsSource="{Binding MinorDominantModes}" SelectedItem="{Binding MinorDominant}" HorizontalAlignment="Stretch" />
+                    <TextBlock Text="伴奏パターン" />
+                    <ComboBox ItemsSource="{Binding PatternOptions}" SelectedItem="{Binding Pattern}" HorizontalAlignment="Stretch" />
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBlock Text="刻み" VerticalAlignment="Center" Width="70" />
+                        <ComboBox ItemsSource="{Binding DivisionOptions}" SelectedItem="{Binding Division}" Width="130" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBlock Text="ベロシティ" VerticalAlignment="Center" Width="70" />
+                        <NumericUpDown Value="{Binding Velocity}" Minimum="1" Maximum="127" Increment="1"
+                                       FormatString="0" Width="130" />
+                    </StackPanel>
+                </StackPanel>
+                </Panel>
+            </StackPanel>
+
+            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="6" Margin="8,4">
+                <Button Content="＋ スマートコード" Command="{Binding AddSmartChordTrackCommand}" />
+                <Button Content="削除" Command="{Binding RemoveSelectedTrackCommand}" />
+            </StackPanel>
+
+            <ListBox ItemsSource="{Binding Tracks}" SelectedItem="{Binding SelectedTrack}">
+                <ListBox.DataTemplates>
+                    <DataTemplate DataType="core:NoteTrack" x:DataType="core:NoteTrack">
+                        <TextBlock Text="{Binding Name}" />
+                    </DataTemplate>
+                    <DataTemplate DataType="chords:SmartChordTrack" x:DataType="chords:SmartChordTrack">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="{Binding Name}" />
+                            <TextBlock Text="スマート" Opacity="0.6" FontSize="11" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.DataTemplates>
+            </ListBox>
+        </DockPanel>
 
         <!-- ピアノロール＋スクロールバー -->
         <Grid ColumnDefinitions="*,Auto" RowDefinitions="*,Auto">
@@ -78,7 +120,8 @@
                                 NotesEdited="OnNotesEdited"
                                 NotePreview="OnNotePreview"
                                 EditStarted="OnEditStarted"
-                                EditCompleted="OnEditCompleted" />
+                                EditCompleted="OnEditCompleted"
+                                ChordSegmentClicked="OnChordSegmentClicked" />
             <ScrollBar Grid.Column="1" Orientation="Vertical" AllowAutoHide="False"
                        Minimum="0"
                        Maximum="{Binding #Roll.VerticalMaximum}"

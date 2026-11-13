@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using HanautaSketch.Engine.Core;
 using HanautaSketch.Engine.Smart.Chords;
 
@@ -13,17 +14,9 @@ public sealed record SnapOption(string Label, int Ticks)
 
 public partial class MainWindowViewModel : ObservableObject, IDisposable
 {
-    private readonly NoteTrack _melody = new() { Name = "Melody", Program = 0 };
-    private readonly NoteTrack _bass = new() { Name = "Bass", Program = 33 };
-
     public MainWindowViewModel()
     {
-        Tracks.Add(_melody);
-        Tracks.Add(_bass);
-        foreach (var track in Tracks)
-            Song.Tracks.Add(track);
-
-        _selectedTrack = Tracks[0];
+        ReplaceTracks(CreateDefaultTracks());
         _selectedSnap = SnapOptions[2];
         UpdateKey();
         InitializePlayback();
@@ -32,13 +25,12 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
 
     public Song Song { get; } = new();
 
-    public ObservableCollection<NoteTrack> Tracks { get; } = [];
+    /// <summary>トラック一覧。Song.Tracks と同じ内容・順序を保つ</summary>
+    public ObservableCollection<Track> Tracks { get; } = [];
 
     public IReadOnlyList<string> TonicNames => Key.PitchNames;
 
     public IReadOnlyList<Mode> Modes { get; } = Enum.GetValues<Mode>();
-
-    public IReadOnlyList<MinorDominantMode> MinorDominantModes { get; } = Enum.GetValues<MinorDominantMode>();
 
     public IReadOnlyList<SnapOption> SnapOptions { get; } =
     [
@@ -49,7 +41,12 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     ];
 
     [ObservableProperty]
-    private NoteTrack? _selectedTrack;
+    [NotifyCanExecuteChangedFor(nameof(RemoveSelectedTrackCommand))]
+    private Track? _selectedTrack;
+
+    /// <summary>選択中のトラックがスマートコードトラックなら、その設定パネル用の VM</summary>
+    [ObservableProperty]
+    private SmartChordTrackViewModel? _selectedSmartTrack;
 
     [ObservableProperty]
     private SnapOption _selectedSnap;
@@ -63,29 +60,39 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private Key _key;
 
-    [ObservableProperty]
-    private MinorDominantMode _minorDominant;
-
-    [ObservableProperty]
-    private bool _useMelodyForChords = true;
-
+    /// <summary>コードレーンに表示する判別結果</summary>
     [ObservableProperty]
     private IReadOnlyList<ChordSegment> _chords = [];
+
+    /// <summary>選択中トラックの音色（GM 番号）</summary>
+    public int SelectedTrackProgram
+    {
+        get => SelectedTrack?.Program ?? 0;
+        set
+        {
+            if (SelectedTrack is null || SelectedTrack.Program == value) return;
+            SelectedTrack.Program = Math.Clamp(value, 0, 127);
+            MarkDirty();
+            OnPropertyChanged();
+        }
+    }
+
+    /// <summary>
+    /// コードレーンに表示し、override の対象にするスマートコードトラック。
+    /// 選択中がスマートコードトラックならそれ、そうでなければ最初の1本。
+    /// </summary>
+    public SmartChordTrack? ChordLaneTrack =>
+        SelectedTrack as SmartChordTrack ?? Tracks.OfType<SmartChordTrack>().FirstOrDefault();
 
     partial void OnTonicChanged(int value) => UpdateKey();
 
     partial void OnModeChanged(Mode value) => UpdateKey();
 
-    partial void OnMinorDominantChanged(MinorDominantMode value)
+    partial void OnSelectedTrackChanged(Track? value)
     {
-        MarkDirty();
-        RecomputeChords();
-    }
-
-    partial void OnUseMelodyForChordsChanged(bool value)
-    {
-        MarkDirty();
-        RecomputeChords();
+        SelectedSmartTrack = value is SmartChordTrack smart ? new SmartChordTrackViewModel(smart, this) : null;
+        OnPropertyChanged(nameof(SelectedTrackProgram));
+        RefreshChordLane();
     }
 
     private void UpdateKey()
@@ -93,7 +100,7 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         Key = new Key(Tonic, Mode);
         Song.Key = Key;
         MarkDirty();
-        RecomputeChords();
+        RegenerateSmartTracks();
     }
 
     /// <summary>
@@ -102,21 +109,142 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     public void OnNotesEdited()
     {
         MarkDirty();
-        RecomputeChords();
+        RegenerateSmartTracks();
     }
 
     /// <summary>
-    /// Bass（任意で Melody）からコード進行を判別し直す。試作段階のため毎回全区間を計算する。
+    /// スマートトラックの設定が変わったときに呼ぶ。
     /// </summary>
-    public void RecomputeChords()
+    public void OnSmartTrackSettingsChanged()
     {
-        var lastTick = Song.Tracks.OfType<NoteTrack>().SelectMany(t => t.Notes).Select(n => n.EndTick)
-            .DefaultIfEmpty(0).Max();
-        var endTick = (lastTick + Song.TicksPerBar - 1) / Song.TicksPerBar * Song.TicksPerBar;
-
-        var context = new ChordDetectionContext(Song.Key, Song.Ppq, Song.TicksPerBar);
-        var settings = new SmartChordSettings { MinorDominant = MinorDominant };
-        Chords = ChordDetector.Detect(_bass.Notes, UseMelodyForChords ? _melody.Notes : [], endTick, context,
-            settings, []);
+        MarkDirty();
+        RegenerateSmartTracks();
     }
+
+    /// <summary>
+    /// 全スマートトラックを再生成する。試作段階のため毎回全区間を計算する。
+    /// </summary>
+    public void RegenerateSmartTracks()
+    {
+        foreach (var track in Tracks.OfType<SmartChordTrack>())
+            track.Regenerate(Song);
+        RefreshChordLane();
+    }
+
+    private void RefreshChordLane() => Chords = ChordLaneTrack?.Chords.ToList() ?? [];
+
+    #region トラック管理
+
+    /// <summary>新規作成時のトラック構成: Melody / Bass と、それをソースにしたスマートコード</summary>
+    private static List<Track> CreateDefaultTracks()
+    {
+        var melody = new NoteTrack { Name = "Melody", Program = 0 };
+        var bass = new NoteTrack { Name = "Bass", Program = 33 };
+        var chord = new SmartChordTrack { Name = "Chord", Program = 0, BassSource = bass, MelodySource = melody };
+        return [melody, bass, chord];
+    }
+
+    /// <summary>
+    /// トラック構成を丸ごと差し替える。
+    /// </summary>
+    private void ReplaceTracks(IEnumerable<Track> tracks)
+    {
+        var list = tracks.ToList();
+        Song.Tracks.Clear();
+        Tracks.Clear();
+        foreach (var track in list)
+        {
+            Song.Tracks.Add(track);
+            Tracks.Add(track);
+        }
+        SelectedTrack = Tracks.FirstOrDefault();
+    }
+
+    /// <summary>
+    /// スマートコードトラックを追加する。ソースは「Bass」という名前のトラック（なければ最後のノートトラック）。
+    /// </summary>
+    [RelayCommand]
+    private void AddSmartChordTrack()
+    {
+        var noteTracks = Tracks.OfType<NoteTrack>().ToList();
+        var bass = noteTracks.FirstOrDefault(t => t.Name.Contains("Bass", StringComparison.OrdinalIgnoreCase))
+                   ?? noteTracks.LastOrDefault();
+        var melody = noteTracks.FirstOrDefault(t => t != bass);
+
+        var track = new SmartChordTrack
+        {
+            Name = $"Chord {Tracks.OfType<SmartChordTrack>().Count() + 1}",
+            BassSource = bass,
+            MelodySource = melody,
+        };
+        Song.Tracks.Add(track);
+        Tracks.Add(track);
+        track.Regenerate(Song);
+        SelectedTrack = track;
+        MarkDirty();
+    }
+
+    /// <summary>
+    /// 選択中のスマートトラックを削除する。ノートトラックは他のスマートトラックのソースになり得るので、今は削除できない。
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanRemoveSelectedTrack))]
+    private void RemoveSelectedTrack()
+    {
+        if (SelectedTrack is not SmartChordTrack track) return;
+
+        var index = Tracks.IndexOf(track);
+        Song.Tracks.Remove(track);
+        Tracks.Remove(track);
+        SelectedTrack = Tracks.Count > 0 ? Tracks[Math.Clamp(index - 1, 0, Tracks.Count - 1)] : null;
+        MarkDirty();
+        RefreshChordLane();
+    }
+
+    private bool CanRemoveSelectedTrack() => SelectedTrack is SmartChordTrack;
+
+    #endregion
+
+    #region コードの override
+
+    /// <summary>
+    /// コードレーンの区間に対する候補を返す。現在のコードを先頭に、直前のコードから移りやすい順で並べる。
+    /// </summary>
+    public IReadOnlyList<Chord> GetChordSuggestions(ChordSegment segment)
+    {
+        if (ChordLaneTrack is not { } track) return [];
+
+        var previous = Chords.LastOrDefault(c => c.End <= segment.Start)?.Chord.RootPosition;
+        var minorDominant = track.ChordSettings.MinorDominant;
+        IEnumerable<Chord> suggestions = previous is { } p
+            ? ChordTransitions.SuggestNext(Key, p, minorDominant).Append(p)
+            : ChordTransitions.GetDiatonicChords(Key, minorDominant);
+
+        return suggestions.Prepend(segment.Chord.RootPosition).Distinct().ToList();
+    }
+
+    /// <summary>
+    /// 区間のコードを手動で指定する。
+    /// </summary>
+    public void SetChordOverride(ChordSegment segment, Chord chord)
+    {
+        if (ChordLaneTrack is not { } track) return;
+        OnEditStarted();
+        track.SetOverride(segment.Start, segment.Length, chord);
+        OnEditCompleted();
+        OnSmartTrackSettingsChanged();
+    }
+
+    /// <summary>
+    /// 区間の手動指定を外し、自動判別に戻す。
+    /// </summary>
+    public void ClearChordOverride(ChordSegment segment)
+    {
+        if (ChordLaneTrack is not { } track) return;
+        OnEditStarted();
+        track.ClearOverrides(segment.Start, segment.Length);
+        OnEditCompleted();
+        OnSmartTrackSettingsChanged();
+    }
+
+    #endregion
 }

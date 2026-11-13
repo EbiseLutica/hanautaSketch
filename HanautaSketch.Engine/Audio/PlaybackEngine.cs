@@ -156,7 +156,7 @@ public sealed class PlaybackEngine
     {
         var events = new List<ScheduledEvent>();
         var channel = 0;
-        foreach (var track in song.Tracks.OfType<NoteTrack>())
+        foreach (var track in song.Tracks)
         {
             if (channel == DrumChannel) channel++;
             if (channel >= PreviewChannel) break;
@@ -164,7 +164,7 @@ public sealed class PlaybackEngine
             events.Add(new ScheduledEvent(0, channel, 0xC0, track.Program, 0, 1));
             events.Add(new ScheduledEvent(0, channel, 0xB0, 7, track.Volume, 1));
 
-            foreach (var note in track.Notes)
+            foreach (var note in track.PlaybackNotes)
             {
                 if (note.EndTick <= startTick) continue;
 

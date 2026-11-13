@@ -22,7 +22,7 @@ public class ProjectSerializerTests
     }
 
     [Fact]
-    public async Task RoundTrip_PreservesSongAndSettings()
+    public async Task RoundTrip_PreservesNoteTracks()
     {
         var song = new Song { Bpm = 132, Key = new Key(0, Mode.Minor) };
         var melody = new NoteTrack { Name = "Melody", Program = 0, Volume = 90 };
@@ -33,12 +33,10 @@ public class ProjectSerializerTests
         song.Tracks.Add(melody);
         song.Tracks.Add(bass);
 
-        var loaded = await RoundTrip(new ProjectDocument(song, MinorDominantMode.Auto, false));
+        var loaded = await RoundTrip(new ProjectDocument(song));
 
         Assert.Equal(132, loaded.Song.Bpm);
         Assert.Equal(new Key(0, Mode.Minor), loaded.Song.Key);
-        Assert.Equal(MinorDominantMode.Auto, loaded.MinorDominant);
-        Assert.False(loaded.UseMelodyForChords);
 
         var tracks = loaded.Song.Tracks.OfType<NoteTrack>().ToList();
         Assert.Equal(["Melody", "Bass"], tracks.Select(t => t.Name).ToArray());
@@ -49,15 +47,62 @@ public class ProjectSerializerTests
     }
 
     [Fact]
+    public async Task RoundTrip_PreservesSmartChordTrack()
+    {
+        var song = new Song();
+        var melody = new NoteTrack { Name = "Melody" };
+        var bass = new NoteTrack { Name = "Bass" };
+        var chord = new SmartChordTrack
+        {
+            Name = "Chord",
+            Program = 48,
+            BassSource = bass,
+            MelodySource = melody,
+            ChordSettings = new SmartChordSettings { MinorDominant = MinorDominantMode.Auto },
+            Accompaniment = new AccompanimentSettings { Pattern = AccompanimentPattern.Arpeggio, DivisionTicks = 120, Velocity = 70 },
+        };
+        chord.SetOverride(960, 960, new Chord(2, ChordQuality.Minor, 5));
+        song.Tracks.Add(melody);
+        song.Tracks.Add(bass);
+        song.Tracks.Add(chord);
+
+        var loaded = await RoundTrip(new ProjectDocument(song));
+        var tracks = loaded.Song.Tracks;
+        var smart = Assert.IsType<SmartChordTrack>(tracks[2]);
+
+        Assert.Same(tracks[1], smart.BassSource);
+        Assert.Same(tracks[0], smart.MelodySource);
+        Assert.Equal(48, smart.Program);
+        Assert.Equal(MinorDominantMode.Auto, smart.ChordSettings.MinorDominant);
+        Assert.Equal(chord.Accompaniment, smart.Accompaniment);
+        Assert.Equal(chord.Overrides, smart.Overrides);
+    }
+
+    [Fact]
+    public async Task LoadV1_CreatesSmartChordTrackFromSettings()
+    {
+        var loaded = await LoadJson("""
+            { "version": 1,
+              "song": { "tracks": [ { "type": "note", "name": "Melody" }, { "type": "note", "name": "Bass" } ] },
+              "smartChord": { "minorDominant": "major", "useMelody": false } }
+            """);
+
+        var tracks = loaded.Song.Tracks;
+        var smart = Assert.IsType<SmartChordTrack>(Assert.Single(tracks.OfType<SmartChordTrack>()));
+        Assert.Same(tracks[1], smart.BassSource);
+        Assert.Null(smart.MelodySource);
+        Assert.Equal(MinorDominantMode.Major, smart.ChordSettings.MinorDominant);
+    }
+
+    [Fact]
     public async Task Load_FillsDefaultsForMissingFields()
     {
-        var loaded = await LoadJson("""{ "version": 1, "song": { "tracks": [ { "type": "note", "notes": [ { "tick": 0, "length": 120, "pitch": 60 } ] } ] } }""");
+        var loaded = await LoadJson("""{ "version": 2, "song": { "tracks": [ { "type": "note", "notes": [ { "tick": 0, "length": 120, "pitch": 60 } ] } ] } }""");
 
         Assert.Equal(Song.DefaultPpq, loaded.Song.Ppq);
         Assert.Equal(120, loaded.Song.Bpm);
-        var note = Assert.Single(loaded.Song.Tracks.OfType<NoteTrack>().Single().Notes);
+        var note = Assert.Single(Assert.Single(loaded.Song.Tracks.OfType<NoteTrack>()).Notes);
         Assert.Equal(100, note.Velocity);
-        Assert.True(loaded.UseMelodyForChords);
     }
 
     [Fact]

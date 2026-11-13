@@ -113,10 +113,10 @@ public partial class MainWindowViewModel
         OnPropertyChanged(nameof(WindowTitle));
     }
 
-    private ProjectDocument CreateDocument() => new(Song, MinorDominant, UseMelodyForChords);
+    private ProjectDocument CreateDocument() => new(Song);
 
     /// <summary>
-    /// 読み込んだ内容を現在の曲に反映する。試作段階のためトラックは先頭から Melody / Bass に順に割り当てる。
+    /// 読み込んだ内容を現在の曲に反映する。トラックは丸ごと差し替える。
     /// </summary>
     private void ApplyDocument(ProjectDocument document)
     {
@@ -124,30 +124,15 @@ public partial class MainWindowViewModel
         _suppressDirty = true;
         try
         {
-            var loaded = document.Song.Tracks.OfType<NoteTrack>().ToList();
-            NoteTrack[] targets = [_melody, _bass];
-            for (var i = 0; i < targets.Length; i++)
-            {
-                var target = targets[i];
-                target.Notes.Clear();
-                if (i >= loaded.Count) continue;
-
-                target.Name = loaded[i].Name;
-                target.Program = loaded[i].Program;
-                target.Volume = loaded[i].Volume;
-                target.Notes.AddRange(loaded[i].Notes);
-            }
-
+            ReplaceTracks(document.Song.Tracks);
             Bpm = document.Song.Bpm;
             Song.BeatsPerBar = document.Song.BeatsPerBar;
             Tonic = document.Song.Key.Tonic;
             Mode = document.Song.Key.Mode;
-            MinorDominant = document.MinorDominant;
-            UseMelodyForChords = document.UseMelodyForChords;
             PlayStartTick = 0;
             ClearHistory();
             NotesRevision++;
-            RecomputeChords();
+            RegenerateSmartTracks();
         }
         finally
         {

@@ -20,7 +20,7 @@ public sealed partial class PianoRollControl
     /// <summary>コピーしたノーツ。先頭ノートを tick 0 とした相対位置で持つ。トラックをまたいで貼り付けられるよう共有する</summary>
     private static List<Note> _clipboard = [];
 
-    /// <summary>選択中のノート（Track.Notes のインデックス）</summary>
+    /// <summary>選択中のノート（EditTrack.Notes のインデックス）</summary>
     private readonly HashSet<int> _selection = [];
 
     private int _lastNoteLength = Song.DefaultPpq / 2;
@@ -84,6 +84,17 @@ public sealed partial class PianoRollControl
             return;
         }
 
+        if (pos.Y >= RulerHeight && pos.Y < HeaderHeight && pos.X >= KeyboardWidth)
+        {
+            // コードレーンのクリックで、そのコードの変更メニューを出してもらう
+            if (!point.Properties.IsLeftButtonPressed) return;
+            var laneTick = XToTick(pos.X);
+            var block = GetChordBlocks().FirstOrDefault(b => b.Start <= laneTick && laneTick < b.End);
+            if (block is not null) ChordSegmentClicked?.Invoke(this, new ChordSegmentClickedEventArgs(block));
+            e.Handled = true;
+            return;
+        }
+
         if (pos.Y < RulerHeight && pos.X >= KeyboardWidth)
         {
             if (!point.Properties.IsLeftButtonPressed) return;
@@ -100,14 +111,14 @@ public sealed partial class PianoRollControl
             return;
         }
 
-        if (Track is null || !EditArea.Contains(pos)) return;
+        if (EditTrack is null || !EditArea.Contains(pos)) return;
 
         var hit = HitTest(pos, out var onResizeHandle);
 
         if (point.Properties.IsRightButtonPressed)
         {
             // 右クリック: そのノートの長さを、新しく置くノートの既定長にする
-            if (hit >= 0) _lastNoteLength = Track.Notes[hit].Length;
+            if (hit >= 0) _lastNoteLength = EditTrack.Notes[hit].Length;
             e.Handled = true;
             return;
         }
@@ -153,7 +164,7 @@ public sealed partial class PianoRollControl
 
             EditStarted?.Invoke(this, EventArgs.Empty);
             BeginNoteDrag(hit, onResizeHandle ? DragMode.Resize : DragMode.Move, pos);
-            StartPreview(Track.Notes[hit].Pitch);
+            StartPreview(EditTrack.Notes[hit].Pitch);
             BeginDrag(_dragMode, e);
             return;
         }
@@ -162,8 +173,8 @@ public sealed partial class PianoRollControl
         var pitch = Math.Clamp(YToPitch(pos.Y), 0, PitchCount - 1);
         var tick = SnapFloor(Math.Max(0, XToTick(pos.X)));
         EditStarted?.Invoke(this, EventArgs.Empty);
-        Track.Notes.Add(new Note(tick, _lastNoteLength, pitch, DefaultVelocity));
-        var index = Track.Notes.Count - 1;
+        EditTrack.Notes.Add(new Note(tick, _lastNoteLength, pitch, DefaultVelocity));
+        var index = EditTrack.Notes.Count - 1;
         _selection.Clear();
         _selection.Add(index);
         RaiseNotesEdited();
@@ -211,8 +222,8 @@ public sealed partial class PianoRollControl
         base.OnPointerReleased(e);
         if (_dragMode == DragMode.None) return;
 
-        if (_dragMode == DragMode.Resize && Track is not null && _dragAnchor >= 0 && _dragAnchor < Track.Notes.Count)
-            _lastNoteLength = Track.Notes[_dragAnchor].Length;
+        if (_dragMode == DragMode.Resize && EditTrack is not null && _dragAnchor >= 0 && _dragAnchor < EditTrack.Notes.Count)
+            _lastNoteLength = EditTrack.Notes[_dragAnchor].Length;
 
         if (_dragMode is DragMode.Move or DragMode.Resize)
         {
@@ -251,11 +262,11 @@ public sealed partial class PianoRollControl
     /// </summary>
     private void BeginNoteDrag(int anchor, DragMode mode, Point pos)
     {
-        if (Track is null) return;
+        if (EditTrack is null) return;
         _dragMode = mode;
         _dragAnchor = anchor;
-        _dragTickOffset = XToTick(pos.X) - Track.Notes[anchor].Tick;
-        _dragOrigins = _selection.ToDictionary(i => i, i => Track.Notes[i]);
+        _dragTickOffset = XToTick(pos.X) - EditTrack.Notes[anchor].Tick;
+        _dragOrigins = _selection.ToDictionary(i => i, i => EditTrack.Notes[i]);
     }
 
     /// <summary>
@@ -263,7 +274,7 @@ public sealed partial class PianoRollControl
     /// </summary>
     private void DragMove(Point pos)
     {
-        if (Track is null || !_dragOrigins.TryGetValue(_dragAnchor, out var anchor)) return;
+        if (EditTrack is null || !_dragOrigins.TryGetValue(_dragAnchor, out var anchor)) return;
 
         var deltaTick = SnapRound(XToTick(pos.X) - _dragTickOffset) - anchor.Tick;
         var deltaPitch = Math.Clamp(YToPitch(pos.Y), 0, PitchCount - 1) - anchor.Pitch;
@@ -273,11 +284,11 @@ public sealed partial class PianoRollControl
         deltaPitch = Math.Clamp(deltaPitch, -_dragOrigins.Values.Min(n => n.Pitch),
             PitchCount - 1 - _dragOrigins.Values.Max(n => n.Pitch));
 
-        if (Track.Notes[_dragAnchor] == anchor with { Tick = anchor.Tick + deltaTick, Pitch = anchor.Pitch + deltaPitch })
+        if (EditTrack.Notes[_dragAnchor] == anchor with { Tick = anchor.Tick + deltaTick, Pitch = anchor.Pitch + deltaPitch })
             return;
 
         foreach (var (index, origin) in _dragOrigins)
-            Track.Notes[index] = origin with { Tick = origin.Tick + deltaTick, Pitch = origin.Pitch + deltaPitch };
+            EditTrack.Notes[index] = origin with { Tick = origin.Tick + deltaTick, Pitch = origin.Pitch + deltaPitch };
 
         StartPreview(anchor.Pitch + deltaPitch);
         RaiseNotesEdited();
@@ -288,27 +299,27 @@ public sealed partial class PianoRollControl
     /// </summary>
     private void DragResize(Point pos)
     {
-        if (Track is null || !_dragOrigins.TryGetValue(_dragAnchor, out var anchor)) return;
+        if (EditTrack is null || !_dragOrigins.TryGetValue(_dragAnchor, out var anchor)) return;
 
         var deltaLength = SnapRound(XToTick(pos.X)) - anchor.EndTick;
-        if (Track.Notes[_dragAnchor].Length == Math.Max(SnapTicks, anchor.Length + deltaLength)) return;
+        if (EditTrack.Notes[_dragAnchor].Length == Math.Max(SnapTicks, anchor.Length + deltaLength)) return;
 
         foreach (var (index, origin) in _dragOrigins)
-            Track.Notes[index] = origin with { Length = Math.Max(SnapTicks, origin.Length + deltaLength) };
+            EditTrack.Notes[index] = origin with { Length = Math.Max(SnapTicks, origin.Length + deltaLength) };
 
         RaiseNotesEdited();
     }
 
     private void UpdateBoxSelection()
     {
-        if (Track is null) return;
+        if (EditTrack is null) return;
 
         var box = new Rect(_selectStart, _selectCurrent);
         _selection.Clear();
         _selection.UnionWith(_selectionBeforeBox);
-        for (var i = 0; i < Track.Notes.Count; i++)
+        for (var i = 0; i < EditTrack.Notes.Count; i++)
         {
-            if (NoteRect(Track.Notes[i]).Intersects(box)) _selection.Add(i);
+            if (NoteRect(EditTrack.Notes[i]).Intersects(box)) _selection.Add(i);
         }
         InvalidateVisual();
     }
@@ -327,11 +338,11 @@ public sealed partial class PianoRollControl
     private int HitTest(Point pos, out bool onResizeHandle)
     {
         onResizeHandle = false;
-        if (Track is null || !EditArea.Contains(pos)) return -1;
+        if (EditTrack is null || !EditArea.Contains(pos)) return -1;
 
-        for (var i = Track.Notes.Count - 1; i >= 0; i--)
+        for (var i = EditTrack.Notes.Count - 1; i >= 0; i--)
         {
-            var rect = NoteRect(Track.Notes[i]);
+            var rect = NoteRect(EditTrack.Notes[i]);
             if (!rect.Contains(pos)) continue;
 
             var handle = Math.Min(ResizeHandleWidth, rect.Width / 3);
@@ -412,7 +423,7 @@ public sealed partial class PianoRollControl
     protected override void OnKeyDown(KeyEventArgs e)
     {
         base.OnKeyDown(e);
-        if (Track is null || _dragMode != DragMode.None) return;
+        if (EditTrack is null || _dragMode != DragMode.None) return;
 
         var ctrl = e.KeyModifiers.HasFlag(KeyModifiers.Control);
         switch (e.Key)
@@ -428,7 +439,7 @@ public sealed partial class PianoRollControl
                 break;
             case AvaloniaKey.A when ctrl:
                 _selection.Clear();
-                _selection.UnionWith(Enumerable.Range(0, Track.Notes.Count));
+                _selection.UnionWith(Enumerable.Range(0, EditTrack.Notes.Count));
                 InvalidateVisual();
                 break;
             case AvaloniaKey.C when ctrl:
@@ -455,9 +466,9 @@ public sealed partial class PianoRollControl
 
     private void CopySelection()
     {
-        if (Track is null || _selection.Count == 0) return;
+        if (EditTrack is null || _selection.Count == 0) return;
 
-        var notes = _selection.Select(i => Track.Notes[i]).ToList();
+        var notes = _selection.Select(i => EditTrack.Notes[i]).ToList();
         var origin = notes.Min(n => n.Tick);
         _clipboard = notes.Select(n => n with { Tick = n.Tick - origin }).OrderBy(n => n.Tick).ToList();
     }
@@ -467,13 +478,13 @@ public sealed partial class PianoRollControl
     /// </summary>
     private void Paste()
     {
-        if (Track is null || _clipboard.Count == 0) return;
+        if (EditTrack is null || _clipboard.Count == 0) return;
 
         _selection.Clear();
         foreach (var note in _clipboard)
         {
-            Track.Notes.Add(note with { Tick = note.Tick + PlayStartTick });
-            _selection.Add(Track.Notes.Count - 1);
+            EditTrack.Notes.Add(note with { Tick = note.Tick + PlayStartTick });
+            _selection.Add(EditTrack.Notes.Count - 1);
         }
         RaiseNotesEdited();
     }
@@ -483,10 +494,10 @@ public sealed partial class PianoRollControl
     /// </summary>
     private void DeleteNotes(IReadOnlyCollection<int> indices)
     {
-        if (Track is null || indices.Count == 0) return;
+        if (EditTrack is null || indices.Count == 0) return;
 
         foreach (var index in indices.OrderDescending())
-            Track.Notes.RemoveAt(index);
+            EditTrack.Notes.RemoveAt(index);
 
         _selection.Clear();
         RaiseNotesEdited();
@@ -530,4 +541,12 @@ public sealed class NotePreviewEventArgs(int? pitch, int velocity) : EventArgs
     public int? Pitch { get; } = pitch;
 
     public int Velocity { get; } = velocity;
+}
+
+/// <summary>
+/// コードレーンでクリックされたコード区間。
+/// </summary>
+public sealed class ChordSegmentClickedEventArgs(HanautaSketch.Engine.Smart.Chords.ChordSegment segment) : EventArgs
+{
+    public HanautaSketch.Engine.Smart.Chords.ChordSegment Segment { get; } = segment;
 }

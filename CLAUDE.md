@@ -15,7 +15,7 @@
 - テスト：xUnit
 - 再生：MeltySynth（SF2）でシンセを鳴らし、NAudio 2.2.1（WASAPI 共有モード）で出力する。MeltySynth とシーケンサーは Engine（`PlaybackEngine`）、OS 依存の出力は App（`AudioOutput`）に置く
   - 音源は `HanautaSketch/SoundFonts/*.sf2` に置く（GM 互換の SGM-V2.01 を想定）。サイズが大きいので git 管理外（`.gitignore` で `*.sf2` を除外）。ビルド時に出力先へコピーされる
-- 保存形式：独自 JSON（`.hsk`、`ProjectSerializer`）。ファイル上の形式は DTO で固定し、`version` で互換性を管理する。ファイルダイアログは `IProjectFileDialog` 経由で VM から使う
+- 保存形式：独自 JSON（`.hsk`、`ProjectSerializer`）。ファイル上の形式は DTO で固定し、`version` で互換性を管理する（現在 v2。v1 は読み込み時にスマートコードトラックを1本作って移行する）。ファイルダイアログは `IProjectFileDialog` 経由で VM から使う
 - 採用予定：MIDI 入出力は DryWetMIDI
 
 ### ドメインモデルの約束事
@@ -24,6 +24,9 @@
 - スケール構成音は `Key.GetScalePitchClasses()` 経由でのみ取得する（将来のスケール拡張に備えた差し替え口）
 - `HanautaSketch.Engine.Core.Key` は `Avalonia.Input.Key` と名前が衝突するため、UI 側では using エイリアスで解決する
 - スマートトラックの出力は派生データとして扱い、保存しない。ユーザーの判断は override として保持する
+  - `SmartChordTrack` はソース（ベース・メロディの `NoteTrack` 参照）、判別設定、伴奏設定、override を持ち、`Regenerate(song)` で判別と伴奏生成をやり直す。再生は全トラック共通の `Track.PlaybackNotes` を使う
+  - ソース参照は保存時にトラックの並び順（インデックス）で書き出す
+- 判別アルゴリズムの回帰テストは `HanautaSketch.Tests/Fixtures/*.hsk` と MML 風の期待値（`ChordFixtureTests`）で行う
 - 試作段階のため、テンポ・拍子・キーは `Song` 上で曲全体に1つの固定値。後で Conductor（途中変更対応）に置き換える
 
 ## ディレクトリ構成
@@ -42,7 +45,7 @@ HanautaSketch.Engine/        UI 非依存のロジック。Tests に InternalsVi
   Core/                      ドメインモデル（Song, Track, Note, Key）
   Editing/                   編集の補助（Undo/Redo 履歴）
   IO/                        プロジェクトファイルの読み書き（今後 MIDI 書き出しも）
-  Smart/Chords/              スマートコード（コード判別・遷移スコア）
+  Smart/Chords/              スマートコード（トラック、コード判別、遷移スコア、伴奏生成）
   Smart/Rhythm/              ベースのリズム解析（コードの区切り判定、将来はドラムの FollowBass と共用）
 HanautaSketch.Tests/         Engine のテスト
 ```

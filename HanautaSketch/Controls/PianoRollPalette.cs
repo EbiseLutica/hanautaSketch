@@ -36,6 +36,8 @@ public sealed class PianoRollPalette
     public required IPen SelectionBorder { get; init; }
     public required IPen PlayStartLine { get; init; }
     public required IBrush PlayStartMarker { get; init; }
+    public required IBrush GeneratedNote { get; init; }
+    public required IPen GeneratedNoteBorder { get; init; }
 
     public static PianoRollPalette Light { get; } = new()
     {
@@ -66,6 +68,8 @@ public sealed class PianoRollPalette
         SelectionBorder = Pen("#4F7BFF"),
         PlayStartLine = Pen("#5530A46C"),
         PlayStartMarker = Brush("#30A46C"),
+        GeneratedNote = Brush("#9BD7B5"),
+        GeneratedNoteBorder = Pen("#3D8B60"),
     };
 
     public static PianoRollPalette Dark { get; } = new()
@@ -97,6 +101,8 @@ public sealed class PianoRollPalette
         SelectionBorder = Pen("#7C9CFF"),
         PlayStartLine = Pen("#664CC38A"),
         PlayStartMarker = Brush("#4CC38A"),
+        GeneratedNote = Brush("#3E7A5A"),
+        GeneratedNoteBorder = Pen("#6FD3A0"),
     };
 
     public static PianoRollPalette For(ThemeVariant variant) => variant == ThemeVariant.Dark ? Dark : Light;

@@ -18,20 +18,11 @@ public partial class ChordFixtureTests
     [InlineData("test2-syncopation.hsk", "Ab2 Bb2 Cm8. Ddim8. Eb8&2 Fm2 Bb2 Cm8. Bb8. Cm8+2")]
     public async Task Fixture_MatchesExpectedProgression(string file, string expected)
     {
-        var document = await LoadFixture(file);
-        var song = document.Song;
-        var tracks = song.Tracks.OfType<NoteTrack>().ToList();
-        var melody = document.UseMelodyForChords && tracks.Count > 0 ? tracks[0].Notes : [];
-        var bass = tracks.Count > 1 ? tracks[1].Notes : [];
+        var song = (await LoadFixture(file)).Song;
+        var track = Assert.Single(song.Tracks.OfType<SmartChordTrack>());
+        track.Regenerate(song);
 
-        var lastTick = tracks.SelectMany(t => t.Notes).Max(n => n.EndTick);
-        var endTick = (lastTick + song.TicksPerBar - 1) / song.TicksPerBar * song.TicksPerBar;
-        var context = new ChordDetectionContext(song.Key, song.Ppq, song.TicksPerBar);
-        var settings = new SmartChordSettings { MinorDominant = document.MinorDominant };
-
-        var result = ChordDetector.Detect(bass, melody, endTick, context, settings, []);
-
-        Assert.Equal(Format(ParseExpected(expected, song.Ppq), song.Ppq), Format(result, song.Key, song.Ppq));
+        Assert.Equal(Format(ParseExpected(expected, song.Ppq), song.Ppq), Format(track.Chords, song.Key, song.Ppq));
     }
 
     private static async Task<ProjectDocument> LoadFixture(string file)

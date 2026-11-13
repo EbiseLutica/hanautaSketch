@@ -19,8 +19,8 @@ public sealed partial class PianoRollControl : Control
     public static readonly StyledProperty<Song?> SongProperty =
         AvaloniaProperty.Register<PianoRollControl, Song?>(nameof(Song));
 
-    public static readonly StyledProperty<NoteTrack?> TrackProperty =
-        AvaloniaProperty.Register<PianoRollControl, NoteTrack?>(nameof(Track));
+    public static readonly StyledProperty<Track?> TrackProperty =
+        AvaloniaProperty.Register<PianoRollControl, Track?>(nameof(Track));
 
     public static readonly StyledProperty<Key> KeyProperty =
         AvaloniaProperty.Register<PianoRollControl, Key>(nameof(Key));
@@ -177,6 +177,12 @@ public sealed partial class PianoRollControl : Control
     /// <summary>一連の編集が終わったときに発生する</summary>
     public event EventHandler? EditCompleted;
 
+    /// <summary>コードレーンのコードがクリックされたときに発生する</summary>
+    public event EventHandler<ChordSegmentClickedEventArgs>? ChordSegmentClicked;
+
+    /// <summary>編集できるトラック（ノートトラック）。スマートトラック表示中は null</summary>
+    private NoteTrack? EditTrack => Track as NoteTrack;
+
     public PianoRollControl()
     {
         ActualThemeVariantChanged += (_, _) => InvalidateVisual();
@@ -188,7 +194,8 @@ public sealed partial class PianoRollControl : Control
         set => SetValue(SongProperty, value);
     }
 
-    public NoteTrack? Track
+    /// <summary>表示中のトラック。ノートトラックなら編集でき、スマートトラックなら生成結果を読み取り専用で表示する</summary>
+    public Track? Track
     {
         get => GetValue(TrackProperty);
         set => SetValue(TrackProperty, value);
@@ -326,7 +333,7 @@ public sealed partial class PianoRollControl : Control
     }
 
     /// <summary>
-    /// 選択中以外のトラックのノーツを薄く表示する。
+    /// 表示中以外のノートトラックのノーツを薄く表示する。
     /// </summary>
     private void RenderGhostNotes(DrawingContext context)
     {
@@ -341,10 +348,15 @@ public sealed partial class PianoRollControl : Control
 
     private void RenderNotes(DrawingContext context)
     {
-        if (Track is null) return;
-        for (var i = 0; i < Track.Notes.Count; i++)
+        if (Track is not NoteTrack track)
         {
-            var note = Track.Notes[i];
+            RenderGeneratedNotes(context);
+            return;
+        }
+
+        for (var i = 0; i < track.Notes.Count; i++)
+        {
+            var note = track.Notes[i];
             var rect = NoteRect(note).Deflate(new Thickness(0, 0.5));
             var selected = _selection.Contains(i);
             var opacity = 0.45 + 0.55 * note.Velocity / 127.0;
@@ -353,6 +365,19 @@ public sealed partial class PianoRollControl : Control
                 context.DrawRectangle(selected ? _palette.NoteSelected : _palette.Note,
                     selected ? _palette.NoteSelectedBorder : _palette.NoteBorder, rect, 2, 2);
             }
+        }
+    }
+
+    /// <summary>
+    /// スマートトラックが生成したノーツ。編集できないことが分かるよう色を変える。
+    /// </summary>
+    private void RenderGeneratedNotes(DrawingContext context)
+    {
+        if (Track is null) return;
+        foreach (var note in Track.PlaybackNotes)
+        {
+            var rect = NoteRect(note).Deflate(new Thickness(0, 0.5));
+            context.DrawRectangle(_palette.GeneratedNote, _palette.GeneratedNoteBorder, rect, 2, 2);
         }
     }
 
@@ -411,32 +436,43 @@ public sealed partial class PianoRollControl : Control
     private void RenderChordLane(DrawingContext context, Rect area)
     {
         context.FillRectangle(_palette.ChordLane, new Rect(KeyboardWidth, RulerHeight, area.Width, ChordLaneHeight));
-        if (Chords is not { Count: > 0 } chords) return;
 
-        var i = 0;
-        while (i < chords.Count)
+        foreach (var block in GetChordBlocks())
         {
-            var head = chords[i];
-            var end = head.End;
-            var j = i + 1;
-            while (j < chords.Count && chords[j].Chord == head.Chord && chords[j].IsOverride == head.IsOverride)
-                end = chords[j++].End;
+            var rect = ChordBlockRect(block);
+            if (rect.Right < area.X || rect.X > area.Right) continue;
 
-            var rect = new Rect(TickToX(head.Start), RulerHeight + 2, (end - head.Start) * PixelsPerTick, ChordLaneHeight - 4)
-                .Deflate(new Thickness(1, 0));
-            if (rect.Right >= area.X && rect.X <= area.Right)
+            context.DrawRectangle(block.IsOverride ? _palette.ChordOverride : _palette.ChordBlock,
+                _palette.ChordBorder, rect, 3, 3);
+            using (context.PushClip(rect))
             {
-                context.DrawRectangle(head.IsOverride ? _palette.ChordOverride : _palette.ChordBlock,
-                    _palette.ChordBorder, rect, 3, 3);
-                using (context.PushClip(rect))
-                {
-                    DrawText(context, head.Chord.GetName(Key), new Point(rect.X + 4, rect.Y + 1), _palette.Text, 12);
-                }
+                DrawText(context, block.Chord.GetName(Key), new Point(rect.X + 4, rect.Y + 1), _palette.Text, 12);
             }
-
-            i = j;
         }
     }
+
+    /// <summary>
+    /// 表示上のコードブロック。同じコードが続く区間はまとめて1つにする。
+    /// </summary>
+    private List<ChordSegment> GetChordBlocks()
+    {
+        var blocks = new List<ChordSegment>();
+        if (Chords is not { Count: > 0 } chords) return blocks;
+
+        foreach (var segment in chords)
+        {
+            if (blocks.Count > 0 && blocks[^1].Chord == segment.Chord && blocks[^1].IsOverride == segment.IsOverride
+                && blocks[^1].End == segment.Start)
+                blocks[^1] = blocks[^1] with { Length = segment.End - blocks[^1].Start };
+            else
+                blocks.Add(segment);
+        }
+        return blocks;
+    }
+
+    private Rect ChordBlockRect(ChordSegment block) =>
+        new Rect(TickToX(block.Start), RulerHeight + 2, block.Length * PixelsPerTick, ChordLaneHeight - 4)
+            .Deflate(new Thickness(1, 0));
 
     private (int Top, int Bottom) VisiblePitchRange(Rect area)
     {

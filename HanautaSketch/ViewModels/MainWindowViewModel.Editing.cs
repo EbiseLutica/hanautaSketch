@@ -2,50 +2,63 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HanautaSketch.Engine.Core;
 using HanautaSketch.Engine.Editing;
+using HanautaSketch.Engine.Smart.Chords;
 
 namespace HanautaSketch.ViewModels;
 
 /// <summary>
-/// ノート編集の Undo/Redo と新規作成。
-/// 履歴は全トラックのノーツのスナップショットで持つ（試作段階のデータ量なら十分軽い）。
+/// 編集の Undo/Redo と新規作成。
+/// 履歴はノートトラックのノーツと、スマートコードトラックの override のスナップショットで持つ
+/// （試作段階のデータ量なら十分軽い）。トラック構成や設定の変更は対象外。
 /// </summary>
 public partial class MainWindowViewModel
 {
-    private readonly UndoHistory<NotesSnapshot> _history = new();
-    private NotesSnapshot? _pendingSnapshot;
+    private readonly UndoHistory<EditSnapshot> _history = new();
+    private EditSnapshot? _pendingSnapshot;
 
     /// <summary>ノーツを外部から差し替えたときに増やす。ピアノロールが選択を解除して描き直す</summary>
     [ObservableProperty]
     private int _notesRevision;
 
     /// <summary>
-    /// 全トラックのノーツの写し。トラックの並びは Song.Tracks と同じ。
+    /// 編集対象の写し。各配列の並びは Song.Tracks 内の同じ種類のトラックの並び。
     /// </summary>
-    private sealed record NotesSnapshot(Note[][] Tracks)
+    private sealed record EditSnapshot(Note[][] Notes, ChordOverride[][] Overrides)
     {
-        public bool ContentEquals(NotesSnapshot other) =>
-            Tracks.Length == other.Tracks.Length && Tracks.Zip(other.Tracks).All(p => p.First.SequenceEqual(p.Second));
+        public bool ContentEquals(EditSnapshot other) =>
+            SequencesEqual(Notes, other.Notes) && SequencesEqual(Overrides, other.Overrides);
+
+        private static bool SequencesEqual<T>(T[][] a, T[][] b) =>
+            a.Length == b.Length && a.Zip(b).All(p => p.First.SequenceEqual(p.Second));
     }
 
-    private NotesSnapshot TakeSnapshot() =>
-        new(Song.Tracks.OfType<NoteTrack>().Select(t => t.Notes.ToArray()).ToArray());
+    private EditSnapshot TakeSnapshot() => new(
+        Song.Tracks.OfType<NoteTrack>().Select(t => t.Notes.ToArray()).ToArray(),
+        Song.Tracks.OfType<SmartChordTrack>().Select(t => t.Overrides.ToArray()).ToArray());
 
-    private void RestoreSnapshot(NotesSnapshot snapshot)
+    private void RestoreSnapshot(EditSnapshot snapshot)
     {
-        var tracks = Song.Tracks.OfType<NoteTrack>().ToList();
-        for (var i = 0; i < tracks.Count && i < snapshot.Tracks.Length; i++)
+        var noteTracks = Song.Tracks.OfType<NoteTrack>().ToList();
+        for (var i = 0; i < noteTracks.Count && i < snapshot.Notes.Length; i++)
         {
-            tracks[i].Notes.Clear();
-            tracks[i].Notes.AddRange(snapshot.Tracks[i]);
+            noteTracks[i].Notes.Clear();
+            noteTracks[i].Notes.AddRange(snapshot.Notes[i]);
+        }
+
+        var smartTracks = Song.Tracks.OfType<SmartChordTrack>().ToList();
+        for (var i = 0; i < smartTracks.Count && i < snapshot.Overrides.Length; i++)
+        {
+            smartTracks[i].Overrides.Clear();
+            smartTracks[i].Overrides.AddRange(snapshot.Overrides[i]);
         }
 
         NotesRevision++;
         MarkDirty();
-        RecomputeChords();
+        RegenerateSmartTracks();
     }
 
     /// <summary>
-    /// ピアノロールで一連の編集が始まる直前に呼ぶ。変更前の状態を控える。
+    /// 一連の編集が始まる直前に呼ぶ。変更前の状態を控える。
     /// </summary>
     public void OnEditStarted() => _pendingSnapshot = TakeSnapshot();
 
@@ -96,7 +109,7 @@ public partial class MainWindowViewModel
     }
 
     /// <summary>
-    /// 空の曲にする。トラック構成（Melody / Bass）と音色は既定に戻す。
+    /// 空の曲にする。トラック構成は既定（Melody / Bass / Chord）に戻す。
     /// </summary>
     [RelayCommand]
     private void New()
@@ -105,14 +118,11 @@ public partial class MainWindowViewModel
         _suppressDirty = true;
         try
         {
-            ResetTrack(_melody, "Melody", 0);
-            ResetTrack(_bass, "Bass", 33);
+            ReplaceTracks(CreateDefaultTracks());
             Bpm = 120;
             Song.BeatsPerBar = 4;
             Tonic = 0;
             Mode = Mode.Major;
-            MinorDominant = default;
-            UseMelodyForChords = true;
             PlayStartTick = 0;
         }
         finally
@@ -125,15 +135,7 @@ public partial class MainWindowViewModel
         OnPropertyChanged(nameof(WindowTitle));
         ClearHistory();
         NotesRevision++;
-        RecomputeChords();
+        RegenerateSmartTracks();
         Message = "新しい曲";
-    }
-
-    private static void ResetTrack(NoteTrack track, string name, int program)
-    {
-        track.Name = name;
-        track.Program = program;
-        track.Volume = 100;
-        track.Notes.Clear();
     }
 }

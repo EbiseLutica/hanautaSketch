@@ -12,6 +12,11 @@ public abstract class Track
 
     /// <summary>トラック音量（0〜127）</summary>
     public int Volume { get; set; } = 100;
+
+    /// <summary>
+    /// 再生・書き出しに使うノーツ。通常トラックは実体、スマートトラックは生成結果。
+    /// </summary>
+    public abstract IReadOnlyList<Note> PlaybackNotes { get; }
 }
 
 /// <summary>
@@ -20,4 +25,6 @@ public abstract class Track
 public sealed class NoteTrack : Track
 {
     public List<Note> Notes { get; } = [];
+
+    public override IReadOnlyList<Note> PlaybackNotes => Notes;
 }

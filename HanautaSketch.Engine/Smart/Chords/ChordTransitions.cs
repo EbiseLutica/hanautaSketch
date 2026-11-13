@@ -40,6 +40,12 @@ public static class ChordTransitions
     }
 
     /// <summary>
+    /// キーのダイアトニックコード（判別の候補と同じもの）を度数順に返す。
+    /// </summary>
+    public static IReadOnlyList<Chord> GetDiatonicChords(Key key, MinorDominantMode minorDominant) =>
+        DiatonicChords.GetCandidates(key, minorDominant).Select(c => c.Chord).ToList();
+
+    /// <summary>
     /// previous から移りやすいダイアトニックコードを、スコアの高い順に返す。
     /// </summary>
     public static IReadOnlyList<Chord> SuggestNext(Key key, Chord previous, MinorDominantMode minorDominant) =>
