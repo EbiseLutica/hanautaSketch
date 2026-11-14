@@ -63,12 +63,10 @@ public partial class MainWindowViewModel
         var bass = noteTracks.FirstOrDefault(t => t.Name.Contains("Bass", StringComparison.OrdinalIgnoreCase))
                    ?? noteTracks.LastOrDefault();
 
-        var lastTick = Song.Tracks.OfType<NoteTrack>().SelectMany(t => t.Notes).Select(n => n.EndTick)
-            .DefaultIfEmpty(0).Max();
-        var bars = Math.Max(DefaultDrumSectionBars, (lastTick + Song.TicksPerBar - 1) / Song.TicksPerBar);
+        var end = Song.EndBarTick(Song.Conductor.BarToTick(DefaultDrumSectionBars));
 
         var track = new SmartDrumTrack { Name = UniqueTrackName("Drums"), BassSource = bass };
-        track.AddSection(0, bars * Song.TicksPerBar);
+        track.AddSection(0, end);
         AddTrack(track);
     }
 

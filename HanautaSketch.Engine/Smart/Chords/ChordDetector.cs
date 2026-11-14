@@ -27,9 +27,22 @@ public sealed record ChordSegment(int Start, int Length, Chord? Chord, bool IsOv
 }
 
 /// <summary>
-/// 判別に必要な曲の情報。
+/// 判別に必要な曲の情報（キー・拍子の変化）。
 /// </summary>
-public sealed record ChordDetectionContext(Key Key, int Ppq, int TicksPerBar);
+public sealed record ChordDetectionContext(Conductor Conductor)
+{
+    /// <summary>キーと拍子が曲全体で一定の場合</summary>
+    public ChordDetectionContext(Key key, int ppq, int ticksPerBar) : this(CreateConductor(key, ppq, ticksPerBar))
+    {
+    }
+
+    private static Conductor CreateConductor(Key key, int ppq, int ticksPerBar)
+    {
+        var conductor = new Conductor(ppq);
+        conductor.Reset(120, ticksPerBar / ppq, key);
+        return conductor;
+    }
+}
 
 /// <summary>
 /// ベース（任意でメロディ）からコード進行と、その区切りを判別する。
@@ -70,7 +83,7 @@ public static class ChordDetector
     private const double CandidateThreshold = 1.9;
 
     /// <summary>
-    /// [0, endTick) のコード進行を判別する。
+    /// [0, endTick) のコード進行を判別する。キーの変わり目で区切り、区間ごとにそのキーで判別する。
     /// </summary>
     public static IReadOnlyList<ChordSegment> Detect(
         IReadOnlyList<Note> bass,
@@ -86,9 +99,17 @@ public static class ChordDetector
         if (bass.Count == 0 && melody.Count == 0)
             return validOverrides.Select(o => new ChordSegment(o.Start, o.Length, o.Chord, true)).ToList();
 
-        var problem = new Problem(bass, melody, endTick, context, settings, validOverrides);
-        var path = problem.Solve();
-        return BuildResult(path, bass, context);
+        var result = new List<ChordSegment>();
+        foreach (var (start, end, key) in context.Conductor.KeyRegions(endTick))
+        {
+            var regionOverrides = validOverrides
+                .Where(o => o.Start < end && start < o.End)
+                .Select(o => o with { Start = Math.Max(o.Start, start), Length = Math.Min(o.End, end) - Math.Max(o.Start, start) })
+                .ToList();
+            var problem = new Problem(bass, melody, start, end, key, context.Conductor, settings, regionOverrides);
+            result.AddRange(BuildResult(problem.Solve(), bass, context.Conductor));
+        }
+        return result;
     }
 
     /// <summary>
@@ -121,7 +142,9 @@ public static class ChordDetector
     {
         private readonly IReadOnlyList<Note> _bass;
         private readonly IReadOnlyList<Note> _melody;
-        private readonly ChordDetectionContext _context;
+        private readonly Conductor _conductor;
+        private readonly Key _key;
+        private readonly int _ppq;
         private readonly SmartChordSettings _settings;
         private readonly List<ChordOverride> _overrides;
         private readonly IReadOnlyList<ChordCandidate> _candidates;
@@ -131,35 +154,37 @@ public static class ChordDetector
         private readonly int _minLength;
         private readonly int _maxLength;
 
-        public Problem(IReadOnlyList<Note> bass, IReadOnlyList<Note> melody, int endTick,
-            ChordDetectionContext context, SmartChordSettings settings, List<ChordOverride> overrides)
+        /// <summary>[startTick, endTick) を key で判別する問題</summary>
+        public Problem(IReadOnlyList<Note> bass, IReadOnlyList<Note> melody, int startTick, int endTick, Key key,
+            Conductor conductor, SmartChordSettings settings, List<ChordOverride> overrides)
         {
             _bass = bass;
             _melody = melody;
-            _context = context;
+            _conductor = conductor;
+            _key = key;
+            _ppq = conductor.Ppq;
             _settings = settings;
             _overrides = overrides;
-            _candidates = DiatonicChords.GetCandidates(context.Key, settings.MinorDominant);
+            _candidates = DiatonicChords.GetCandidates(key, settings.MinorDominant);
 
             // 状態として扱うコード: 候補 → オーバーライド専用コード（N.C. を含む）の順
             _chords = _candidates.Select(c => (Chord?)c.Chord).ToList();
             foreach (var ov in overrides.Where(ov => !_chords.Contains(ov.Chord)))
                 _chords.Add(ov.Chord);
 
-            var unit = settings.BoundaryUnitTicks > 0 ? settings.BoundaryUnitTicks : context.Ppq;
-            _minLength = settings.MinSegmentTicks > 0 ? settings.MinSegmentTicks : context.Ppq / 2;
-            _maxLength = settings.MaxSegmentTicks > 0 ? settings.MaxSegmentTicks : context.TicksPerBar * 2;
+            var unit = settings.BoundaryUnitTicks > 0 ? settings.BoundaryUnitTicks : _ppq;
+            _minLength = settings.MinSegmentTicks > 0 ? settings.MinSegmentTicks : _ppq / 2;
+            _maxLength = settings.MaxSegmentTicks > 0 ? settings.MaxSegmentTicks : conductor.TicksPerBarAt(startTick) * 2;
 
             // 区切り候補位置: 小節頭＋リズム的に区切れやすい位置（グリッド・ベースの発音位置から選ぶ）＋オーバーライド境界。
             // オーバーライド内部は除く
-            var positions = new SortedSet<int> { 0, endTick };
-            for (var t = context.TicksPerBar; t < endTick; t += context.TicksPerBar) positions.Add(t);
+            var positions = new SortedSet<int>(conductor.BarStarts(startTick, endTick)) { startTick, endTick };
 
             var rhythmic = new SortedSet<int>(BassRhythmAnalyzer.GetOnsets(bass));
-            for (var t = unit; t < endTick; t += unit) rhythmic.Add(t);
-            foreach (var t in rhythmic.Where(t => 0 < t && t < endTick))
+            for (var t = (startTick / unit + 1) * unit; t < endTick; t += unit) rhythmic.Add(t);
+            foreach (var t in rhythmic.Where(t => startTick < t && t < endTick))
             {
-                if (BassRhythmAnalyzer.BoundaryStrength(bass, t, context.Ppq, context.TicksPerBar) >= CandidateThreshold)
+                if (BassRhythmAnalyzer.BoundaryStrength(bass, t, conductor) >= CandidateThreshold)
                     positions.Add(t);
             }
 
@@ -240,7 +265,7 @@ public static class ChordDetector
             var boundaryCost = isOverride || IsOverrideEdge(start)
                 ? 0
                 : Math.Max(MinChangeCost,
-                    ChangeCost - BassRhythmAnalyzer.BoundaryStrength(_bass, start, _context.Ppq, _context.TicksPerBar));
+                    ChangeCost - BassRhythmAnalyzer.BoundaryStrength(_bass, start, _conductor));
 
             for (var prev = 0; prev < _chords.Count; prev++)
             {
@@ -263,7 +288,7 @@ public static class ChordDetector
         /// コード遷移のスコア。N.C. の後は曲頭と同じ扱いにし、N.C. へ入る遷移は評価しない。
         /// </summary>
         private double TransitionScore(Chord? from, Chord? to) =>
-            to is { } next ? ChordTransitions.Score(_context.Key, from, next) : 0;
+            to is { } next ? ChordTransitions.Score(_key, from, next) : 0;
 
         private List<PathSegment> Backtrack(double[,] dp, (int Pos, int Chord)[,] back)
         {
@@ -279,7 +304,7 @@ public static class ChordDetector
             while (j > 0)
             {
                 var (i, prevChord) = back[j, chord];
-                var start = i < 0 ? 0 : _positions[i];
+                var start = i < 0 ? _positions[0] : _positions[i];
                 var isOverride = _overrides.Any(o => o.Start == start && o.End == _positions[j]);
                 path.Add(new PathSegment(start, _positions[j], _chords[chord], isOverride));
                 if (i < 0) break;
@@ -313,26 +338,25 @@ public static class ChordDetector
             public SegmentEvidence(Problem problem, int start, int end)
             {
                 _problem = problem;
-                _beats = (double)(end - start) / problem._context.Ppq;
+                _beats = (double)(end - start) / problem._ppq;
 
                 // ルートの有無を判定する局所窓（半小節）。ベース音は発音位置（区間頭より前なら区間頭）で窓に割り当てる
-                var window = Math.Max(1, problem._context.TicksPerBar / 2);
 
                 foreach (var note in problem._bass)
                 {
-                    var w = Weight(note, start, end, problem._context.Ppq);
-                    if (w > 0) _notes.Add((note.PitchClass, w, true, Math.Max(note.Tick, start) / window));
+                    var w = Weight(note, start, end, problem._ppq);
+                    if (w > 0) _notes.Add((note.PitchClass, w, true, HalfBarIndex(problem._conductor, Math.Max(note.Tick, start))));
                 }
 
                 foreach (var note in problem._melody)
                 {
-                    var w = Weight(note, start, end, problem._context.Ppq) * problem._settings.MelodyWeight;
+                    var w = Weight(note, start, end, problem._ppq) * problem._settings.MelodyWeight;
                     if (w > 0) _notes.Add((note.PitchClass, w, false, -1));
                 }
 
                 _totalWeight = _notes.Sum(n => n.Weight);
 
-                var key = problem._context.Key;
+                var key = problem._key;
                 var leadingTone = (key.Tonic + 11) % 12;
                 var subtonic = (key.Tonic + 10) % 12;
                 if (_notes.Any(n => n.PitchClass == leadingTone)) _dominantEvidence += LeadingToneBonus;
@@ -378,6 +402,15 @@ public static class ChordDetector
     }
 
     /// <summary>
+    /// 半小節単位の通し番号。ルートの有無を見る局所窓に使う。
+    /// </summary>
+    private static int HalfBarIndex(Conductor conductor, int tick)
+    {
+        var half = Math.Max(1, conductor.TicksPerBarAt(tick) / 2);
+        return conductor.BarAt(tick) * 2 + Math.Min(1, conductor.PositionInBar(tick) / half);
+    }
+
+    /// <summary>
     /// ノートの重み。区間内で鳴っている拍数に、区間頭・拍頭のアクセントを掛ける。
     /// </summary>
     private static double Weight(Note note, int start, int end, int ppq)
@@ -399,7 +432,7 @@ public static class ChordDetector
     /// 同じコードが続く区間を連結し、ベースの休み（1小節以上）の境目で区切り直し、区間頭のベース音から転回形を付ける。
     /// </summary>
     private static IReadOnlyList<ChordSegment> BuildResult(List<PathSegment> path, IReadOnlyList<Note> bass,
-        ChordDetectionContext context)
+        Conductor conductor)
     {
         var merged = new List<PathSegment>();
         foreach (var seg in path)
@@ -410,7 +443,7 @@ public static class ChordDetector
                 merged.Add(seg);
         }
 
-        merged = SplitAtRests(merged, bass, context);
+        merged = SplitAtRests(merged, bass, conductor);
 
         return merged
             .Select(s => new ChordSegment(s.Start, s.End - s.Start,
@@ -424,7 +457,7 @@ public static class ChordDetector
     /// 休みの区間だけを N.C. などで指定し直せるようにするため。override の区間は分けない。
     /// </summary>
     private static List<PathSegment> SplitAtRests(List<PathSegment> segments, IReadOnlyList<Note> bass,
-        ChordDetectionContext context)
+        Conductor conductor)
     {
         if (segments.Count == 0) return segments;
 
@@ -455,8 +488,9 @@ public static class ChordDetector
 
         void AddRest(int from, int to)
         {
-            var start = (from + context.Ppq - 1) / context.Ppq * context.Ppq;
-            if (to - start < context.TicksPerBar) return;
+            var ppq = conductor.Ppq;
+            var start = (from + ppq - 1) / ppq * ppq;
+            if (to - start < conductor.TicksPerBarAt(start)) return;
             cuts.Add(start);
             cuts.Add(to);
         }

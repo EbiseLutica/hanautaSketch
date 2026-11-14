@@ -24,7 +24,8 @@ public class MidiExporterTests
 
     private static Song CreateSong()
     {
-        var song = new Song { Bpm = 132, Key = new Key(0, Mode.Minor) };
+        var song = new Song();
+        song.Conductor.Reset(132, 4, new Key(0, Mode.Minor));
         var melody = new NoteTrack { Name = "メロディ", Program = 0, Volume = 90 };
         melody.Notes.Add(new Note(0, 240, 72, 100));
         melody.Notes.Add(new Note(240, 240, 72, 80)); // 同じ音の連打
@@ -87,9 +88,27 @@ public class MidiExporterTests
     [InlineData(2, Mode.Minor, -1)]
     public void KeySignature_CountsAccidentals(int tonic, Mode mode, int expected)
     {
-        var song = new Song { Key = new Key(tonic, mode) };
+        var song = new Song();
+        song.Conductor.SetKey(0, new Key(tonic, mode));
         var key = ExportAndRead(song).GetTrackChunks().First().Events.OfType<KeySignatureEvent>().Single();
         Assert.Equal(expected, key.Key);
+    }
+
+    [Fact]
+    public void Conductor_WritesEveryChangeAtItsTick()
+    {
+        var song = CreateSong();
+        song.Conductor.SetTempo(960, 90);
+        song.Conductor.SetMeter(1, 3);
+        song.Conductor.SetKey(1920 + 1440, new Key(7, Mode.Major));
+
+        var events = ExportAndRead(song).GetTrackChunks().First().GetTimedEvents().ToList();
+
+        Assert.Equal([0L, 960L], events.Where(e => e.Event is SetTempoEvent).Select(e => e.Time).ToArray());
+        Assert.Equal([(0L, 4), (1920L, 3)], events.Where(e => e.Event is TimeSignatureEvent)
+            .Select(e => (e.Time, (int)((TimeSignatureEvent)e.Event).Numerator)).ToArray());
+        Assert.Equal([(0L, -3), (3360L, 1)], events.Where(e => e.Event is KeySignatureEvent)
+            .Select(e => (e.Time, (int)((KeySignatureEvent)e.Event).Key)).ToArray());
     }
 
     [Fact]

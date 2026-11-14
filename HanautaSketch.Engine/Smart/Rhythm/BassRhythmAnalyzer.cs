@@ -17,10 +17,11 @@ public static class BassRhythmAnalyzer
     /// 指定位置での「区切れやすさ」。拍節の強さ・ベースの発音の強さ・シンコペーションを足し、
     /// 持続音をまたぐ位置は減点する。
     /// </summary>
-    public static double BoundaryStrength(IReadOnlyList<Note> bass, int tick, int ppq, int ticksPerBar)
+    public static double BoundaryStrength(IReadOnlyList<Note> bass, int tick, Conductor conductor)
     {
+        var ppq = conductor.Ppq;
         var onset = OnsetStrength(bass, tick, ppq);
-        var strength = MetricStrength(tick, ppq, ticksPerBar) + onset;
+        var strength = MetricStrength(tick, conductor) + onset;
         if (onset == 0 && bass.Any(n => n.Tick < tick && tick < n.EndTick))
             strength += SustainPenalty;
         if (IsSyncopated(bass, tick, ppq))
@@ -29,13 +30,15 @@ public static class BassRhythmAnalyzer
     }
 
     /// <summary>
-    /// 拍節上の強さ。小節頭 &gt; 半小節 &gt; 拍 &gt; それ以外。
+    /// 拍節上の強さ。小節頭 &gt; 半小節 &gt; 拍 &gt; それ以外。拍子は n/4 なので拍は常に ppq の倍数の位置にある。
     /// </summary>
-    public static double MetricStrength(int tick, int ppq, int ticksPerBar)
+    public static double MetricStrength(int tick, Conductor conductor)
     {
-        if (tick % ticksPerBar == 0) return BarHeadStrength;
-        if (ticksPerBar % 2 == 0 && tick % (ticksPerBar / 2) == 0) return HalfBarStrength;
-        if (tick % ppq == 0) return BeatStrength;
+        var position = conductor.PositionInBar(tick);
+        var ticksPerBar = conductor.TicksPerBarAt(tick);
+        if (position == 0) return BarHeadStrength;
+        if (ticksPerBar % 2 == 0 && position % (ticksPerBar / 2) == 0) return HalfBarStrength;
+        if (tick % conductor.Ppq == 0) return BeatStrength;
         return 0;
     }
 

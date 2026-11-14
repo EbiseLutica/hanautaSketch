@@ -55,6 +55,7 @@ public sealed partial class PianoRollControl
         Velocity,
         VelocityResize,
         DrumSection,
+        Conductor,
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -96,7 +97,9 @@ public sealed partial class PianoRollControl
 
         if (TryBeginVelocityInput(e, pos, point)) return;
 
-        if (pos.Y >= RulerHeight && pos.Y < HeaderHeight && pos.X >= KeyboardWidth)
+        if (TryBeginConductorInput(e, pos, point)) return;
+
+        if (pos.Y >= ChordLaneTop && pos.Y < HeaderHeight && pos.X >= KeyboardWidth)
         {
             if (!point.Properties.IsLeftButtonPressed) return;
 
@@ -233,6 +236,9 @@ public sealed partial class PianoRollControl
             case DragMode.DrumSection:
                 UpdateDrumSectionDrag(pos);
                 break;
+            case DragMode.Conductor:
+                UpdateConductorDrag(pos);
+                break;
             case DragMode.Ruler:
                 SetPlayStartFromX(pos.X);
                 break;
@@ -276,6 +282,8 @@ public sealed partial class PianoRollControl
 
         if (_dragMode == DragMode.DrumSection)
             CompleteDrumSectionInput();
+        if (_dragMode == DragMode.Conductor)
+            CompleteConductorInput();
 
         StopPreview();
         _dragMode = DragMode.None;
@@ -297,6 +305,8 @@ public sealed partial class PianoRollControl
 
         if (_dragMode == DragMode.DrumSection)
             CompleteDrumSectionInput();
+        if (_dragMode == DragMode.Conductor)
+            CompleteConductorInput();
 
         StopPreview();
         _dragMode = DragMode.None;
@@ -379,7 +389,7 @@ public sealed partial class PianoRollControl
 
     private void UpdateHoverCursor(Point pos)
     {
-        if (IsOverDrumSectionEdge(pos))
+        if (IsOverDrumSectionEdge(pos) || IsOverMovableConductorMarker(pos))
         {
             Cursor = ResizeCursor;
             return;
@@ -463,7 +473,7 @@ public sealed partial class PianoRollControl
         var area = EditArea;
         var lastTick = Song?.Tracks.OfType<NoteTrack>().SelectMany(t => t.Notes).Select(n => n.EndTick)
             .DefaultIfEmpty(0).Max() ?? 0;
-        var contentTicks = lastTick + TicksPerBar * TrailingBars;
+        var contentTicks = lastTick + Conductor.TicksPerBarAt(lastTick) * TrailingBars;
 
         HorizontalViewport = area.Width;
         VerticalViewport = area.Height;

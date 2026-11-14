@@ -98,11 +98,12 @@ public partial class MainWindow : Window
         if (ViewModel is not { } vm || sender is not Control target) return;
 
         var segment = e.Segment;
+        var key = vm.Song.Conductor.KeyAt(segment.Start);
         var flyout = new MenuFlyout();
         foreach (var chord in vm.GetChordSuggestions(segment))
         {
             var isCurrent = chord == segment.Chord?.RootPosition;
-            var item = new MenuItem { Header = (isCurrent ? "● " : "　") + chord.GetName(vm.Key) };
+            var item = new MenuItem { Header = (isCurrent ? "● " : "　") + chord.GetName(key) };
             item.Click += (_, _) => vm.SetChordOverride(segment, chord);
             flyout.Items.Add(item);
         }

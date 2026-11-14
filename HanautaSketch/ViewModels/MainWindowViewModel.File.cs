@@ -181,11 +181,10 @@ public partial class MainWindowViewModel
         try
         {
             ReplaceTracks(document.Song.Tracks);
-            Bpm = document.Song.Bpm;
-            Song.BeatsPerBar = document.Song.BeatsPerBar;
-            Tonic = document.Song.Key.Tonic;
-            Mode = document.Song.Key.Mode;
+            Song.Conductor.CopyFrom(document.Song.Conductor);
             PlayStartTick = 0;
+            ConductorRevision++;
+            SyncConductorDisplay();
             ClearHistory();
             NotesRevision++;
             RegenerateSmartTracks();

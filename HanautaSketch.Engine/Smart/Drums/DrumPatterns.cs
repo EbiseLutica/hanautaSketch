@@ -51,6 +51,9 @@ internal sealed record DrumTemplate(IReadOnlyList<(int Pitch, int Step, int Velo
 {
     public const int StepsPerBar = 16;
 
+    /// <summary>1拍あたりのステップ数（16分音符）</summary>
+    public const int StepsPerBeat = 4;
+
     public static DrumTemplate For(DrumPattern pattern) => pattern switch
     {
         DrumPattern.FourOnTheFloor => FourOnTheFloor,

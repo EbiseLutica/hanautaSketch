@@ -15,7 +15,7 @@
 - テスト：xUnit
 - 再生：MeltySynth（SF2）でシンセを鳴らし、NAudio 2.2.1（WASAPI 共有モード）で出力する。MeltySynth とシーケンサーは Engine（`PlaybackEngine`）、OS 依存の出力は App（`AudioOutput`）に置く
   - 音源は `HanautaSketch/SoundFonts/*.sf2` に置く（GM 互換の SGM-V2.01 を想定）。サイズが大きいので git 管理外（`.gitignore` で `*.sf2` を除外）。ビルド時に出力先へコピーされる
-- 保存形式：独自 JSON（`.hsk`、`ProjectSerializer`）。ファイル上の形式は DTO で固定し、`version` で互換性を管理する（`"version": "0.4"` のメジャー.マイナー表記。正式版で 1.0 にする。0.x の間はマイナーまで含めて新しいファイルを弾く。初期の整数表記 1 / 2 は 0.1 / 0.2 として読む。0.2 でスマートコード、0.3 でスマートドラムのトラック種別を追加、0.4 でコードの N.C. override とドラムのベース追従モード（none / fill / full）。0.1 の曲全体のスマートコード設定は読み込み時に無視する）。ファイル選択・確認などのダイアログは `IDialogService` 経由で VM から使う。曲に依存しないアプリ設定は `%APPDATA%\hanautaSketch\settings.json`（`AppSettingsStore`）
+- 保存形式：独自 JSON（`.hsk`、`ProjectSerializer`）。ファイル上の形式は DTO で固定し、`version` で互換性を管理する（`"version": "0.5"` のメジャー.マイナー表記。正式版で 1.0 にする。0.x の間はマイナーまで含めて新しいファイルを弾く。初期の整数表記 1 / 2 は 0.1 / 0.2 として読む。0.2 でスマートコード、0.3 でスマートドラムのトラック種別を追加、0.4 でコードの N.C. override とドラムのベース追従モード（none / fill / full）、0.5 でテンポ・拍子・キーの途中変更（tempos / meters / keys。0.4 までの曲頭の値 bpm / beatsPerBar / key は読み込みのみ）。0.1 の曲全体のスマートコード設定は読み込み時に無視する）。ファイル選択・確認などのダイアログは `IDialogService` 経由で VM から使う。曲に依存しないアプリ設定は `%APPDATA%\hanautaSketch\settings.json`（`AppSettingsStore`）
 - 採用予定：MIDI 入出力は DryWetMIDI
 
 ### ドメインモデルの約束事
@@ -29,7 +29,9 @@
 - MIDI チャンネルは `MidiChannels.Assign` で決める（ドラムは 10ch、それ以外はトラック順。再生と書き出しで共通）
 - ピアノロールで編集するのは `INoteEditable`（ノートトラック、ドラムの fix 区間）。スマートトラックの生成ノーツは読み取り専用
 - 判別アルゴリズムの回帰テストは `HanautaSketch.Tests/Fixtures/*.hsk` と MML 風の期待値（`ChordFixtureTests`）で行う
-- 試作段階のため、テンポ・拍子・キーは `Song` 上で曲全体に1つの固定値。後で Conductor（途中変更対応）に置き換える
+- テンポ・拍子・キーの変化は `Song.Conductor` が持つ（SMF のコンダクタートラック相当）。テンポとキーは tick、拍子は小節番号で変更点を持ち、どれも曲頭に必ず1つある。拍子は n/4 のみ
+  - 小節と tick の変換（`BarAt` / `BarToTick` / `PositionInBar` など）、tick と秒の変換（`TickToSeconds` / `SecondsToTick`）は `Conductor` 経由で行い、小節長を固定値で計算しない
+  - コード判別はキーの区間（`KeyRegions`）ごとに、その区間のキーで行う
 
 ## ディレクトリ構成
 

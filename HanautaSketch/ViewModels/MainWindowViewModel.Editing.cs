@@ -46,19 +46,22 @@ public partial class MainWindowViewModel
     /// トラックはオブジェクトごと保持するので、削除したトラックも Undo で元に戻せる。
     /// </summary>
     private sealed record EditSnapshot(
+        Conductor Conductor,
         Track[] Tracks,
         Dictionary<NoteTrack, Note[]> Notes,
         Dictionary<SmartChordTrack, SmartTrackState> SmartTracks,
         Dictionary<SmartDrumTrack, DrumTrackState> DrumTracks)
     {
         public bool ContentEquals(EditSnapshot other) =>
-            Tracks.SequenceEqual(other.Tracks)
+            Conductor.ContentEquals(other.Conductor)
+            && Tracks.SequenceEqual(other.Tracks)
             && Notes.All(p => other.Notes.TryGetValue(p.Key, out var n) && p.Value.SequenceEqual(n))
             && SmartTracks.All(p => other.SmartTracks.TryGetValue(p.Key, out var s) && p.Value.ContentEquals(s))
             && DrumTracks.All(p => other.DrumTracks.TryGetValue(p.Key, out var d) && p.Value.ContentEquals(d));
     }
 
     private EditSnapshot TakeSnapshot() => new(
+        Song.Conductor.Clone(),
         Song.Tracks.ToArray(),
         Song.Tracks.OfType<NoteTrack>().ToDictionary(t => t, t => t.Notes.ToArray()),
         Song.Tracks.OfType<SmartChordTrack>().ToDictionary(
@@ -69,6 +72,8 @@ public partial class MainWindowViewModel
     private void RestoreSnapshot(EditSnapshot snapshot)
     {
         var selected = SelectedTrack;
+        var conductorChanged = !Song.Conductor.ContentEquals(snapshot.Conductor);
+        Song.Conductor.CopyFrom(snapshot.Conductor);
         if (!Song.Tracks.SequenceEqual(snapshot.Tracks))
             ReplaceTracks(snapshot.Tracks);
 
@@ -98,6 +103,11 @@ public partial class MainWindowViewModel
         SelectedTrack = selected is not null && Tracks.Contains(selected) ? selected : Tracks.FirstOrDefault();
         OnSelectedTrackChanged(SelectedTrack);
         NotesRevision++;
+        if (conductorChanged)
+        {
+            ConductorRevision++;
+            SyncConductorDisplay();
+        }
         MarkDirty();
         RegenerateSmartTracks();
     }
@@ -171,11 +181,10 @@ public partial class MainWindowViewModel
         try
         {
             ReplaceTracks(CreateDefaultTracks());
-            Bpm = 120;
-            Song.BeatsPerBar = 4;
-            Tonic = 0;
-            Mode = Mode.Major;
+            Song.Conductor.Reset(120, 4, new Key(0, Mode.Major));
             PlayStartTick = 0;
+            ConductorRevision++;
+            SyncConductorDisplay();
         }
         finally
         {

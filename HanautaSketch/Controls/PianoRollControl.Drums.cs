@@ -54,7 +54,7 @@ public sealed partial class PianoRollControl
 
     private void RenderDrumSectionLane(DrawingContext context, Rect area)
     {
-        context.FillRectangle(_palette.ChordLane, new Rect(KeyboardWidth, RulerHeight, area.Width, ChordLaneHeight));
+        context.FillRectangle(_palette.ChordLane, new Rect(KeyboardWidth, ChordLaneTop, area.Width, ChordLaneHeight));
 
         foreach (var section in DrumSections ?? [])
         {
@@ -91,7 +91,7 @@ public sealed partial class PianoRollControl
     }
 
     private Rect LaneRect(int start, int end) =>
-        new Rect(TickToX(start), RulerHeight + 2, (end - start) * PixelsPerTick, ChordLaneHeight - 4).Deflate(new Thickness(1, 0));
+        new Rect(TickToX(start), ChordLaneTop + 2, (end - start) * PixelsPerTick, ChordLaneHeight - 4).Deflate(new Thickness(1, 0));
 
     private static string DescribeSection(DrumSection section)
     {
@@ -128,7 +128,7 @@ public sealed partial class PianoRollControl
     /// </summary>
     private (DrumSection Section, bool IsEnd)? HitSectionEdge(Point pos)
     {
-        if (Track is not SmartDrumTrack || pos.X < KeyboardWidth || pos.Y < RulerHeight || pos.Y >= HeaderHeight) return null;
+        if (Track is not SmartDrumTrack || pos.X < KeyboardWidth || pos.Y < ChordLaneTop || pos.Y >= HeaderHeight) return null;
 
         (DrumSection, bool)? hit = null;
         foreach (var section in DrumSections ?? [])
@@ -150,10 +150,11 @@ public sealed partial class PianoRollControl
     /// </summary>
     private (int Start, int End) ResizedRange(DrumSection section, bool isEnd)
     {
-        var bar = (int)Math.Round(Math.Max(0, XToTick(_sectionDragCurrentX)) / TicksPerBar) * TicksPerBar;
+        var conductor = Conductor;
+        var bar = conductor.RoundToBar(XToTick(_sectionDragCurrentX));
         return isEnd
-            ? (section.Start, Math.Max(section.Start + (int)TicksPerBar, bar))
-            : (Math.Min(section.End - (int)TicksPerBar, bar), section.End);
+            ? (section.Start, Math.Max(conductor.CeilToBar(section.Start + 1), bar))
+            : (Math.Min(conductor.BarStartAt(section.End - 1), bar), section.End);
     }
 
     private void UpdateDrumSectionDrag(Point pos)
@@ -197,8 +198,8 @@ public sealed partial class PianoRollControl
     {
         var a = Math.Max(0, XToTick(Math.Min(_sectionDragStartX, _sectionDragCurrentX)));
         var b = Math.Max(0, XToTick(Math.Max(_sectionDragStartX, _sectionDragCurrentX)));
-        var start = (int)Math.Floor(a / TicksPerBar) * TicksPerBar;
-        var end = ((int)Math.Floor(b / TicksPerBar) + 1) * TicksPerBar;
+        var start = Conductor.BarStartAt((int)a);
+        var end = Conductor.CeilToBar((int)b + 1);
         return (start, end);
     }
 

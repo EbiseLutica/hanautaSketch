@@ -173,7 +173,7 @@
             <c:PianoRollControl x:Name="Roll"
                                 Song="{Binding Song}"
                                 Track="{Binding SelectedTrack}"
-                                Key="{Binding Key}"
+                                ConductorRevision="{Binding ConductorRevision}"
                                 SnapTicks="{Binding SelectedSnap.Ticks}"
                                 Chords="{Binding Chords}"
                                 PlayheadTick="{Binding PlayheadTick}"
@@ -187,7 +187,9 @@
                                 DrumSections="{Binding DrumSections}"
                                 SelectedDrumSection="{Binding SelectedDrumSection}"
                                 DrumSectionRequested="OnDrumSectionRequested"
-                                DrumSectionResizeRequested="OnDrumSectionResizeRequested" />
+                                DrumSectionResizeRequested="OnDrumSectionResizeRequested"
+                                ConductorLaneClicked="OnConductorLaneClicked"
+                                ConductorChangeMoveRequested="OnConductorChangeMoveRequested" />
             <ScrollBar Grid.Column="1" Orientation="Vertical" AllowAutoHide="False"
                        Minimum="0"
                        Maximum="{Binding #Roll.VerticalMaximum}"

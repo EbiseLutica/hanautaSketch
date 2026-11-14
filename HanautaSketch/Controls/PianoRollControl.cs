@@ -23,8 +23,8 @@ public sealed partial class PianoRollControl : Control
     public static readonly StyledProperty<Track?> TrackProperty =
         AvaloniaProperty.Register<PianoRollControl, Track?>(nameof(Track));
 
-    public static readonly StyledProperty<Key> KeyProperty =
-        AvaloniaProperty.Register<PianoRollControl, Key>(nameof(Key));
+    public static readonly StyledProperty<int> ConductorRevisionProperty =
+        AvaloniaProperty.Register<PianoRollControl, int>(nameof(ConductorRevision));
 
     public static readonly StyledProperty<int> SnapTicksProperty =
         AvaloniaProperty.Register<PianoRollControl, int>(nameof(SnapTicks), Song.DefaultPpq / 4);
@@ -68,7 +68,6 @@ public sealed partial class PianoRollControl : Control
     private const double KeyboardWidth = 56;
     private const double RulerHeight = 22;
     private const double ChordLaneHeight = 22;
-    private const double HeaderHeight = RulerHeight + ChordLaneHeight;
     private const double NoteHeight = 12;
     private const int PitchCount = 128;
 
@@ -80,7 +79,7 @@ public sealed partial class PianoRollControl : Control
 
     static PianoRollControl()
     {
-        AffectsRender<PianoRollControl>(SongProperty, TrackProperty, KeyProperty, SnapTicksProperty, ChordsProperty,
+        AffectsRender<PianoRollControl>(SongProperty, TrackProperty, ConductorRevisionProperty, SnapTicksProperty, ChordsProperty,
             PlayheadTickProperty, PlayStartTickProperty, NotesRevisionProperty, HorizontalOffsetProperty,
             VerticalOffsetProperty, DrumSectionsProperty, SelectedDrumSectionProperty);
         FocusableProperty.OverrideDefaultValue<PianoRollControl>(true);
@@ -202,10 +201,11 @@ public sealed partial class PianoRollControl : Control
         set => SetValue(TrackProperty, value);
     }
 
-    public Key Key
+    /// <summary>テンポ・拍子・キーの変化を外部で変えたときに増やす。描き直す</summary>
+    public int ConductorRevision
     {
-        get => GetValue(KeyProperty);
-        set => SetValue(KeyProperty, value);
+        get => GetValue(ConductorRevisionProperty);
+        set => SetValue(ConductorRevisionProperty, value);
     }
 
     public int SnapTicks
@@ -216,7 +216,16 @@ public sealed partial class PianoRollControl : Control
 
     private int Ppq => Song?.Ppq ?? Song.DefaultPpq;
 
-    private int TicksPerBar => Song?.TicksPerBar ?? Ppq * 4;
+    private static readonly Conductor FallbackConductor = new();
+
+    /// <summary>表示中の曲のテンポ・拍子・キー</summary>
+    private Conductor Conductor => Song?.Conductor ?? FallbackConductor;
+
+    /// <summary>コードレーン（ドラムではセクションレーン）の上端。展開したコンダクターレーンの下</summary>
+    private double ChordLaneTop => RulerHeight + ConductorHeight;
+
+    /// <summary>ルーラー・コンダクターレーン・コードレーンを合わせた、ノート編集領域より上の高さ</summary>
+    private double HeaderHeight => ChordLaneTop + ChordLaneHeight;
 
     private double PixelsPerTick => _pixelsPerBeat / Ppq;
 
@@ -280,10 +289,16 @@ public sealed partial class PianoRollControl : Control
         using (context.PushClip(new Rect(KeyboardWidth, 0, area.Width, RulerHeight)))
         {
             RenderRuler(context, area);
+            RenderConductorIndicators(context);
             RenderPlayStartMarker(context);
         }
 
-        using (context.PushClip(new Rect(KeyboardWidth, RulerHeight, area.Width, ChordLaneHeight)))
+        using (context.PushClip(new Rect(KeyboardWidth, RulerHeight, area.Width, ConductorHeight)))
+        {
+            RenderConductorLanes(context, area);
+        }
+
+        using (context.PushClip(new Rect(KeyboardWidth, ChordLaneTop, area.Width, ChordLaneHeight)))
         {
             if (Track is SmartDrumTrack)
                 RenderDrumSectionLane(context, area);
@@ -292,28 +307,40 @@ public sealed partial class PianoRollControl : Control
         }
 
         context.FillRectangle(_palette.Ruler, new Rect(0, 0, KeyboardWidth, HeaderHeight));
+        RenderConductorHeader(context);
 
         RenderVelocityLane(context);
     }
 
     /// <summary>
-    /// 行背景。スケール内の音を明るく、主音をさらに強調する。
+    /// 行背景。キーの区間ごとに、スケール内の音を明るく、主音をさらに強調する。
     /// </summary>
     private void RenderRows(DrawingContext context, Rect area)
     {
-        var scale = Key.GetScalePitchClasses();
         var (top, bottom) = VisiblePitchRange(area);
+        var visibleEnd = (int)Math.Ceiling(XToTick(area.Right)) + 1;
+        foreach (var (start, end, key) in Conductor.KeyRegions(visibleEnd))
+        {
+            var left = Math.Max(area.X, TickToX(start));
+            var right = Math.Min(area.Right, TickToX(end));
+            if (right <= left) continue;
+
+            var scale = key.GetScalePitchClasses();
+            for (var pitch = bottom; pitch <= top; pitch++)
+            {
+                var pc = pitch % 12;
+                var row = new Rect(left, PitchToY(pitch), right - left, NoteHeight);
+                if (pc == key.Tonic)
+                    context.FillRectangle(_palette.TonicRow, row);
+                else if (scale.Contains(pc))
+                    context.FillRectangle(_palette.InScaleRow, row);
+            }
+        }
+
         for (var pitch = bottom; pitch <= top; pitch++)
         {
-            var y = PitchToY(pitch);
-            var pc = pitch % 12;
-            var row = new Rect(area.X, y, area.Width, NoteHeight);
-            if (pc == Key.Tonic)
-                context.FillRectangle(_palette.TonicRow, row);
-            else if (scale.Contains(pc))
-                context.FillRectangle(_palette.InScaleRow, row);
-
-            context.DrawLine(_palette.RowLine, new Point(area.X, y + NoteHeight), new Point(area.Right, y + NoteHeight));
+            var y = PitchToY(pitch) + NoteHeight;
+            context.DrawLine(_palette.RowLine, new Point(area.X, y), new Point(area.Right, y));
         }
     }
 
@@ -330,7 +357,7 @@ public sealed partial class PianoRollControl : Control
         for (var tick = startTick; tick <= endTick; tick += snap)
         {
             IPen pen;
-            if (tick % TicksPerBar == 0) pen = _palette.BarLine;
+            if (Conductor.PositionInBar(tick) == 0) pen = _palette.BarLine;
             else if (tick % Ppq == 0) pen = _palette.BeatLine;
             else if (drawSnapLines) pen = _palette.SnapLine;
             else continue;
@@ -432,11 +459,12 @@ public sealed partial class PianoRollControl : Control
     private void RenderRuler(DrawingContext context, Rect area)
     {
         context.FillRectangle(_palette.Ruler, new Rect(KeyboardWidth, 0, area.Width, RulerHeight));
-        var startBar = (int)Math.Max(0, Math.Floor(XToTick(area.X) / TicksPerBar));
-        var endBar = (int)Math.Ceiling(XToTick(area.Right) / TicksPerBar);
-        for (var bar = startBar; bar <= endBar; bar++)
+        var conductor = Conductor;
+        var startBar = conductor.BarAt((int)Math.Max(0, XToTick(area.X)));
+        var endTick = XToTick(area.Right);
+        for (var bar = startBar; conductor.BarToTick(bar) <= endTick; bar++)
         {
-            var x = Math.Round(TickToX(bar * TicksPerBar)) + 0.5;
+            var x = Math.Round(TickToX(conductor.BarToTick(bar))) + 0.5;
             context.DrawLine(_palette.BarLine, new Point(x, 4), new Point(x, RulerHeight));
             DrawText(context, (bar + 1).ToString(CultureInfo.InvariantCulture), new Point(x + 4, 3), _palette.Text, 11);
         }
@@ -447,7 +475,7 @@ public sealed partial class PianoRollControl : Control
     /// </summary>
     private void RenderChordLane(DrawingContext context, Rect area)
     {
-        context.FillRectangle(_palette.ChordLane, new Rect(KeyboardWidth, RulerHeight, area.Width, ChordLaneHeight));
+        context.FillRectangle(_palette.ChordLane, new Rect(KeyboardWidth, ChordLaneTop, area.Width, ChordLaneHeight));
 
         foreach (var block in GetChordBlocks())
         {
@@ -458,7 +486,7 @@ public sealed partial class PianoRollControl : Control
                 _palette.ChordBorder, rect, 3, 3);
             using (context.PushClip(rect))
             {
-                DrawText(context, block.GetName(Key), new Point(rect.X + 4, rect.Y + 1), _palette.Text, 12);
+                DrawText(context, block.GetName(Conductor.KeyAt(block.Start)), new Point(rect.X + 4, rect.Y + 1), _palette.Text, 12);
             }
         }
     }
@@ -469,7 +497,7 @@ public sealed partial class PianoRollControl : Control
     private IReadOnlyList<ChordSegment> GetChordBlocks() => Chords ?? [];
 
     private Rect ChordBlockRect(ChordSegment block) =>
-        new Rect(TickToX(block.Start), RulerHeight + 2, block.Length * PixelsPerTick, ChordLaneHeight - 4)
+        new Rect(TickToX(block.Start), ChordLaneTop + 2, block.Length * PixelsPerTick, ChordLaneHeight - 4)
             .Deflate(new Thickness(1, 0));
 
     private (int Top, int Bottom) VisiblePitchRange(Rect area)

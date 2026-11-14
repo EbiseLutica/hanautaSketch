@@ -25,7 +25,8 @@ public class ProjectSerializerTests
     [Fact]
     public async Task RoundTrip_PreservesNoteTracks()
     {
-        var song = new Song { Bpm = 132, Key = new Key(0, Mode.Minor) };
+        var song = new Song();
+        song.Conductor.Reset(132, 4, new Key(0, Mode.Minor));
         var melody = new NoteTrack { Name = "Melody", Program = 0, Volume = 90, Mute = true };
         melody.Notes.Add(new Note(0, 120, 60, 100));
         melody.Notes.Add(new Note(240, 480, 67, 80));
@@ -36,8 +37,8 @@ public class ProjectSerializerTests
 
         var loaded = await RoundTrip(new ProjectDocument(song));
 
-        Assert.Equal(132, loaded.Song.Bpm);
-        Assert.Equal(new Key(0, Mode.Minor), loaded.Song.Key);
+        Assert.Equal(132, loaded.Song.Conductor.BpmAt(0));
+        Assert.Equal(new Key(0, Mode.Minor), loaded.Song.Conductor.KeyAt(0));
 
         var tracks = loaded.Song.Tracks.OfType<NoteTrack>().ToList();
         Assert.Equal(["Melody", "Bass"], tracks.Select(t => t.Name).ToArray());
@@ -126,7 +127,7 @@ public class ProjectSerializerTests
         var loaded = await LoadJson("""{ "version": 2, "song": { "tracks": [ { "type": "note", "notes": [ { "tick": 0, "length": 120, "pitch": 60 } ] } ] } }""");
 
         Assert.Equal(Song.DefaultPpq, loaded.Song.Ppq);
-        Assert.Equal(120, loaded.Song.Bpm);
+        Assert.Equal(120, loaded.Song.Conductor.BpmAt(0));
         var note = Assert.Single(Assert.Single(loaded.Song.Tracks.OfType<NoteTrack>()).Notes);
         Assert.Equal(100, note.Velocity);
     }
@@ -138,7 +139,7 @@ public class ProjectSerializerTests
         await ProjectSerializer.SaveAsync(new ProjectDocument(new Song()), stream);
         var json = Encoding.UTF8.GetString(stream.ToArray());
 
-        Assert.Contains("\"version\": \"0.4\"", json);
+        Assert.Contains("\"version\": \"0.5\"", json);
     }
 
     [Theory]
@@ -148,6 +149,7 @@ public class ProjectSerializerTests
     [InlineData("\"0.2\"")]
     [InlineData("\"0.3\"")]
     [InlineData("\"0.4\"")]
+    [InlineData("\"0.5\"")]
     public async Task Load_AcceptsCurrentAndOlderVersions(string version)
     {
         var loaded = await LoadJson($$"""{ "version": {{version}}, "song": { "tracks": [] } }""");
@@ -155,7 +157,7 @@ public class ProjectSerializerTests
     }
 
     [Theory]
-    [InlineData("\"0.5\"")]
+    [InlineData("\"0.6\"")]
     [InlineData("\"1.0\"")]
     [InlineData("999")]
     public async Task Load_RejectsNewerVersion(string version)
@@ -176,6 +178,33 @@ public class ProjectSerializerTests
 
         var drums = Assert.IsType<SmartDrumTrack>(Assert.Single(loaded.Song.Tracks));
         Assert.Equal(expected, Assert.Single(drums.Sections).BassFollow);
+    }
+
+    [Fact]
+    public async Task RoundTrip_PreservesConductorChanges()
+    {
+        var song = new Song();
+        song.Conductor.Reset(100, 4, new Key(2, Mode.Major));
+        song.Conductor.SetTempo(1920, 140.5);
+        song.Conductor.SetMeter(4, 3);
+        song.Conductor.SetKey(3840 + 240, new Key(9, Mode.Minor));
+
+        var loaded = await RoundTrip(new ProjectDocument(song));
+
+        Assert.True(song.Conductor.ContentEquals(loaded.Song.Conductor));
+    }
+
+    [Fact]
+    public async Task LoadV04_ReadsHeadValuesIntoConductor()
+    {
+        var loaded = await LoadJson("""
+            { "version": "0.4", "song": { "bpm": 90, "beatsPerBar": 3, "key": { "tonic": 4, "mode": "minor" }, "tracks": [] } }
+            """);
+
+        var conductor = loaded.Song.Conductor;
+        Assert.Equal([new TempoChange(0, 90)], conductor.Tempos);
+        Assert.Equal([new MeterChange(0, 3)], conductor.Meters);
+        Assert.Equal([new KeyChange(0, new Key(4, Mode.Minor))], conductor.Keys);
     }
 
     [Fact]

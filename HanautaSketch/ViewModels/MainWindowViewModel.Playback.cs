@@ -36,19 +36,8 @@ public partial class MainWindowViewModel
     /// <summary>再生中に開始位置が変わったら、そこから再生し直す</summary>
     partial void OnPlayStartTickChanged(int value)
     {
+        SyncConductorDisplay();
         if (IsPlaying) StartPlayback();
-    }
-
-    public double Bpm
-    {
-        get => Song.Bpm;
-        set
-        {
-            if (Math.Abs(Song.Bpm - value) < 0.001) return;
-            Song.Bpm = Math.Clamp(value, 20, 400);
-            MarkDirty();
-            OnPropertyChanged();
-        }
     }
 
     private void InitializePlayback()

@@ -16,7 +16,7 @@ public class ChordDetectorTests
         pitches.Select((p, i) => new Note(i * Bar, Bar, p, 100)).ToList();
 
     private static string[] Names(IReadOnlyList<ChordSegment> segments, ChordDetectionContext? context = null) =>
-        segments.Select(s => s.GetName((context ?? CMajor).Key)).ToArray();
+        segments.Select(s => s.GetName((context ?? CMajor).Conductor.KeyAt(s.Start))).ToArray();
 
     private static IReadOnlyList<ChordSegment> Detect(List<Note> bass, ChordDetectionContext context,
         SmartChordSettings? settings = null, List<Note>? melody = null, List<ChordOverride>? overrides = null) =>
@@ -178,6 +178,21 @@ public class ChordDetectorTests
         Assert.Equal(["C", "Dm", "G", "C"], Names(result));
         Assert.True(result[1].IsOverride);
         Assert.False(result[0].IsOverride);
+    }
+
+    [Fact]
+    public void KeyChange_DetectsEachRegionInItsKey()
+    {
+        // C major の C → G、3小節目から D major で D → A
+        var bass = WholeNoteBass(48, 55, 50, 57);
+        var conductor = new Conductor(Ppq);
+        conductor.SetKey(Bar * 2, new Key(2, Mode.Major));
+        var context = new ChordDetectionContext(conductor);
+
+        var result = Detect(bass, context);
+
+        Assert.Equal(["C", "G", "D", "A"], Names(result, context));
+        Assert.Contains(result, s => s.Start == Bar * 2);
     }
 
     [Fact]

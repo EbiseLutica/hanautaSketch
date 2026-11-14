@@ -59,16 +59,22 @@ public static class MidiExporter
     {
         var builder = new SmfTrackBuilder();
         builder.AddText(0, SmfMeta.TrackName, "Conductor", encoding);
-        builder.AddTempo(0, song.Bpm);
-        builder.AddTimeSignature(0, song.BeatsPerBar, 4);
+        var conductor = song.Conductor;
+        foreach (var tempo in conductor.Tempos)
+            builder.AddTempo(tempo.Tick, tempo.Bpm);
+        foreach (var meter in conductor.Meters)
+            builder.AddTimeSignature(conductor.BarToTick(meter.Bar), meter.BeatsPerBar, 4);
         if (options.IncludeKeySignature)
-            builder.AddKeySignature(0, song.Key);
+        {
+            foreach (var key in conductor.Keys)
+                builder.AddKeySignature(key.Tick, key.Key);
+        }
 
         // コード名は DAW でマーカーとして見えるよう、コンダクターに置く
         if (options.IncludeChordMarkers && song.Tracks.OfType<SmartChordTrack>().FirstOrDefault() is { } chordTrack)
         {
             foreach (var segment in chordTrack.Chords)
-                builder.AddText(segment.Start, SmfMeta.Marker, segment.GetName(song.Key), encoding);
+                builder.AddText(segment.Start, SmfMeta.Marker, segment.GetName(conductor.KeyAt(segment.Start)), encoding);
         }
 
         return builder;

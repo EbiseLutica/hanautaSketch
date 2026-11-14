@@ -75,7 +75,8 @@ public sealed class PlaybackEngine
             lock (_lock)
             {
                 if (_song is null) return 0;
-                return _startTick + SecondsToTicks(_song, (double)_position / SampleRate);
+                var conductor = _song.Conductor;
+                return conductor.SecondsToTick(conductor.TickToSeconds(_startTick) + (double)_position / SampleRate);
             }
         }
     }
@@ -238,6 +239,9 @@ public sealed class PlaybackEngine
     private List<ScheduledEvent> BuildEvents(Song song, int startTick)
     {
         var events = new List<ScheduledEvent>();
+        var startSeconds = song.Conductor.TickToSeconds(startTick);
+        long TickToSample(int tick) => (long)((song.Conductor.TickToSeconds(tick) - startSeconds) * SampleRate);
+
         foreach (var (track, channel) in AssignChannels(song))
         {
             // 10ch の Program Change はドラムキットの切り替え（SF2 のバンク128）
@@ -249,9 +253,9 @@ public sealed class PlaybackEngine
                 if (note.EndTick <= startTick) continue;
 
                 var on = Math.Max(note.Tick, startTick);
-                events.Add(new ScheduledEvent(TickToSample(song, on - startTick), channel, 0x90, note.Pitch,
+                events.Add(new ScheduledEvent(TickToSample(on), channel, 0x90, note.Pitch,
                     note.Velocity, 2));
-                events.Add(new ScheduledEvent(TickToSample(song, note.EndTick - startTick), channel, 0x80,
+                events.Add(new ScheduledEvent(TickToSample(note.EndTick), channel, 0x80,
                     note.Pitch, 0, 0));
             }
         }
@@ -259,9 +263,6 @@ public sealed class PlaybackEngine
         return events.OrderBy(e => e.Sample).ThenBy(e => e.Order).ToList();
     }
 
-    private long TickToSample(Song song, int tick) => (long)(tick / (double)song.Ppq * 60.0 / song.Bpm * SampleRate);
-
-    private static double SecondsToTicks(Song song, double seconds) => seconds * song.Bpm / 60.0 * song.Ppq;
 
     #endregion
 }

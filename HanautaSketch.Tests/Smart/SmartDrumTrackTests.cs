@@ -9,13 +9,16 @@ public class SmartDrumTrackTests
     private const int Bar = Ppq * 4;
     private const int Step = Bar / 16;
 
+    /// <summary>4/4 で一定</summary>
+    private static readonly Conductor Meter = new(Ppq);
+
     private static int[] TicksOf(IEnumerable<Note> notes, int pitch) =>
         notes.Where(n => n.Pitch == pitch).Select(n => n.Tick).ToArray();
 
     [Fact]
     public void EightBeat_HasKickSnareHatAndCrash()
     {
-        var notes = DrumGenerator.Generate(new DrumSection { Start = 0, Length = Bar }, [], Ppq, Bar);
+        var notes = DrumGenerator.Generate(new DrumSection { Start = 0, Length = Bar }, [], Meter);
 
         Assert.Equal([0, 8 * Step], TicksOf(notes, GmDrum.Kick));
         Assert.Equal([4 * Step, 12 * Step], TicksOf(notes, GmDrum.Snare));
@@ -24,10 +27,22 @@ public class SmartDrumTrackTests
     }
 
     [Fact]
+    public void ThreeFour_TruncatesPatternToThreeBeats()
+    {
+        var conductor = new Conductor(Ppq);
+        conductor.SetMeter(0, 3);
+        var notes = DrumGenerator.Generate(new DrumSection { Start = 0, Length = Ppq * 6 }, [], conductor);
+
+        // 8ビートのキック（1・3拍目）が小節ごと: 0, 2拍目(960), 次の小節頭(1440), 2400
+        Assert.Equal([0, Ppq * 2, Ppq * 3, Ppq * 5], TicksOf(notes, GmDrum.Kick));
+        Assert.Equal([Ppq, Ppq * 4], TicksOf(notes, GmDrum.Snare));
+    }
+
+    [Fact]
     public void Pattern_RepeatsEveryBar()
     {
         var notes = DrumGenerator.Generate(
-            new DrumSection { Start = Bar, Length = Bar * 2, Pattern = DrumPattern.FourOnTheFloor }, [], Ppq, Bar);
+            new DrumSection { Start = Bar, Length = Bar * 2, Pattern = DrumPattern.FourOnTheFloor }, [], Meter);
 
         Assert.Equal(Enumerable.Range(0, 8).Select(i => Bar + i * Ppq).ToArray(), TicksOf(notes, GmDrum.Kick));
         Assert.Equal([Bar], TicksOf(notes, GmDrum.Crash));
@@ -37,7 +52,7 @@ public class SmartDrumTrackTests
     public void Swing_DelaysOffbeatEighths()
     {
         var section = new DrumSection { Start = 0, Length = Bar, Swing = true, SwingAmount = 1.0 };
-        var hats = TicksOf(DrumGenerator.Generate(section, [], Ppq, Bar), GmDrum.ClosedHiHat);
+        var hats = TicksOf(DrumGenerator.Generate(section, [], Meter), GmDrum.ClosedHiHat);
 
         // 裏の8分が 1/2 拍 → 2/3 拍（240 → 320）へ
         Assert.Contains(320, hats);
@@ -52,7 +67,7 @@ public class SmartDrumTrackTests
         {
             Start = 0, Length = Bar, Pattern = DrumPattern.SixteenBeat, Swing = true, SwingAmount = 1.0,
         };
-        var hats = TicksOf(DrumGenerator.Generate(section, [], Ppq, Bar), GmDrum.ClosedHiHat);
+        var hats = TicksOf(DrumGenerator.Generate(section, [], Meter), GmDrum.ClosedHiHat);
 
         // 16分の裏が 1/4 拍 → 1/3 拍（120 → 160）へ
         Assert.Contains(160, hats);
@@ -65,7 +80,7 @@ public class SmartDrumTrackTests
         // 3+3+2 のベース＋スネアと重なる 2拍目
         List<Note> bass = [new(0, Step, 36, 100), new(3 * Step, Step, 36, 100), new(4 * Step, Step, 36, 100), new(6 * Step, Step, 36, 100)];
         var section = new DrumSection { Start = 0, Length = Bar, BassFollow = DrumBassFollow.Full };
-        var kicks = TicksOf(DrumGenerator.Generate(section, bass, Ppq, Bar), GmDrum.Kick);
+        var kicks = TicksOf(DrumGenerator.Generate(section, bass, Meter), GmDrum.Kick);
 
         Assert.Equal([0, 3 * Step, 6 * Step], kicks);
     }
@@ -80,7 +95,7 @@ public class SmartDrumTrackTests
             new(Bar * 3 + 8 * Step, Step, 36, 100), new(Bar * 3 + 9 * Step, Step, 36, 100), new(Bar * 3 + 14 * Step, Step, 36, 100),
         ];
         var section = new DrumSection { Start = 0, Length = Bar * 5, BassFollow = DrumBassFollow.Fill };
-        var notes = DrumGenerator.Generate(section, bass, Ppq, Bar);
+        var notes = DrumGenerator.Generate(section, bass, Meter);
 
         var fillBar = notes.Where(n => n.Tick >= Bar * 3 + 8 * Step && n.Tick < Bar * 4).ToList();
         var fillVoices = fillBar.Where(n => n.Pitch != GmDrum.Kick).ToList();
@@ -92,7 +107,7 @@ public class SmartDrumTrackTests
         Assert.Contains(Bar * 4, TicksOf(notes, GmDrum.Crash));
 
         // フィル小節でない2小節目はパターンのまま
-        Assert.Equal(TicksOf(DrumGenerator.Generate(section with { BassFollow = DrumBassFollow.None }, bass, Ppq, Bar), GmDrum.ClosedHiHat)
+        Assert.Equal(TicksOf(DrumGenerator.Generate(section with { BassFollow = DrumBassFollow.None }, bass, Meter), GmDrum.ClosedHiHat)
                 .Where(t => t < Bar * 2), TicksOf(notes, GmDrum.ClosedHiHat).Where(t => t < Bar * 2));
     }
 

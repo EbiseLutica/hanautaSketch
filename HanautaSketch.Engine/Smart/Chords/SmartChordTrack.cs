@@ -66,12 +66,9 @@ public sealed class SmartChordTrack : Track
     {
         var bass = BassSource?.Notes ?? [];
         var melody = MelodySource?.Notes ?? [];
-        var lastTick = song.Tracks.OfType<NoteTrack>().SelectMany(t => t.Notes).Select(n => n.EndTick)
-            .Concat(Overrides.Select(o => o.End))
-            .DefaultIfEmpty(0).Max();
-        var endTick = (lastTick + song.TicksPerBar - 1) / song.TicksPerBar * song.TicksPerBar;
+        var endTick = song.EndBarTick(Overrides.Select(o => o.End).DefaultIfEmpty(0).Max());
 
-        var context = new ChordDetectionContext(song.Key, song.Ppq, song.TicksPerBar);
+        var context = new ChordDetectionContext(song.Conductor);
         Chords = ChordDetector.Detect(bass, melody, endTick, context, ChordSettings, Overrides);
         _generatedNotes = ChordAccompaniment.Generate(Chords, bass, Accompaniment, song.Ppq);
     }

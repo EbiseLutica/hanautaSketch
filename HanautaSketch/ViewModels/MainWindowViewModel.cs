@@ -20,7 +20,7 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         InitializeTrackItems();
         ReplaceTracks(CreateDefaultTracks());
         _selectedSnap = SnapOptions[2];
-        UpdateKey();
+        SyncConductorDisplay();
         InitializePlayback();
         IsDirty = false;
     }
@@ -53,15 +53,6 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private SnapOption _selectedSnap;
 
-    [ObservableProperty]
-    private int _tonic;
-
-    [ObservableProperty]
-    private Mode _mode;
-
-    [ObservableProperty]
-    private Key _key;
-
     /// <summary>コードレーンに表示する判別結果</summary>
     [ObservableProperty]
     private IReadOnlyList<ChordSegment> _chords = [];
@@ -73,24 +64,12 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     public SmartChordTrack? ChordLaneTrack =>
         SelectedTrack as SmartChordTrack ?? Tracks.OfType<SmartChordTrack>().FirstOrDefault();
 
-    partial void OnTonicChanged(int value) => UpdateKey();
-
-    partial void OnModeChanged(Mode value) => UpdateKey();
-
     partial void OnSelectedTrackChanged(Track? value)
     {
         SelectedSmartTrack = value is SmartChordTrack smart ? new SmartChordTrackViewModel(smart, this) : null;
         SyncSelectedTrackItem();
         SyncDrumTrackSelection();
         RefreshChordLane();
-    }
-
-    private void UpdateKey()
-    {
-        Key = new Key(Tonic, Mode);
-        Song.Key = Key;
-        MarkDirty();
-        RegenerateSmartTracks();
     }
 
     /// <summary>
@@ -250,11 +229,12 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     {
         if (ChordLaneTrack is not { } track) return [];
 
+        var key = Song.Conductor.KeyAt(segment.Start);
         var previous = Chords.LastOrDefault(c => c.End <= segment.Start)?.Chord?.RootPosition;
         var minorDominant = track.ChordSettings.MinorDominant;
         IEnumerable<Chord> suggestions = previous is { } p
-            ? ChordTransitions.SuggestNext(Key, p, minorDominant).Append(p)
-            : ChordTransitions.GetDiatonicChords(Key, minorDominant);
+            ? ChordTransitions.SuggestNext(key, p, minorDominant).Append(p)
+            : ChordTransitions.GetDiatonicChords(key, minorDominant);
 
         if (segment.Chord is { } current) suggestions = suggestions.Prepend(current.RootPosition);
         return suggestions.Distinct().ToList();

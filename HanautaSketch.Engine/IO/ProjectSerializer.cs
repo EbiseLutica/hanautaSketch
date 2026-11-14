@@ -26,9 +26,10 @@ public static class ProjectSerializer
     /// 0.2: スマートコードトラック（ソース参照・設定・override）を追加
     /// 0.3: スマートドラムトラック（ソース参照・区間・fix した実体ノーツ）を追加
     /// 0.4: コードの N.C. override（noChord）。ドラム区間のベース追従を真偽値 followBass から bassFollow（none / fill / full）へ
+    /// 0.5: テンポ・拍子・キーの途中変更（tempos / meters / keys）。曲頭の値だけの bpm / beatsPerBar / key は書き出さない
     /// 初期のファイルは整数（1 / 2）で書かれているので、それぞれ 0.1 / 0.2 として読む。
     /// </summary>
-    public static Version CurrentVersion { get; } = new(0, 4);
+    public static Version CurrentVersion { get; } = new(0, 5);
 
     private static readonly JsonSerializerOptions Options = new()
     {
@@ -75,9 +76,10 @@ public static class ProjectSerializer
             Song = new SongDto
             {
                 Ppq = song.Ppq,
-                Bpm = song.Bpm,
-                BeatsPerBar = song.BeatsPerBar,
-                Key = new KeyDto { Tonic = song.Key.Tonic, Mode = song.Key.Mode },
+                Tempos = song.Conductor.Tempos.Select(t => new TempoDto { Tick = t.Tick, Bpm = t.Bpm }).ToList(),
+                Meters = song.Conductor.Meters.Select(m => new MeterDto { Bar = m.Bar, BeatsPerBar = m.BeatsPerBar }).ToList(),
+                Keys = song.Conductor.Keys
+                    .Select(k => new KeyDto { Tick = k.Tick, Tonic = k.Key.Tonic, Mode = k.Key.Mode }).ToList(),
                 Tracks = tracks.Select(t => ToDto(t, tracks)).OfType<TrackDto>().ToList(),
             },
         };
@@ -155,13 +157,8 @@ public static class ProjectSerializer
     private static ProjectDocument FromDto(ProjectDto dto)
     {
         var songDto = dto.Song ?? new SongDto();
-        var song = new Song
-        {
-            Ppq = songDto.Ppq > 0 ? songDto.Ppq : Song.DefaultPpq,
-            Bpm = songDto.Bpm > 0 ? songDto.Bpm : 120,
-            BeatsPerBar = songDto.BeatsPerBar > 0 ? songDto.BeatsPerBar : 4,
-            Key = new Key(Math.Clamp(songDto.Key?.Tonic ?? 0, 0, 11), songDto.Key?.Mode ?? Mode.Major),
-        };
+        var song = new Song { Ppq = songDto.Ppq > 0 ? songDto.Ppq : Song.DefaultPpq };
+        ReadConductor(song.Conductor, songDto);
 
         // ソース参照はトラックの並び順で持つので、全トラックを作ってから解決する
         var pending = new List<(SmartChordTrack Track, TrackDto Dto)>();
@@ -195,6 +192,30 @@ public static class ProjectSerializer
             track.BassSource = ResolveNoteTrack(song, trackDto.BassSource);
 
         return new ProjectDocument(song);
+    }
+
+    /// <summary>
+    /// テンポ・拍子・キーを読む。0.4 までは曲頭の値（bpm / beatsPerBar / key）だけを持つ。
+    /// </summary>
+    private static void ReadConductor(Conductor conductor, SongDto dto)
+    {
+        static Key ToKey(KeyDto? k) => new(Math.Clamp(k?.Tonic ?? 0, 0, 11), k?.Mode ?? Mode.Major);
+
+        conductor.Reset(dto.Bpm is > 0 ? dto.Bpm.Value : 120, dto.BeatsPerBar is > 0 ? dto.BeatsPerBar.Value : 4,
+            ToKey(dto.Key));
+
+        foreach (var t in dto.Tempos ?? [])
+        {
+            if (t.Tick >= 0 && t.Bpm > 0) conductor.SetTempo(t.Tick, t.Bpm);
+        }
+        foreach (var m in dto.Meters ?? [])
+        {
+            if (m.Bar >= 0 && m.BeatsPerBar > 0) conductor.SetMeter(m.Bar, m.BeatsPerBar);
+        }
+        foreach (var k in dto.Keys ?? [])
+        {
+            if (k.Tick >= 0) conductor.SetKey(k.Tick, ToKey(k));
+        }
     }
 
     private static NoteTrack CreateNoteTrack(TrackDto dto)
@@ -301,14 +322,36 @@ public static class ProjectSerializer
     private sealed class SongDto
     {
         public int Ppq { get; set; }
-        public double Bpm { get; set; }
-        public int BeatsPerBar { get; set; }
+
+        // 0.4 まで（曲頭の値）。読み込み専用
+        public double? Bpm { get; set; }
+        public int? BeatsPerBar { get; set; }
         public KeyDto? Key { get; set; }
+
+        // 0.5 から（曲頭を含む変更点）
+        public List<TempoDto>? Tempos { get; set; }
+        public List<MeterDto>? Meters { get; set; }
+        public List<KeyDto>? Keys { get; set; }
+
         public List<TrackDto>? Tracks { get; set; }
+    }
+
+    private sealed class TempoDto
+    {
+        public int Tick { get; set; }
+        public double Bpm { get; set; }
+    }
+
+    private sealed class MeterDto
+    {
+        public int Bar { get; set; }
+        public int BeatsPerBar { get; set; }
     }
 
     private sealed class KeyDto
     {
+        /// <summary>変更点の位置（0.5 から。0.4 までの曲頭の key では使わない）</summary>
+        public int Tick { get; set; }
         public int Tonic { get; set; }
         public Mode Mode { get; set; }
     }

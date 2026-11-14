@@ -65,7 +65,7 @@ public sealed class SmartDrumTrack : Track, INoteEditable
     {
         var bass = BassSource?.Notes ?? [];
         var generated = Sections.Where(s => !s.IsFixed)
-            .SelectMany(s => DrumGenerator.Generate(s, bass, song.Ppq, song.TicksPerBar));
+            .SelectMany(s => DrumGenerator.Generate(s, bass, song.Conductor));
         _playbackNotes = generated.Concat(FixedNotes).OrderBy(n => n.Tick).ToList();
     }
 
@@ -139,7 +139,7 @@ public sealed class SmartDrumTrack : Track, INoteEditable
         if (section.IsFixed) return section;
 
         var bass = BassSource?.Notes ?? [];
-        FixedNotes.AddRange(DrumGenerator.Generate(section, bass, song.Ppq, song.TicksPerBar));
+        FixedNotes.AddRange(DrumGenerator.Generate(section, bass, song.Conductor));
         var fixedSection = section with { IsFixed = true };
         ReplaceSection(section, fixedSection);
         return fixedSection;
@@ -174,40 +174,55 @@ public static class DrumGenerator
     private static readonly int[] FillVoices =
         [GmDrum.Snare, GmDrum.HighTom, GmDrum.HighMidTom, GmDrum.LowMidTom, GmDrum.LowTom, GmDrum.HighFloorTom];
 
-    public static IReadOnlyList<Note> Generate(DrumSection section, IReadOnlyList<Note> bass, int ppq, int ticksPerBar)
+    /// <summary>
+    /// 区間のノーツを作る。パターンは 4/4 の1小節（16ステップ）で、拍子が n/4 なら 1拍4ステップで
+    /// 拍数ぶん繰り返し（4拍を超える分はパターンの頭から）、足りない分は切り詰める。
+    /// </summary>
+    public static IReadOnlyList<Note> Generate(DrumSection section, IReadOnlyList<Note> bass, Conductor conductor)
     {
+        var ppq = conductor.Ppq;
         var template = DrumTemplate.For(section.Pattern);
-        var stepTicks = ticksPerBar / DrumTemplate.StepsPerBar;
+        var stepTicks = ppq / DrumTemplate.StepsPerBeat;
         var noteLength = ppq / NoteLengthDivisor;
         var result = new List<Note>();
 
         var onsets = BassRhythmAnalyzer.GetOnsets(bass);
         var followFull = section.BassFollow == DrumBassFollow.Full;
 
-        for (var (bar, index) = (section.Start, 0); bar < section.End; bar += ticksPerBar, index++)
+        // 区間頭が小節頭からずれていても（拍子を後から変えた場合など）、区間頭を1小節目の頭として扱う
+        var bars = conductor.BarStarts(section.Start + 1, section.End).Prepend(section.Start).ToList();
+        for (var index = 0; index < bars.Count; index++)
         {
-            var barEnd = Math.Min(bar + ticksPerBar, section.End);
+            var bar = bars[index];
+            var barEnd = index + 1 < bars.Count ? bars[index + 1] : section.End;
+            var beats = conductor.BeatsPerBarAt(bar);
+            var barFullEnd = bar + beats * ppq;
 
             // フィル小節では、後半にベースの発音があれば後半をパターンからフィルに替える
             var fillStart = int.MaxValue;
-            if (section.BassFollow == DrumBassFollow.Fill && IsFillBar(section, bar, index, ticksPerBar))
+            if (section.BassFollow == DrumBassFollow.Fill && IsFillBar(section, barFullEnd, index))
             {
-                var half = bar + ticksPerBar / 2;
+                var half = barFullEnd - Math.Max(1, beats / 2) * ppq;
                 var fillOnsets = onsets.Where(t => half <= t && t < barEnd).ToList();
                 if (fillOnsets.Count > 0)
                 {
                     fillStart = half;
-                    AddFill(result, fillOnsets, half, bar + ticksPerBar, ppq, noteLength);
+                    AddFill(result, fillOnsets, half, barFullEnd, ppq, noteLength);
                     if (barEnd < section.End) result.Add(new Note(barEnd, noteLength, GmDrum.Crash, 100));
                 }
             }
 
-            foreach (var (pitch, step, velocity) in template.Hits)
+            var steps = beats * DrumTemplate.StepsPerBeat;
+            for (var offset = 0; offset < steps; offset += DrumTemplate.StepsPerBar)
             {
-                if (followFull && pitch == GmDrum.Kick) continue;
+                foreach (var (pitch, step, velocity) in template.Hits)
+                {
+                    if (followFull && pitch == GmDrum.Kick) continue;
+                    if (offset + step >= steps) continue;
 
-                var tick = bar + step * stepTicks + SwingOffset(section, step, ppq);
-                if (tick < barEnd && tick < fillStart) result.Add(new Note(tick, noteLength, pitch, velocity));
+                    var tick = bar + (offset + step) * stepTicks + SwingOffset(section, step, ppq);
+                    if (tick < barEnd && tick < fillStart) result.Add(new Note(tick, noteLength, pitch, velocity));
+                }
             }
         }
 
@@ -238,8 +253,8 @@ public static class DrumGenerator
     /// <summary>
     /// フィル小節か。区間の最後の小節と、区間頭から4小節ごとの区切りの直前の小節。
     /// </summary>
-    private static bool IsFillBar(DrumSection section, int bar, int index, int ticksPerBar) =>
-        bar + ticksPerBar >= section.End || (index + 1) % FillPeriodBars == 0;
+    private static bool IsFillBar(DrumSection section, int barFullEnd, int index) =>
+        barFullEnd >= section.End || (index + 1) % FillPeriodBars == 0;
 
     /// <summary>
     /// [start, end) のベースの発音位置にフィルを打つ。スネアから始めて後ろほど低いタムにし、だんだん強くする。

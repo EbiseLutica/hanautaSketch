@@ -22,7 +22,7 @@ public partial class ChordFixtureTests
         var track = song.Tracks.OfType<SmartChordTrack>().FirstOrDefault() ?? AddDefaultChordTrack(song);
         track.Regenerate(song);
 
-        Assert.Equal(Format(ParseExpected(expected, song.Ppq), song.Ppq), Format(track.Chords, song.Key, song.Ppq));
+        Assert.Equal(Format(ParseExpected(expected, song.Ppq), song.Ppq), Format(track.Chords, song.Conductor.KeyAt(0), song.Ppq));
     }
 
     /// <summary>
