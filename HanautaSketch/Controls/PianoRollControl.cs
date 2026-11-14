@@ -426,7 +426,7 @@ public sealed partial class PianoRollControl : Control
     private void RenderSelectionBox(DrawingContext context)
     {
         if (_dragMode != DragMode.Select) return;
-        context.DrawRectangle(_palette.SelectionFill, _palette.SelectionBorder, new Rect(_selectStart, _selectCurrent));
+        context.DrawRectangle(_palette.SelectionFill, _palette.SelectionBorder, SelectionBox);
     }
 
     /// <summary>

@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using HanautaSketch.Engine.Core;
+using HanautaSketch.Engine.Editing;
 using AvaloniaKey = Avalonia.Input.Key;
 
 namespace HanautaSketch.Controls;
@@ -270,6 +271,9 @@ public sealed partial class PianoRollControl
         if (_dragMode == DragMode.Resize && EditTrack is not null && _dragAnchor >= 0 && _dragAnchor < EditTrack.EditableNotes.Count)
             _lastNoteLength = EditTrack.EditableNotes[_dragAnchor].Length;
 
+        if (_dragMode is DragMode.Move or DragMode.Resize)
+            ResolveOverlaps();
+
         if (_dragMode is DragMode.Move or DragMode.Resize or DragMode.Velocity)
         {
             EditCompleted?.Invoke(this, EventArgs.Empty);
@@ -296,6 +300,8 @@ public sealed partial class PianoRollControl
     protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
     {
         base.OnPointerCaptureLost(e);
+        if (_dragMode is DragMode.Move or DragMode.Resize)
+            ResolveOverlaps();
         if (_dragMode is DragMode.Move or DragMode.Resize or DragMode.Velocity)
             EditCompleted?.Invoke(this, EventArgs.Empty);
 
@@ -373,11 +379,18 @@ public sealed partial class PianoRollControl
         RaiseNotesEdited();
     }
 
+    /// <summary>
+    /// 矩形選択の範囲。どの向きにドラッグしても正の幅・高さにする。
+    /// </summary>
+    private Rect SelectionBox => new(
+        new Point(Math.Min(_selectStart.X, _selectCurrent.X), Math.Min(_selectStart.Y, _selectCurrent.Y)),
+        new Point(Math.Max(_selectStart.X, _selectCurrent.X), Math.Max(_selectStart.Y, _selectCurrent.Y)));
+
     private void UpdateBoxSelection()
     {
         if (EditTrack is null) return;
 
-        var box = new Rect(_selectStart, _selectCurrent);
+        var box = SelectionBox;
         _selection.Clear();
         _selection.UnionWith(_selectionBeforeBox);
         for (var i = 0; i < EditTrack.EditableNotes.Count; i++)
@@ -561,7 +574,23 @@ public sealed partial class PianoRollControl
             EditTrack.EditableNotes.Add(note with { Tick = note.Tick + PlayStartTick });
             _selection.Add(EditTrack.EditableNotes.Count - 1);
         }
+        ResolveOverlaps();
         RaiseNotesEdited();
+    }
+
+    /// <summary>
+    /// 選択中（今編集した）ノーツと重なる、同じ音高の他のノーツを削る。選択はそのまま保つ。
+    /// </summary>
+    private void ResolveOverlaps()
+    {
+        if (EditTrack is null || _selection.Count == 0) return;
+
+        var notes = EditTrack.EditableNotes;
+        var before = notes.ToList();
+        var edited = NoteOverlap.Resolve(notes, _selection);
+        _selection.Clear();
+        _selection.UnionWith(edited);
+        if (!before.SequenceEqual(notes)) RaiseNotesEdited();
     }
 
     /// <summary>
