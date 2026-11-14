@@ -3,7 +3,8 @@ using HanautaSketch.Engine.Core;
 namespace HanautaSketch.Engine.Smart.Chords;
 
 /// <summary>
-/// コード間の遷移スコア。判別（Viterbi）と、次のコード候補の提示の両方で使う。
+/// 判別（Viterbi）で使うコード間の遷移スコア。和音機能から決める。
+/// override の候補の並びは、実際の曲から集計した <see cref="ChordTransitionTable"/> を使う。
 /// </summary>
 public static class ChordTransitions
 {
@@ -38,20 +39,4 @@ public static class ChordTransitions
         if (fd == 4 && td == 0) score += 0.3;
         return score;
     }
-
-    /// <summary>
-    /// キーのダイアトニックコード（判別の候補と同じもの）を度数順に返す。
-    /// </summary>
-    public static IReadOnlyList<Chord> GetDiatonicChords(Key key, MinorDominantMode minorDominant) =>
-        DiatonicChords.GetCandidates(key, minorDominant).Select(c => c.Chord).ToList();
-
-    /// <summary>
-    /// previous から移りやすいダイアトニックコードを、スコアの高い順に返す。
-    /// </summary>
-    public static IReadOnlyList<Chord> SuggestNext(Key key, Chord previous, MinorDominantMode minorDominant) =>
-        DiatonicChords.GetCandidates(key, minorDominant)
-            .Select(c => c.Chord)
-            .Where(c => c != previous.RootPosition)
-            .OrderByDescending(c => Score(key, previous, c))
-            .ToList();
 }

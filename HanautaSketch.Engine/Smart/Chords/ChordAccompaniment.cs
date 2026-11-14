@@ -52,11 +52,12 @@ public static class ChordAccompaniment
     }
 
     /// <summary>
-    /// 密集配置の三和音を、音域内で前のボイシングから最も動きの少ない転回形・オクターブで選ぶ。
+    /// 密集配置の和音を、音域内で前のボイシングから最も動きの少ない転回形・オクターブで選ぶ。
+    /// 構成音の数が前と違うときは、重なる声部だけで動きを比べる。
     /// </summary>
     public static int[] Voice(Chord chord, int[]? previous)
     {
-        var tones = chord.GetPitchClasses();
+        var tones = chord.GetVoicingPitchClasses();
         int[]? best = null;
         var bestCost = double.MaxValue;
 

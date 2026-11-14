@@ -67,6 +67,7 @@ public class ProjectSerializerTests
         };
         chord.SetOverride(960, 960, new Chord(2, ChordQuality.Minor, 5));
         chord.SetOverride(1920, 480, null);
+        chord.SetOverride(2400, 480, new Chord(7, ChordQuality.Dominant7Sharp9));
         song.Tracks.Add(melody);
         song.Tracks.Add(bass);
         song.Tracks.Add(chord);
@@ -139,7 +140,7 @@ public class ProjectSerializerTests
         await ProjectSerializer.SaveAsync(new ProjectDocument(new Song()), stream);
         var json = Encoding.UTF8.GetString(stream.ToArray());
 
-        Assert.Contains("\"version\": \"0.5\"", json);
+        Assert.Contains("\"version\": \"0.6\"", json);
     }
 
     [Theory]
@@ -150,6 +151,7 @@ public class ProjectSerializerTests
     [InlineData("\"0.3\"")]
     [InlineData("\"0.4\"")]
     [InlineData("\"0.5\"")]
+    [InlineData("\"0.6\"")]
     public async Task Load_AcceptsCurrentAndOlderVersions(string version)
     {
         var loaded = await LoadJson($$"""{ "version": {{version}}, "song": { "tracks": [] } }""");
@@ -157,7 +159,7 @@ public class ProjectSerializerTests
     }
 
     [Theory]
-    [InlineData("\"0.6\"")]
+    [InlineData("\"0.7\"")]
     [InlineData("\"1.0\"")]
     [InlineData("999")]
     public async Task Load_RejectsNewerVersion(string version)

@@ -225,19 +225,13 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     /// <summary>
     /// コードレーンの区間に対する候補を返す。現在のコードを先頭に、直前のコードから移りやすい順で並べる。
     /// </summary>
-    public IReadOnlyList<Chord> GetChordSuggestions(ChordSegment segment)
+    public ChordSuggestions? GetChordSuggestions(ChordSegment segment)
     {
-        if (ChordLaneTrack is not { } track) return [];
+        if (ChordLaneTrack is not { } track) return null;
 
         var key = Song.Conductor.KeyAt(segment.Start);
-        var previous = Chords.LastOrDefault(c => c.End <= segment.Start)?.Chord?.RootPosition;
-        var minorDominant = track.ChordSettings.MinorDominant;
-        IEnumerable<Chord> suggestions = previous is { } p
-            ? ChordTransitions.SuggestNext(key, p, minorDominant).Append(p)
-            : ChordTransitions.GetDiatonicChords(key, minorDominant);
-
-        if (segment.Chord is { } current) suggestions = suggestions.Prepend(current.RootPosition);
-        return suggestions.Distinct().ToList();
+        var previous = Chords.LastOrDefault(c => c.End <= segment.Start)?.Chord;
+        return new ChordSuggestions(key, previous, track.BassSource?.Notes ?? [], segment.Start, segment.End);
     }
 
     /// <summary>

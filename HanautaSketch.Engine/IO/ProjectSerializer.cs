@@ -27,9 +27,10 @@ public static class ProjectSerializer
     /// 0.3: スマートドラムトラック（ソース参照・区間・fix した実体ノーツ）を追加
     /// 0.4: コードの N.C. override（noChord）。ドラム区間のベース追従を真偽値 followBass から bassFollow（none / fill / full）へ
     /// 0.5: テンポ・拍子・キーの途中変更（tempos / meters / keys）。曲頭の値だけの bpm / beatsPerBar / key は書き出さない
+    /// 0.6: override のコードの種類に、三和音以外（7th・sus・テンションなど）を追加
     /// 初期のファイルは整数（1 / 2）で書かれているので、それぞれ 0.1 / 0.2 として読む。
     /// </summary>
-    public static Version CurrentVersion { get; } = new(0, 5);
+    public static Version CurrentVersion { get; } = new(0, 6);
 
     private static readonly JsonSerializerOptions Options = new()
     {

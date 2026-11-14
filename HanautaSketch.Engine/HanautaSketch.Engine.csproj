@@ -11,6 +11,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- tools/ChordStats で集計したコード遷移の表 -->
+    <EmbeddedResource Include="Smart\Chords\Data\chord-transitions.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="MeltySynth" Version="2.4.1" />
   </ItemGroup>
 

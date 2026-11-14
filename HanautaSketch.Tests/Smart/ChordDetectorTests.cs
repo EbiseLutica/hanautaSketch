@@ -260,12 +260,4 @@ public class ChordDetectorTests
     {
         Assert.Equal(expected, new Key(tonic, mode).GetPitchName(pc));
     }
-
-    [Fact]
-    public void SuggestNext_PrefersResolutionFromDominant()
-    {
-        var key = new Key(0, Mode.Major);
-        var suggestions = ChordTransitions.SuggestNext(key, new Chord(7, ChordQuality.Major), MinorDominantMode.Minor);
-        Assert.Equal("C", suggestions[0].ToString());
-    }
 }

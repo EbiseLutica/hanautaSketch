@@ -15,7 +15,7 @@
 - テスト：xUnit
 - 再生：MeltySynth（SF2）でシンセを鳴らし、NAudio 2.2.1（WASAPI 共有モード）で出力する。MeltySynth とシーケンサーは Engine（`PlaybackEngine`）、OS 依存の出力は App（`AudioOutput`）に置く
   - 音源は `HanautaSketch/SoundFonts/*.sf2` に置く（GM 互換の SGM-V2.01 を想定）。サイズが大きいので git 管理外（`.gitignore` で `*.sf2` を除外）。ビルド時に出力先へコピーされる
-- 保存形式：独自 JSON（`.hsk`、`ProjectSerializer`）。ファイル上の形式は DTO で固定し、`version` で互換性を管理する（`"version": "0.5"` のメジャー.マイナー表記。正式版で 1.0 にする。0.x の間はマイナーまで含めて新しいファイルを弾く。初期の整数表記 1 / 2 は 0.1 / 0.2 として読む。0.2 でスマートコード、0.3 でスマートドラムのトラック種別を追加、0.4 でコードの N.C. override とドラムのベース追従モード（none / fill / full）、0.5 でテンポ・拍子・キーの途中変更（tempos / meters / keys。0.4 までの曲頭の値 bpm / beatsPerBar / key は読み込みのみ）。0.1 の曲全体のスマートコード設定は読み込み時に無視する）。ファイル選択・確認などのダイアログは `IDialogService` 経由で VM から使う。曲に依存しないアプリ設定は `%APPDATA%\hanautaSketch\settings.json`（`AppSettingsStore`）
+- 保存形式：独自 JSON（`.hsk`、`ProjectSerializer`）。ファイル上の形式は DTO で固定し、`version` で互換性を管理する（`"version": "0.6"` のメジャー.マイナー表記。正式版で 1.0 にする。0.x の間はマイナーまで含めて新しいファイルを弾く。初期の整数表記 1 / 2 は 0.1 / 0.2 として読む。0.2 でスマートコード、0.3 でスマートドラムのトラック種別を追加、0.4 でコードの N.C. override とドラムのベース追従モード（none / fill / full）、0.5 でテンポ・拍子・キーの途中変更（tempos / meters / keys。0.4 までの曲頭の値 bpm / beatsPerBar / key は読み込みのみ）、0.6 でコードの種類に三和音以外（7th・sus・テンションなど）。0.1 の曲全体のスマートコード設定は読み込み時に無視する）。ファイル選択・確認などのダイアログは `IDialogService` 経由で VM から使う。曲に依存しないアプリ設定は `%APPDATA%\hanautaSketch\settings.json`（`AppSettingsStore`）
 - 採用予定：MIDI 入出力は DryWetMIDI
 
 ### ドメインモデルの約束事
@@ -28,6 +28,9 @@
   - ソース参照は保存時にトラックの並び順（インデックス）で書き出す
 - MIDI チャンネルは `MidiChannels.Assign` で決める（ドラムは 10ch、それ以外はトラック順。再生と書き出しで共通）
 - ピアノロールで編集するのは `INoteEditable`（ノートトラック、ドラムの fix 区間）。スマートトラックの生成ノーツは読み取り専用
+- コードの種類（`ChordQuality`）は構成音と表記を `ChordQualities` の表で持つ。自動判別は三和音だけを使い、それ以外は override と候補のランキングで使う
+  - override の候補は、実際の曲から集計した「前のコード → 次のコード」の表（`ChordTransitionTable`、`Smart/Chords/Data/chord-transitions.json` を埋め込み）で並べる。判別の遷移スコア（`ChordTransitions`）とは別物
+  - 表は `tools/ChordStats` で McGill Billboard（CC0）と Chordonomicon（CC BY-NC 4.0）から作る。Chordonomicon が非営利限定なので、アプリは非営利でのみ配布する。出典はヘルプメニューに表示している
 - 判別アルゴリズムの回帰テストは `HanautaSketch.Tests/Fixtures/*.hsk` と MML 風の期待値（`ChordFixtureTests`）で行う
 - テンポ・拍子・キーの変化は `Song.Conductor` が持つ（SMF のコンダクタートラック相当）。テンポとキーは tick、拍子は小節番号で変更点を持ち、どれも曲頭に必ず1つある。拍子は n/4 のみ
   - 小節と tick の変換（`BarAt` / `BarToTick` / `PositionInBar` など）、tick と秒の変換（`TickToSeconds` / `SecondsToTick`）は `Conductor` 経由で行い、小節長を固定値で計算しない
@@ -53,6 +56,8 @@ HanautaSketch.Engine/        UI 非依存のロジック。Tests に InternalsVi
   Smart/Drums/               スマートドラム（トラック、セクション、パターン生成、fix）
   Smart/Rhythm/              ベースのリズム解析（コードの区切り判定、ドラムのベース追従）
 HanautaSketch.Tests/         Engine のテスト
+tools/
+  ChordStats/                コード遷移の表を作る集計ツール（ファイルベースの C#）。元データは .cache/ に取得（git 管理外）
 ```
 
 ## コマンド
@@ -61,4 +66,5 @@ HanautaSketch.Tests/         Engine のテスト
 dotnet build
 dotnet test
 dotnet run --project HanautaSketch
+dotnet run tools/ChordStats/ChordStats.cs   # コード遷移の表を作り直す（初回は元データ約260MBを取得）
 ```

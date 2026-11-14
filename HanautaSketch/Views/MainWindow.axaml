@@ -32,6 +32,9 @@
                 <MenuItem Header="元に戻す(_U)" Command="{Binding UndoCommand}" InputGesture="Ctrl+Z" />
                 <MenuItem Header="やり直し(_R)" Command="{Binding RedoCommand}" InputGesture="Ctrl+Y" />
             </MenuItem>
+            <MenuItem Header="ヘルプ(_H)">
+                <MenuItem Header="データの出典(_D)..." Click="OnShowDataSources" />
+            </MenuItem>
         </Menu>
 
         <!-- ツールバー -->

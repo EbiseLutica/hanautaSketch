@@ -486,3 +486,5 @@ $RECYCLE.BIN/
 
 # 作業用
 sketches/
+# コード統計ツールが取得する元データ
+tools/ChordStats/.cache/
