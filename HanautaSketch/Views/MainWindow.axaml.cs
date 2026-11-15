@@ -194,6 +194,7 @@ public partial class MainWindow : Window
             "  Chord Progressions\", arXiv:2410.22046, 2024. https://huggingface.co/datasets/ailsntua/Chordonomicon",
             "",
             "Chordonomicon は CC BY-NC 4.0 のため、この表を含む hanautaSketch は非営利でのみ配布します。",
+            "そのほかのライブラリのライセンスは、リポジトリの THIRD_PARTIES.md にまとめています。",
         ]);
         var window = new Window
         {
