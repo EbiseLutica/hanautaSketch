@@ -12,7 +12,7 @@ public partial class MainWindowViewModel
 {
     private const string SoundFontDirectory = "SoundFonts";
 
-    private AudioOutput? _audio;
+    private IAudioOutput? _audio;
     private DispatcherTimer? _playheadTimer;
 
     [ObservableProperty]

@@ -5,16 +5,16 @@ using NAudio.Wave;
 namespace HanautaSketch.Audio;
 
 /// <summary>
-/// <see cref="PlaybackEngine"/> の出力を WASAPI（共有モード）で鳴らす。
-/// 出力は常時開きっぱなしにし、停止中は無音を流す。
+/// <see cref="PlaybackEngine"/> の出力を WASAPI（共有モード）で鳴らす（Windows 用）。
 /// </summary>
-public sealed class AudioOutput : IDisposable
+[System.Runtime.Versioning.SupportedOSPlatform("windows")]
+public sealed class WasapiAudioOutput : IAudioOutput
 {
     private const int LatencyMilliseconds = 50;
 
     private readonly WasapiOut _output;
 
-    private AudioOutput(PlaybackEngine engine, WasapiOut output)
+    private WasapiAudioOutput(PlaybackEngine engine, WasapiOut output)
     {
         Engine = engine;
         _output = output;
@@ -25,7 +25,7 @@ public sealed class AudioOutput : IDisposable
     /// <summary>
     /// 既定の出力デバイスのサンプルレートでエンジンを作り、出力を開始する。SF2 の読み込みは重いので別スレッドで呼ぶ。
     /// </summary>
-    public static AudioOutput Create(string soundFontPath)
+    public static WasapiAudioOutput Create(string soundFontPath)
     {
         using var enumerator = new MMDeviceEnumerator();
         var device = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
@@ -35,7 +35,7 @@ public sealed class AudioOutput : IDisposable
         var output = new WasapiOut(device, AudioClientShareMode.Shared, true, LatencyMilliseconds);
         output.Init(new EngineSampleProvider(engine));
         output.Play();
-        return new AudioOutput(engine, output);
+        return new WasapiAudioOutput(engine, output);
     }
 
     public void Dispose()
