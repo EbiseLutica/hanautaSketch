@@ -150,6 +150,40 @@
                     <BoxShadows x:Key="LuShadowControlFocus">0 0 0 1 #B3d30e17, 0 0 10 2 #73d30e17, inset 0 1 0 0 #6BFFFFFF, inset 0 -1 0 0 #2E000000</BoxShadows>
                     <BoxShadows x:Key="LuShadowMd">0 4 12 0 #1A3C1416</BoxShadows>
                     <BoxShadows x:Key="LuShadowLg">0 12 32 0 #293C1416</BoxShadows>
+                    <!-- ピアノロール（PianoRollPalette が読む）。DS と同じ色は Lu* を参照し、ピアノロール専用の色は値で持つ -->
+                    <SolidColorBrush x:Key="PianoRollBackgroundBrush" Color="#F1E2E1" />
+                    <StaticResource x:Key="PianoRollInScaleRowBrush" ResourceKey="LuPanelButtonBrush" />
+                    <StaticResource x:Key="PianoRollTonicRowBrush" ResourceKey="LuBackgroundBrush" />
+                    <StaticResource x:Key="PianoRollWhiteKeyBrush" ResourceKey="LuPanelButtonBrush" />
+                    <StaticResource x:Key="PianoRollBlackKeyBrush" ResourceKey="LuForegroundBrush" />
+                    <StaticResource x:Key="PianoRollRulerBrush" ResourceKey="LuPanelBrush" />
+                    <StaticResource x:Key="PianoRollTextBrush" ResourceKey="LuForegroundBrush" />
+                    <StaticResource x:Key="PianoRollKeyLabelBrush" ResourceKey="LuDimmedBrush" />
+                    <SolidColorBrush x:Key="PianoRollNoteBrush" Color="#4F7BFF" />
+                    <SolidColorBrush x:Key="PianoRollGhostNoteBrush" Color="#38505A70" />
+                    <SolidColorBrush x:Key="PianoRollNoteBorderBrush" Color="#2747B0" />
+                    <SolidColorBrush x:Key="PianoRollSnapLineBrush" Color="#EEDEDD" />
+                    <StaticResource x:Key="PianoRollBeatLineBrush" ResourceKey="LuDividerBrush" />
+                    <StaticResource x:Key="PianoRollBarLineBrush" ResourceKey="LuBorderBrush" />
+                    <SolidColorBrush x:Key="PianoRollRowLineBrush" Color="#EFE1E0" />
+                    <StaticResource x:Key="PianoRollKeySeparatorBrush" ResourceKey="LuDividerBrush" />
+                    <StaticResource x:Key="PianoRollChordLaneBrush" ResourceKey="LuPanelBrush" />
+                    <StaticResource x:Key="PianoRollChordBlockBrush" ResourceKey="LuPanelButtonBrush" />
+                    <SolidColorBrush x:Key="PianoRollChordOverrideBrush" Color="#FFE9B8" />
+                    <StaticResource x:Key="PianoRollChordBorderBrush" ResourceKey="LuDividerBrush" />
+                    <StaticResource x:Key="PianoRollPlayheadBrush" ResourceKey="LuPrimaryBrush" />
+                    <SolidColorBrush x:Key="PianoRollNoteSelectedBrush" Color="#FF9F43" />
+                    <SolidColorBrush x:Key="PianoRollNoteSelectedBorderBrush" Color="#B35F00" />
+                    <SolidColorBrush x:Key="PianoRollSelectionFillBrush" Color="#264F7BFF" />
+                    <SolidColorBrush x:Key="PianoRollSelectionBorderBrush" Color="#4F7BFF" />
+                    <SolidColorBrush x:Key="PianoRollPlayStartLineBrush" Color="#5530A46C" />
+                    <SolidColorBrush x:Key="PianoRollPlayStartMarkerBrush" Color="#30A46C" />
+                    <SolidColorBrush x:Key="PianoRollGeneratedNoteBrush" Color="#9BD7B5" />
+                    <SolidColorBrush x:Key="PianoRollGeneratedNoteBorderBrush" Color="#3D8B60" />
+                    <StaticResource x:Key="PianoRollConductorLaneBrush" ResourceKey="LuPanelBrush" />
+                    <SolidColorBrush x:Key="PianoRollMeterMarkerBrush" Color="#8E5BD6" />
+                    <SolidColorBrush x:Key="PianoRollTempoMarkerBrush" Color="#D9622B" />
+                    <SolidColorBrush x:Key="PianoRollKeyMarkerBrush" Color="#2F8FB8" />
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Dark">
                     <SolidColorBrush x:Key="LuBackgroundBrush" Color="#0f0f1a" />
@@ -217,6 +251,40 @@
                     <BoxShadows x:Key="LuShadowControlFocus">0 0 0 1 #B3f24149, 0 0 10 2 #73f24149, inset 0 1 0 0 #1FFFFFFF, inset 0 -1 0 0 #40000000</BoxShadows>
                     <BoxShadows x:Key="LuShadowMd">inset 0 1 0 0 #0FFFFFFF, 0 4 12 0 #59000000</BoxShadows>
                     <BoxShadows x:Key="LuShadowLg">inset 0 1 0 0 #14FFFFFF, 0 12 32 0 #73000000</BoxShadows>
+                    <!-- ピアノロール（PianoRollPalette が読む）。DS と同じ色は Lu* を参照し、ピアノロール専用の色は値で持つ -->
+                    <SolidColorBrush x:Key="PianoRollBackgroundBrush" Color="#12121F" />
+                    <StaticResource x:Key="PianoRollInScaleRowBrush" ResourceKey="LuPanelRaisedBrush" />
+                    <SolidColorBrush x:Key="PianoRollTonicRowBrush" Color="#26243A" />
+                    <StaticResource x:Key="PianoRollWhiteKeyBrush" ResourceKey="LuForegroundStrongBrush" />
+                    <SolidColorBrush x:Key="PianoRollBlackKeyBrush" Color="#22223A" />
+                    <StaticResource x:Key="PianoRollRulerBrush" ResourceKey="LuPanelBrush" />
+                    <StaticResource x:Key="PianoRollTextBrush" ResourceKey="LuForegroundBrush" />
+                    <StaticResource x:Key="PianoRollKeyLabelBrush" ResourceKey="LuBorderBrush" />
+                    <SolidColorBrush x:Key="PianoRollNoteBrush" Color="#7C9CFF" />
+                    <SolidColorBrush x:Key="PianoRollGhostNoteBrush" Color="#40FFFFFF" />
+                    <SolidColorBrush x:Key="PianoRollNoteBorderBrush" Color="#2C3E80" />
+                    <SolidColorBrush x:Key="PianoRollSnapLineBrush" Color="#1A1A2B" />
+                    <SolidColorBrush x:Key="PianoRollBeatLineBrush" Color="#262638" />
+                    <SolidColorBrush x:Key="PianoRollBarLineBrush" Color="#3D3A52" />
+                    <SolidColorBrush x:Key="PianoRollRowLineBrush" Color="#151524" />
+                    <StaticResource x:Key="PianoRollKeySeparatorBrush" ResourceKey="LuBorderBrush" />
+                    <StaticResource x:Key="PianoRollChordLaneBrush" ResourceKey="LuPanelBrush" />
+                    <StaticResource x:Key="PianoRollChordBlockBrush" ResourceKey="LuPanelButtonBrush" />
+                    <SolidColorBrush x:Key="PianoRollChordOverrideBrush" Color="#5A4A22" />
+                    <SolidColorBrush x:Key="PianoRollChordBorderBrush" Color="#3D3A52" />
+                    <StaticResource x:Key="PianoRollPlayheadBrush" ResourceKey="LuPrimaryBrush" />
+                    <SolidColorBrush x:Key="PianoRollNoteSelectedBrush" Color="#FFB86B" />
+                    <SolidColorBrush x:Key="PianoRollNoteSelectedBorderBrush" Color="#8A4B00" />
+                    <SolidColorBrush x:Key="PianoRollSelectionFillBrush" Color="#337C9CFF" />
+                    <SolidColorBrush x:Key="PianoRollSelectionBorderBrush" Color="#7C9CFF" />
+                    <SolidColorBrush x:Key="PianoRollPlayStartLineBrush" Color="#664CC38A" />
+                    <SolidColorBrush x:Key="PianoRollPlayStartMarkerBrush" Color="#4CC38A" />
+                    <SolidColorBrush x:Key="PianoRollGeneratedNoteBrush" Color="#3E7A5A" />
+                    <SolidColorBrush x:Key="PianoRollGeneratedNoteBorderBrush" Color="#6FD3A0" />
+                    <StaticResource x:Key="PianoRollConductorLaneBrush" ResourceKey="LuPanelBrush" />
+                    <SolidColorBrush x:Key="PianoRollMeterMarkerBrush" Color="#B38AF0" />
+                    <SolidColorBrush x:Key="PianoRollTempoMarkerBrush" Color="#F08A5B" />
+                    <SolidColorBrush x:Key="PianoRollKeyMarkerBrush" Color="#5CB8E0" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
 

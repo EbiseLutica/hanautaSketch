@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
 using Avalonia.Styling;
@@ -5,9 +7,8 @@ using Avalonia.Styling;
 namespace HanautaSketch.Controls;
 
 /// <summary>
-/// ピアノロールの配色。テーマバリアントごとに1セット持つ。
-/// 面・罫線・文字は Lutica Design System の色（background / panel / panel-button / divider / border / foreground / dimmed）に寄せ、
-/// 再生位置は primary。ノーツなど意味を持つ色は区別しやすさを優先して別に持つ。
+/// ピアノロールの配色。色の値は持たず、テーマ（Themes/LuticaTheme.axaml）の PianoRoll*Brush から読む。
+/// ペンの太さなど描き方に関わる値だけをここで決める。
 /// </summary>
 public sealed class PianoRollPalette
 {
@@ -45,83 +46,58 @@ public sealed class PianoRollPalette
     public required IBrush TempoMarker { get; init; }
     public required IBrush KeyMarker { get; init; }
 
-    public static PianoRollPalette Light { get; } = new()
+    /// <summary>
+    /// テーマ辞書の <c>PianoRoll{名前}Brush</c> から、指定したテーマバリアントの配色を組み立てる。
+    /// 見つからないキーは透明になる（Debug ビルドでは assert）。
+    /// </summary>
+    public static PianoRollPalette Load(IResourceHost host, ThemeVariant variant)
     {
-        Background = Brush("#F1E2E1"),
-        InScaleRow = Brush("#FFFAFA"),
-        TonicRow = Brush("#FFE5E4"),
-        WhiteKey = Brush("#FFFAFA"),
-        BlackKey = Brush("#393535"),
-        Ruler = Brush("#F8EEED"),
-        Text = Brush("#393535"),
-        KeyLabel = Brush("#495A6B"),
-        Note = Brush("#4F7BFF"),
-        GhostNote = Brush("#38505A70"),
-        NoteBorder = Pen("#2747B0"),
-        SnapLine = Pen("#EEDEDD"),
-        BeatLine = Pen("#DCBCBC"),
-        BarLine = Pen("#9A7A7B"),
-        RowLine = Pen("#EFE1E0"),
-        KeySeparator = Pen("#DCBCBC"),
-        ChordLane = Brush("#F8EEED"),
-        ChordBlock = Brush("#FFFAFA"),
-        ChordOverride = Brush("#FFE9B8"),
-        ChordBorder = Pen("#DCBCBC"),
-        Playhead = new ImmutablePen(Brush("#D30E17"), 2),
-        NoteSelected = Brush("#FF9F43"),
-        NoteSelectedBorder = Pen("#B35F00"),
-        SelectionFill = Brush("#264F7BFF"),
-        SelectionBorder = Pen("#4F7BFF"),
-        PlayStartLine = Pen("#5530A46C"),
-        PlayStartMarker = Brush("#30A46C"),
-        GeneratedNote = Brush("#9BD7B5"),
-        GeneratedNoteBorder = Pen("#3D8B60"),
-        ConductorLane = Brush("#F8EEED"),
-        MeterMarker = Brush("#8E5BD6"),
-        TempoMarker = Brush("#D9622B"),
-        KeyMarker = Brush("#2F8FB8"),
-    };
+        IImmutableBrush B(string name)
+        {
+            var key = $"PianoRoll{name}Brush";
+            if (host.TryFindResource(key, variant, out var value) && value is IBrush brush)
+                return brush.ToImmutable();
+            Debug.Fail($"ピアノロールの配色 {key} がテーマにない");
+            return Brushes.Transparent.ToImmutable();
+        }
 
-    public static PianoRollPalette Dark { get; } = new()
-    {
-        Background = Brush("#12121F"),
-        InScaleRow = Brush("#1B1B2C"),
-        TonicRow = Brush("#26243A"),
-        WhiteKey = Brush("#E1E1E1"),
-        BlackKey = Brush("#22223A"),
-        Ruler = Brush("#161625"),
-        Text = Brush("#C9BABA"),
-        KeyLabel = Brush("#6B6580"),
-        Note = Brush("#7C9CFF"),
-        GhostNote = Brush("#40FFFFFF"),
-        NoteBorder = Pen("#2C3E80"),
-        SnapLine = Pen("#1A1A2B"),
-        BeatLine = Pen("#262638"),
-        BarLine = Pen("#3D3A52"),
-        RowLine = Pen("#151524"),
-        KeySeparator = Pen("#6B6580"),
-        ChordLane = Brush("#161625"),
-        ChordBlock = Brush("#2E2E45"),
-        ChordOverride = Brush("#5A4A22"),
-        ChordBorder = Pen("#3D3A52"),
-        Playhead = new ImmutablePen(Brush("#F24149"), 2),
-        NoteSelected = Brush("#FFB86B"),
-        NoteSelectedBorder = Pen("#8A4B00"),
-        SelectionFill = Brush("#337C9CFF"),
-        SelectionBorder = Pen("#7C9CFF"),
-        PlayStartLine = Pen("#664CC38A"),
-        PlayStartMarker = Brush("#4CC38A"),
-        GeneratedNote = Brush("#3E7A5A"),
-        GeneratedNoteBorder = Pen("#6FD3A0"),
-        ConductorLane = Brush("#161625"),
-        MeterMarker = Brush("#B38AF0"),
-        TempoMarker = Brush("#F08A5B"),
-        KeyMarker = Brush("#5CB8E0"),
-    };
+        ImmutablePen P(string name, double thickness = 1) => new(B(name), thickness);
 
-    public static PianoRollPalette For(ThemeVariant variant) => variant == ThemeVariant.Dark ? Dark : Light;
-
-    private static ImmutableSolidColorBrush Brush(string color) => new(Color.Parse(color));
-
-    private static ImmutablePen Pen(string color) => new(Brush(color), 1);
+        return new PianoRollPalette
+        {
+            Background = B(nameof(Background)),
+            InScaleRow = B(nameof(InScaleRow)),
+            TonicRow = B(nameof(TonicRow)),
+            WhiteKey = B(nameof(WhiteKey)),
+            BlackKey = B(nameof(BlackKey)),
+            Ruler = B(nameof(Ruler)),
+            Text = B(nameof(Text)),
+            KeyLabel = B(nameof(KeyLabel)),
+            Note = B(nameof(Note)),
+            GhostNote = B(nameof(GhostNote)),
+            NoteBorder = P(nameof(NoteBorder)),
+            SnapLine = P(nameof(SnapLine)),
+            BeatLine = P(nameof(BeatLine)),
+            BarLine = P(nameof(BarLine)),
+            RowLine = P(nameof(RowLine)),
+            KeySeparator = P(nameof(KeySeparator)),
+            ChordLane = B(nameof(ChordLane)),
+            ChordBlock = B(nameof(ChordBlock)),
+            ChordOverride = B(nameof(ChordOverride)),
+            ChordBorder = P(nameof(ChordBorder)),
+            Playhead = P(nameof(Playhead), 2),
+            NoteSelected = B(nameof(NoteSelected)),
+            NoteSelectedBorder = P(nameof(NoteSelectedBorder)),
+            SelectionFill = B(nameof(SelectionFill)),
+            SelectionBorder = P(nameof(SelectionBorder)),
+            PlayStartLine = P(nameof(PlayStartLine)),
+            PlayStartMarker = B(nameof(PlayStartMarker)),
+            GeneratedNote = B(nameof(GeneratedNote)),
+            GeneratedNoteBorder = P(nameof(GeneratedNoteBorder)),
+            ConductorLane = B(nameof(ConductorLane)),
+            MeterMarker = B(nameof(MeterMarker)),
+            TempoMarker = B(nameof(TempoMarker)),
+            KeyMarker = B(nameof(KeyMarker)),
+        };
+    }
 }

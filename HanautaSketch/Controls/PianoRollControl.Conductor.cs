@@ -56,9 +56,9 @@ public sealed partial class PianoRollControl
 
     private IBrush MarkerBrush(ConductorChangeKind kind) => kind switch
     {
-        ConductorChangeKind.Meter => _palette.MeterMarker,
-        ConductorChangeKind.Tempo => _palette.TempoMarker,
-        _ => _palette.KeyMarker,
+        ConductorChangeKind.Meter => Palette.MeterMarker,
+        ConductorChangeKind.Tempo => Palette.TempoMarker,
+        _ => Palette.KeyMarker,
     };
 
     #region 描画
@@ -70,11 +70,11 @@ public sealed partial class PianoRollControl
     {
         if (!_conductorExpanded) return;
 
-        context.FillRectangle(_palette.ConductorLane, new Rect(KeyboardWidth, RulerHeight, area.Width, ConductorHeight));
+        context.FillRectangle(Palette.ConductorLane, new Rect(KeyboardWidth, RulerHeight, area.Width, ConductorHeight));
         for (var i = 1; i <= 3; i++)
         {
             var y = RulerHeight + i * ConductorLaneHeight - 0.5;
-            context.DrawLine(_palette.RowLine, new Point(KeyboardWidth, y), new Point(KeyboardWidth + area.Width, y));
+            context.DrawLine(Palette.RowLine, new Point(KeyboardWidth, y), new Point(KeyboardWidth + area.Width, y));
         }
 
         foreach (var marker in GetConductorMarkers())
@@ -84,7 +84,7 @@ public sealed partial class PianoRollControl
             var top = ConductorLaneTop(marker.Kind);
             var brush = MarkerBrush(marker.Kind);
             context.FillRectangle(brush, new Rect(x, top + 2, 2, ConductorLaneHeight - 4));
-            DrawText(context, marker.Label, new Point(x + 5, top + 1), _palette.Text, MarkerLabelSize);
+            DrawText(context, marker.Label, new Point(x + 5, top + 1), Palette.Text, MarkerLabelSize);
         }
 
         // ドラッグ中の移動先
@@ -92,7 +92,7 @@ public sealed partial class PianoRollControl
         {
             var target = ConductorPositionToTick(drag.Kind, SnappedConductorPosition(drag.Kind, drag.CurrentX));
             var x = Math.Round(TickToX(target));
-            context.FillRectangle(_palette.SelectionFill,
+            context.FillRectangle(Palette.SelectionFill,
                 new Rect(x - 1, ConductorLaneTop(dragged.Kind) + 1, 4, ConductorLaneHeight - 2));
         }
     }
@@ -116,7 +116,7 @@ public sealed partial class PianoRollControl
     /// </summary>
     private void RenderConductorHeader(DrawingContext context)
     {
-        DrawText(context, _conductorExpanded ? "▾ 変化" : "▸ 変化", new Point(4, 4), _palette.Text, 11);
+        DrawText(context, _conductorExpanded ? "▾ 変化" : "▸ 変化", new Point(4, 4), Palette.Text, 11);
         if (!_conductorExpanded) return;
 
         string[] names = ["拍子", "テンポ", "キー"];
@@ -125,7 +125,7 @@ public sealed partial class PianoRollControl
             var kind = (ConductorChangeKind)i;
             var top = ConductorLaneTop(kind);
             context.FillRectangle(MarkerBrush(kind), new Rect(4, top + 4, 3, ConductorLaneHeight - 8));
-            DrawText(context, names[i], new Point(10, top + 2), _palette.Text, 10);
+            DrawText(context, names[i], new Point(10, top + 2), Palette.Text, 10);
         }
     }
 

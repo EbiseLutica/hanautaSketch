@@ -54,7 +54,7 @@ public sealed partial class PianoRollControl
 
     private void RenderDrumSectionLane(DrawingContext context, Rect area)
     {
-        context.FillRectangle(_palette.ChordLane, new Rect(KeyboardWidth, ChordLaneTop, area.Width, ChordLaneHeight));
+        context.FillRectangle(Palette.ChordLane, new Rect(KeyboardWidth, ChordLaneTop, area.Width, ChordLaneHeight));
 
         foreach (var section in DrumSections ?? [])
         {
@@ -62,18 +62,18 @@ public sealed partial class PianoRollControl
             if (rect.Right < area.X || rect.X > area.Right) continue;
 
             var selected = section == SelectedDrumSection;
-            context.DrawRectangle(section.IsFixed ? _palette.ChordOverride : _palette.ChordBlock,
-                selected ? _palette.SelectionBorder : _palette.ChordBorder, rect, 3, 3);
+            context.DrawRectangle(section.IsFixed ? Palette.ChordOverride : Palette.ChordBlock,
+                selected ? Palette.SelectionBorder : Palette.ChordBorder, rect, 3, 3);
             using (context.PushClip(rect))
             {
-                DrawText(context, DescribeSection(section), new Point(rect.X + 4, rect.Y + 1), _palette.Text, 12);
+                DrawText(context, DescribeSection(section), new Point(rect.X + 4, rect.Y + 1), Palette.Text, 12);
             }
         }
 
         if (_dragMode == DragMode.DrumSection && IsSectionDrag)
         {
             var (start, end) = _sectionResize is { } resize ? ResizedRange(resize.Section, resize.IsEnd) : DraggedBarRange();
-            context.DrawRectangle(_palette.SelectionFill, _palette.SelectionBorder, LaneRect(start, end));
+            context.DrawRectangle(Palette.SelectionFill, Palette.SelectionBorder, LaneRect(start, end));
         }
     }
 
@@ -86,7 +86,7 @@ public sealed partial class PianoRollControl
         {
             if (drum.Sections.Any(s => s.IsFixed && s.Contains(note.Tick))) continue;
             var rect = NoteRect(note).Deflate(new Thickness(0, 0.5));
-            context.DrawRectangle(_palette.GeneratedNote, _palette.GeneratedNoteBorder, rect, 2, 2);
+            context.DrawRectangle(Palette.GeneratedNote, Palette.GeneratedNoteBorder, rect, 2, 2);
         }
     }
 

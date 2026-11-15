@@ -47,17 +47,17 @@ public sealed partial class PianoRollControl
     private void RenderVelocityLane(DrawingContext context)
     {
         var area = VelocityArea;
-        context.FillRectangle(_palette.ChordLane, SplitterRect);
-        context.FillRectangle(_palette.Background, area);
-        context.FillRectangle(_palette.Ruler, new Rect(0, area.Y, KeyboardWidth, area.Height));
-        DrawText(context, "Vel", new Point(6, area.Y + 4), _palette.Text, 11);
+        context.FillRectangle(Palette.ChordLane, SplitterRect);
+        context.FillRectangle(Palette.Background, area);
+        context.FillRectangle(Palette.Ruler, new Rect(0, area.Y, KeyboardWidth, area.Height));
+        DrawText(context, "Vel", new Point(6, area.Y + 4), Palette.Text, 11);
 
         using (context.PushClip(area))
         {
             RenderGridLines(context, area);
 
             var middle = Math.Round(VelocityToY(64)) + 0.5;
-            context.DrawLine(_palette.BeatLine, new Point(area.X, middle), new Point(area.Right, middle));
+            context.DrawLine(Palette.BeatLine, new Point(area.X, middle), new Point(area.Right, middle));
 
             if (Track is INoteEditable track)
             {
@@ -67,23 +67,23 @@ public sealed partial class PianoRollControl
                     foreach (var note in drum.PlaybackNotes)
                     {
                         if (!drum.Sections.Any(s => s.IsFixed && s.Contains(note.Tick)))
-                            RenderVelocityBar(context, note, _palette.GeneratedNote);
+                            RenderVelocityBar(context, note, Palette.GeneratedNote);
                     }
                 }
 
                 var notes = track.EditableNotes;
                 for (var i = 0; i < notes.Count; i++)
                 {
-                    var brush = _selection.Count == 0 ? _palette.Note
-                        : _selection.Contains(i) ? _palette.NoteSelected
-                        : _palette.GhostNote;
+                    var brush = _selection.Count == 0 ? Palette.Note
+                        : _selection.Contains(i) ? Palette.NoteSelected
+                        : Palette.GhostNote;
                     RenderVelocityBar(context, notes[i], brush);
                 }
             }
             else if (Track is not null)
             {
                 foreach (var note in Track.PlaybackNotes)
-                    RenderVelocityBar(context, note, _palette.GeneratedNote);
+                    RenderVelocityBar(context, note, Palette.GeneratedNote);
             }
         }
     }

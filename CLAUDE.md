@@ -11,7 +11,7 @@
 - C# / .NET 10。主な対象は Windows。macOS でも動く（ショートカットは Ctrl の代わりに ⌘）
 - UI：Avalonia 12。見た目は Lutica Design System（`Themes/LuticaTheme.axaml`。FluentTheme をパレット・リソース差し替えで土台にし、Button / ToggleButton は独自の ControlTheme）、MVVM は CommunityToolkit.Mvvm。コンパイル済みバインディングが既定なので、XAML には `x:DataType` を付ける
   - Avalonia API は推測で書かず、Avalonia MCP（`lookup_avalonia_api` / `search_avalonia_docs`）で確認する
-- ピアノロールは `Control.Render(DrawingContext)` で自前描画する。配色は `PianoRollPalette` にテーマ（ライト／ダーク）ごとに持たせる
+- ピアノロールは `Control.Render(DrawingContext)` で自前描画する。配色は `LuticaTheme.axaml` のテーマ辞書に `PianoRoll*Brush` として置き（DS と同じ色は `Lu*` を `StaticResource` で参照）、`PianoRollPalette.Load` がテーマごとに読んでペンに組み立てる。コントロールはテーマ・リソースが変わるまで使い回す
   - 色・影・角丸は `LuticaTheme.axaml` の `Lu*` リソース（`LuPanelBrush`、`LuShadowControl` など）を `DynamicResource` で参照し、値を直書きしない。ボタンの修飾は `Classes`（`primary` / `danger` / `ghost` / `small` など）、補助テキストは `TextBlock.dimmed` / `.caption`
   - フォントは Koruri（`Assets/Fonts`、TTF）。デザインシステム側は WOFF2 なので TTF に変換して置いている
 - テスト：xUnit
