@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using HanautaSketch.Engine.Core;
 using HanautaSketch.Engine.Smart.Chords;
 using HanautaSketch.Engine.Smart.Drums;
+using HanautaSketch.Services;
 
 namespace HanautaSketch.ViewModels;
 
@@ -199,7 +200,7 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         OnEditCompleted();
 
         SelectedTrack = Tracks.Count > 0 ? Tracks[Math.Clamp(index - 1, 0, Tracks.Count - 1)] : null;
-        Message = $"{track.Name} を削除した（Ctrl+Z で元に戻せる）";
+        Message = $"{track.Name} を削除した（{PlatformKeys.CommandName}+Z で元に戻せる）";
         MarkDirty();
         RegenerateSmartTracks();
     }

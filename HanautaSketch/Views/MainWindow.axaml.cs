@@ -25,6 +25,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        PlatformKeys.Adapt(this);
 
         // Space はボタンやトグルより先に受け取り、テキスト入力中以外は再生の切り替えに使う
         AddHandler(KeyDownEvent, OnPreviewKeyDown, RoutingStrategies.Tunnel);

@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using HanautaSketch.Engine.Core;
 using HanautaSketch.Engine.Editing;
+using HanautaSketch.Services;
 using AvaloniaKey = Avalonia.Input.Key;
 
 namespace HanautaSketch.Controls;
@@ -159,9 +160,9 @@ public sealed partial class PianoRollControl
         }
 
         var modifiers = e.KeyModifiers;
-        if (modifiers.HasFlag(KeyModifiers.Control))
+        if (PlatformKeys.IsCommand(modifiers))
         {
-            // Ctrl+ドラッグで矩形選択。押した位置を再生開始位置（貼り付け先）にする。Shift も押していれば既存の選択に追加
+            // Ctrl（macOS は ⌘）+ドラッグで矩形選択。押した位置を再生開始位置（貼り付け先）にする。Shift も押していれば既存の選択に追加
             SetPlayStartFromX(pos.X);
             _selectionBeforeBox = modifiers.HasFlag(KeyModifiers.Shift) ? [.. _selection] : [];
             _selectStart = _selectCurrent = pos;
@@ -450,9 +451,9 @@ public sealed partial class PianoRollControl
         base.OnPointerWheelChanged(e);
         var pos = e.GetPosition(this);
 
-        if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
+        if (PlatformKeys.IsCommand(e.KeyModifiers))
         {
-            // Ctrl+ホイール：カーソル位置を基準に横ズーム
+            // Ctrl（macOS は ⌘）+ホイール：カーソル位置を基準に横ズーム
             var anchorTick = XToTick(pos.X);
             var factor = e.Delta.Y > 0 ? 1.2 : 1 / 1.2;
             _pixelsPerBeat = Math.Clamp(_pixelsPerBeat * factor, 8, 600);
@@ -513,7 +514,7 @@ public sealed partial class PianoRollControl
         base.OnKeyDown(e);
         if (EditTrack is null || _dragMode != DragMode.None) return;
 
-        var ctrl = e.KeyModifiers.HasFlag(KeyModifiers.Control);
+        var ctrl = PlatformKeys.IsCommand(e.KeyModifiers);
         switch (e.Key)
         {
             case AvaloniaKey.Delete or AvaloniaKey.Back:
