@@ -10,6 +10,7 @@ repository that are under a license other than MIT.
 | --- | --- |
 | `HanautaSketch.Engine/Smart/Chords/Data/chord-transitions.json` | Derived from the McGill Billboard data (CC0) |
 | `HanautaSketch.Tests/Fixtures/*.hsk` | Public domain ([CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)) |
+| `HanautaSketch/Assets/Fonts/Koruri-*.ttf` | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) (Koruri) |
 
 `chord-transitions.json` contains chord transition counts aggregated from the McGill Billboard data
 by `tools/ChordStats/ChordStats.cs`. It is the only chord data bundled with hanautaSketch.
@@ -49,6 +50,16 @@ those commits, is licensed under CC BY-NC 4.0.
 
 The original McGill Billboard data is downloaded by the tool into `tools/ChordStats/.cache/` and is
 not included in this repository.
+
+## Fonts
+
+### Koruri
+
+- Used for: the UI typeface of the Lutica Design System theme (`HanautaSketch/Themes/LuticaTheme.axaml`)
+- License: [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)
+- Source: <https://koruri.github.io/> (derived from M+ OUTLINE FONTS and Open Sans)
+- Changes: converted from the WOFF2 files of the Lutica Design System to TTF; in the SemiBold face,
+  the family name is set to "Koruri" and the weight class to 600 so that it is picked as SemiBold.
 
 ## Libraries
 

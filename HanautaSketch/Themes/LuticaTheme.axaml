@@ -1,0 +1,467 @@
+<!--
+  Lutica Design System の Avalonia テーマ。
+  FluentTheme を土台にして、配色（パレット）・フォント（Koruri）・押せる部品の影を Lutica に合わせる。
+  値は Lutica Design System の tokens.json（v2）から写している。color-mix() で作る色は oklab で事前に混ぜた値。
+  App.axaml からこのファイルだけを StyleInclude する（FluentTheme はここで読み込む）。
+-->
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Fluent の基本パレットを Lutica の面と文字に差し替える -->
+    <FluentTheme>
+        <FluentTheme.Palettes>
+            <ColorPaletteResources x:Key="Light"
+                                   Accent="#d30e17"
+                                   RegionColor="#ffe5e4"
+                                   ErrorText="#be0c15"
+                                   BaseHigh="#393535"
+                                   BaseMediumHigh="#CC393535"
+                                   BaseMedium="#495a6b"
+                                   BaseMediumLow="#66393535"
+                                   BaseLow="#33393535"
+                                   AltHigh="#fffafa"
+                                   AltMediumHigh="#CCfffafa"
+                                   AltMedium="#99fffafa"
+                                   AltMediumLow="#66fffafa"
+                                   AltLow="#33fffafa"
+                                   ChromeLow="#f8eeed"
+                                   ChromeMediumLow="#fff0ef"
+                                   ChromeMedium="#f8eeed"
+                                   ChromeHigh="#dcbcbc"
+                                   ChromeAltLow="#000000"
+                                   ChromeDisabledHigh="#dcbcbc"
+                                   ChromeDisabledLow="#495a6b"
+                                   ChromeGray="#9a7a7b"
+                                   ChromeWhite="#fffafa"
+                                   ListLow="#1Fd30e17"
+                                   ListMedium="#33d30e17" />
+            <ColorPaletteResources x:Key="Dark"
+                                   Accent="#f24149"
+                                   RegionColor="#0f0f1a"
+                                   ErrorText="#f44336"
+                                   BaseHigh="#c9baba"
+                                   BaseMediumHigh="#CCc9baba"
+                                   BaseMedium="#a59ea3"
+                                   BaseMediumLow="#66c9baba"
+                                   BaseLow="#33c9baba"
+                                   AltHigh="#161625"
+                                   AltMediumHigh="#CC161625"
+                                   AltMedium="#99161625"
+                                   AltMediumLow="#66161625"
+                                   AltLow="#33161625"
+                                   ChromeLow="#161625"
+                                   ChromeMediumLow="#1b1b2c"
+                                   ChromeMedium="#161625"
+                                   ChromeHigh="#303046"
+                                   ChromeAltLow="#e1e1e1"
+                                   ChromeDisabledHigh="#303046"
+                                   ChromeDisabledLow="#6b6580"
+                                   ChromeGray="#6b6580"
+                                   ListLow="#1Ff24149"
+                                   ListMedium="#33f24149" />
+        </FluentTheme.Palettes>
+    </FluentTheme>
+
+    <Styles.Resources>
+        <ResourceDictionary>
+            <!-- Typography：本文は Koruri（Regular 400 / SemiBold 600 / Bold 700） -->
+            <FontFamily x:Key="LuFontSans">avares://HanautaSketch/Assets/Fonts#Koruri</FontFamily>
+            <FontFamily x:Key="ContentControlThemeFontFamily">avares://HanautaSketch/Assets/Fonts#Koruri</FontFamily>
+
+            <!-- Radius -->
+            <CornerRadius x:Key="LuRadiusSm">4</CornerRadius>
+            <CornerRadius x:Key="LuRadiusMd">8</CornerRadius>
+            <CornerRadius x:Key="LuRadiusLg">12</CornerRadius>
+            <CornerRadius x:Key="ControlCornerRadius">8</CornerRadius>
+            <CornerRadius x:Key="OverlayCornerRadius">8</CornerRadius>
+            <Thickness x:Key="ComboBoxBorderThemeThickness">0</Thickness>
+            <Thickness x:Key="TextControlBorderThemeThickness">0</Thickness>
+            <Thickness x:Key="TextControlBorderThemeThicknessFocused">0</Thickness>
+
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <!-- 面 -->
+                    <SolidColorBrush x:Key="LuBackgroundBrush" Color="#ffe5e4" />
+                    <SolidColorBrush x:Key="LuPanelBrush" Color="#f8eeed" />
+                    <SolidColorBrush x:Key="LuPanelRaisedBrush" Color="#fff0ef" />
+                    <SolidColorBrush x:Key="LuPanelButtonBrush" Color="#fffafa" />
+                    <SolidColorBrush x:Key="LuPanelButtonHoverBrush" Color="#f2eded" />
+                    <SolidColorBrush x:Key="LuPanelButtonPressedBrush" Color="#e5e0e0" />
+                    <SolidColorBrush x:Key="LuBorderBrush" Color="#9a7a7b" />
+                    <SolidColorBrush x:Key="LuDividerBrush" Color="#dcbcbc" />
+                    <!-- 文字 -->
+                    <SolidColorBrush x:Key="LuForegroundBrush" Color="#393535" />
+                    <SolidColorBrush x:Key="LuForegroundStrongBrush" Color="#000000" />
+                    <SolidColorBrush x:Key="LuDimmedBrush" Color="#495a6b" />
+                    <SolidColorBrush x:Key="LuBrandBrush" Color="#f24149" />
+                    <SolidColorBrush x:Key="LuPrimaryBrush" Color="#d30e17" />
+                    <SolidColorBrush x:Key="LuSuccessBrush" Color="#187a24" />
+                    <SolidColorBrush x:Key="LuWarningBrush" Color="#876300" />
+                    <SolidColorBrush x:Key="LuDangerBrush" Color="#be0c15" />
+                    <!-- 面と文字のペア（-bg / -fg）と、ホバー・押下の面 -->
+                    <SolidColorBrush x:Key="LuPrimaryBgBrush" Color="#d30e17" />
+                    <SolidColorBrush x:Key="LuPrimaryBgHoverBrush" Color="#c02220" />
+                    <SolidColorBrush x:Key="LuPrimaryBgPressedBrush" Color="#b42924" />
+                    <SolidColorBrush x:Key="LuPrimaryFgBrush" Color="#ffffff" />
+                    <SolidColorBrush x:Key="LuSuccessBgBrush" Color="#187a24" />
+                    <SolidColorBrush x:Key="LuSuccessBgHoverBrush" Color="#247229" />
+                    <SolidColorBrush x:Key="LuSuccessBgPressedBrush" Color="#296c2b" />
+                    <SolidColorBrush x:Key="LuSuccessFgBrush" Color="#ffffff" />
+                    <SolidColorBrush x:Key="LuWarningBgBrush" Color="#876300" />
+                    <SolidColorBrush x:Key="LuWarningBgHoverBrush" Color="#7d5d14" />
+                    <SolidColorBrush x:Key="LuWarningBgPressedBrush" Color="#775a1b" />
+                    <SolidColorBrush x:Key="LuWarningFgBrush" Color="#ffffff" />
+                    <SolidColorBrush x:Key="LuDimmedBgBrush" Color="#495a6b" />
+                    <SolidColorBrush x:Key="LuDimmedBgHoverBrush" Color="#475564" />
+                    <SolidColorBrush x:Key="LuDimmedBgPressedBrush" Color="#465260" />
+                    <SolidColorBrush x:Key="LuDimmedFgBrush" Color="#ffffff" />
+                    <SolidColorBrush x:Key="LuDangerBgBrush" Color="#33090d" />
+                    <SolidColorBrush x:Key="LuDangerBgHoverBrush" Color="#53181d" />
+                    <SolidColorBrush x:Key="LuDangerBgPressedBrush" Color="#662126" />
+                    <SolidColorBrush x:Key="LuDangerFgBrush" Color="#ff6b70" />
+                    <!-- primary を透かした面（ghost のホバー 10%、選択中の行 14%） -->
+                    <SolidColorBrush x:Key="LuPrimaryTint10Brush" Color="#1Ad30e17" />
+                    <SolidColorBrush x:Key="LuPrimaryTint14Brush" Color="#24d30e17" />
+                    <SolidColorBrush x:Key="LuPrimaryTint20Brush" Color="#33d30e17" />
+                    <!-- Fluent の ComboBox・テキスト入力の色を Lutica の面に（枠線は使わない） -->
+                    <SolidColorBrush x:Key="ComboBoxBackground" Color="#fffafa" />
+                    <SolidColorBrush x:Key="ComboBoxBackgroundUnfocused" Color="#fffafa" />
+                    <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="#f2eded" />
+                    <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="#e5e0e0" />
+                    <SolidColorBrush x:Key="ComboBoxBackgroundDisabled" Color="#fffafa" />
+                    <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="Transparent" />
+                    <SolidColorBrush x:Key="ComboBoxBorderBrushPointerOver" Color="Transparent" />
+                    <SolidColorBrush x:Key="ComboBoxBorderBrushPressed" Color="Transparent" />
+                    <SolidColorBrush x:Key="ComboBoxBorderBrushDisabled" Color="Transparent" />
+                    <SolidColorBrush x:Key="ComboBoxBackgroundBorderBrushUnfocused" Color="Transparent" />
+                    <SolidColorBrush x:Key="TextControlBackground" Color="#f8eeed" />
+                    <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#f8eeed" />
+                    <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#f8eeed" />
+                    <SolidColorBrush x:Key="TextControlBackgroundDisabled" Color="#f8eeed" />
+                    <SolidColorBrush x:Key="TextControlBorderBrush" Color="Transparent" />
+                    <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="Transparent" />
+                    <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="Transparent" />
+                    <SolidColorBrush x:Key="TextControlBorderBrushDisabled" Color="Transparent" />
+                    <!-- Shadow -->
+                    <BoxShadows x:Key="LuShadowSm">0 1 2 0 #143C1416</BoxShadows>
+                    <BoxShadows x:Key="LuShadowControl">inset 0 1 0 0 #6BFFFFFF, inset 0 -1 0 0 #2E000000, 0 1 3 0 #243C1416</BoxShadows>
+                    <BoxShadows x:Key="LuShadowInset">inset 0 1 2 0 #243C1416</BoxShadows>
+                    <BoxShadows x:Key="LuShadowInsetFocus">0 0 0 1 #B3d30e17, 0 0 10 2 #73d30e17, inset 0 1 2 0 #243C1416</BoxShadows>
+                    <BoxShadows x:Key="LuShadowControlFocus">0 0 0 1 #B3d30e17, 0 0 10 2 #73d30e17, inset 0 1 0 0 #6BFFFFFF, inset 0 -1 0 0 #2E000000</BoxShadows>
+                    <BoxShadows x:Key="LuShadowMd">0 4 12 0 #1A3C1416</BoxShadows>
+                    <BoxShadows x:Key="LuShadowLg">0 12 32 0 #293C1416</BoxShadows>
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Dark">
+                    <SolidColorBrush x:Key="LuBackgroundBrush" Color="#0f0f1a" />
+                    <SolidColorBrush x:Key="LuPanelBrush" Color="#161625" />
+                    <SolidColorBrush x:Key="LuPanelRaisedBrush" Color="#1b1b2c" />
+                    <SolidColorBrush x:Key="LuPanelButtonBrush" Color="#2e2e45" />
+                    <SolidColorBrush x:Key="LuPanelButtonHoverBrush" Color="#36364c" />
+                    <SolidColorBrush x:Key="LuPanelButtonPressedBrush" Color="#3e3d52" />
+                    <SolidColorBrush x:Key="LuBorderBrush" Color="#6b6580" />
+                    <SolidColorBrush x:Key="LuDividerBrush" Color="#303046" />
+                    <SolidColorBrush x:Key="LuForegroundBrush" Color="#c9baba" />
+                    <SolidColorBrush x:Key="LuForegroundStrongBrush" Color="#e1e1e1" />
+                    <SolidColorBrush x:Key="LuDimmedBrush" Color="#a59ea3" />
+                    <SolidColorBrush x:Key="LuBrandBrush" Color="#f24149" />
+                    <SolidColorBrush x:Key="LuPrimaryBrush" Color="#f24149" />
+                    <SolidColorBrush x:Key="LuSuccessBrush" Color="#6f8e4d" />
+                    <SolidColorBrush x:Key="LuWarningBrush" Color="#ecbd15" />
+                    <SolidColorBrush x:Key="LuDangerBrush" Color="#f44336" />
+                    <SolidColorBrush x:Key="LuPrimaryBgBrush" Color="#f24149" />
+                    <SolidColorBrush x:Key="LuPrimaryBgHoverBrush" Color="#ef5658" />
+                    <SolidColorBrush x:Key="LuPrimaryBgPressedBrush" Color="#ee6261" />
+                    <SolidColorBrush x:Key="LuPrimaryFgBrush" Color="#000000" />
+                    <SolidColorBrush x:Key="LuSuccessBgBrush" Color="#6f8e4d" />
+                    <SolidColorBrush x:Key="LuSuccessBgHoverBrush" Color="#7a935b" />
+                    <SolidColorBrush x:Key="LuSuccessBgPressedBrush" Color="#819764" />
+                    <SolidColorBrush x:Key="LuSuccessFgBrush" Color="#000000" />
+                    <SolidColorBrush x:Key="LuWarningBgBrush" Color="#ecbd15" />
+                    <SolidColorBrush x:Key="LuWarningBgHoverBrush" Color="#e8bd41" />
+                    <SolidColorBrush x:Key="LuWarningBgPressedBrush" Color="#e5bd52" />
+                    <SolidColorBrush x:Key="LuWarningFgBrush" Color="#000000" />
+                    <SolidColorBrush x:Key="LuDimmedBgBrush" Color="#a59ea3" />
+                    <SolidColorBrush x:Key="LuDimmedBgHoverBrush" Color="#a9a1a6" />
+                    <SolidColorBrush x:Key="LuDimmedBgPressedBrush" Color="#aca4a8" />
+                    <SolidColorBrush x:Key="LuDimmedFgBrush" Color="#000000" />
+                    <SolidColorBrush x:Key="LuDangerBgBrush" Color="#26080b" />
+                    <SolidColorBrush x:Key="LuDangerBgHoverBrush" Color="#48171b" />
+                    <SolidColorBrush x:Key="LuDangerBgPressedBrush" Color="#5c2024" />
+                    <SolidColorBrush x:Key="LuDangerFgBrush" Color="#ff6b70" />
+                    <SolidColorBrush x:Key="LuPrimaryTint10Brush" Color="#1Af24149" />
+                    <SolidColorBrush x:Key="LuPrimaryTint14Brush" Color="#24f24149" />
+                    <SolidColorBrush x:Key="LuPrimaryTint20Brush" Color="#33f24149" />
+                    <!-- Fluent の ComboBox・テキスト入力の色を Lutica の面に（枠線は使わない） -->
+                    <SolidColorBrush x:Key="ComboBoxBackground" Color="#2e2e45" />
+                    <SolidColorBrush x:Key="ComboBoxBackgroundUnfocused" Color="#2e2e45" />
+                    <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="#36364c" />
+                    <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="#3e3d52" />
+                    <SolidColorBrush x:Key="ComboBoxBackgroundDisabled" Color="#2e2e45" />
+                    <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="Transparent" />
+                    <SolidColorBrush x:Key="ComboBoxBorderBrushPointerOver" Color="Transparent" />
+                    <SolidColorBrush x:Key="ComboBoxBorderBrushPressed" Color="Transparent" />
+                    <SolidColorBrush x:Key="ComboBoxBorderBrushDisabled" Color="Transparent" />
+                    <SolidColorBrush x:Key="ComboBoxBackgroundBorderBrushUnfocused" Color="Transparent" />
+                    <SolidColorBrush x:Key="TextControlBackground" Color="#161625" />
+                    <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#161625" />
+                    <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#161625" />
+                    <SolidColorBrush x:Key="TextControlBackgroundDisabled" Color="#161625" />
+                    <SolidColorBrush x:Key="TextControlBorderBrush" Color="Transparent" />
+                    <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="Transparent" />
+                    <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="Transparent" />
+                    <SolidColorBrush x:Key="TextControlBorderBrushDisabled" Color="Transparent" />
+                    <BoxShadows x:Key="LuShadowSm">0 1 2 0 #4D000000</BoxShadows>
+                    <BoxShadows x:Key="LuShadowControl">inset 0 1 0 0 #1FFFFFFF, inset 0 -1 0 0 #40000000, 0 1 3 0 #4D000000</BoxShadows>
+                    <BoxShadows x:Key="LuShadowInset">inset 0 1 3 0 #73000000</BoxShadows>
+                    <BoxShadows x:Key="LuShadowInsetFocus">0 0 0 1 #B3f24149, 0 0 10 2 #73f24149, inset 0 1 3 0 #73000000</BoxShadows>
+                    <BoxShadows x:Key="LuShadowControlFocus">0 0 0 1 #B3f24149, 0 0 10 2 #73f24149, inset 0 1 0 0 #1FFFFFFF, inset 0 -1 0 0 #40000000</BoxShadows>
+                    <BoxShadows x:Key="LuShadowMd">inset 0 1 0 0 #0FFFFFFF, 0 4 12 0 #59000000</BoxShadows>
+                    <BoxShadows x:Key="LuShadowLg">inset 0 1 0 0 #14FFFFFF, 0 12 32 0 #73000000</BoxShadows>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+
+            <!-- フォーカスリング：primary の 2px を外側に 2px 離して出す -->
+            <FocusAdornerTemplate x:Key="LuFocusAdorner">
+                <Border BorderThickness="2" BorderBrush="{DynamicResource LuPrimaryBrush}"
+                        CornerRadius="10" Margin="-4" />
+            </FocusAdornerTemplate>
+
+            <!--
+              Button / ToggleButton：枠を使わず、panel-button の面に shadow-control を乗せて物体として見せる。
+              押している間は影が消えて 1px 沈む。修飾は Classes で付ける
+              （primary / success / warning / danger / dimmed / ghost / small）。
+            -->
+            <ControlTheme x:Key="{x:Type Button}" TargetType="Button">
+                <Setter Property="Background" Value="{DynamicResource LuPanelButtonBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource LuForegroundBrush}" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="CornerRadius" Value="{DynamicResource LuRadiusMd}" />
+                <Setter Property="Padding" Value="12,0" />
+                <Setter Property="MinHeight" Value="32" />
+                <Setter Property="FontSize" Value="14" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="FocusAdorner" Value="{DynamicResource LuFocusAdorner}" />
+                <Setter Property="Template">
+                    <ControlTemplate>
+                        <Border x:Name="PART_Face"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="{TemplateBinding CornerRadius}"
+                                BoxShadow="{DynamicResource LuShadowControl}">
+                            <Border.Transitions>
+                                <Transitions>
+                                    <BrushTransition Property="Background" Duration="0:0:0.15" />
+                                </Transitions>
+                            </Border.Transitions>
+                            <ContentPresenter x:Name="PART_ContentPresenter"
+                                              Content="{TemplateBinding Content}"
+                                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                                              Foreground="{TemplateBinding Foreground}"
+                                              Padding="{TemplateBinding Padding}"
+                                              HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                              RecognizesAccessKey="True" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter>
+
+                <Style Selector="^:pointerover">
+                    <Setter Property="Background" Value="{DynamicResource LuPanelButtonHoverBrush}" />
+                </Style>
+                <Style Selector="^:pressed">
+                    <Setter Property="Background" Value="{DynamicResource LuPanelButtonPressedBrush}" />
+                    <Setter Property="RenderTransform" Value="translateY(1px)" />
+                </Style>
+                <Style Selector="^:pressed /template/ Border#PART_Face">
+                    <Setter Property="BoxShadow" Value="none" />
+                </Style>
+                <Style Selector="^:disabled">
+                    <Setter Property="Opacity" Value="0.5" />
+                </Style>
+
+                <Style Selector="^.primary">
+                    <Setter Property="Background" Value="{DynamicResource LuPrimaryBgBrush}" />
+                    <Setter Property="Foreground" Value="{DynamicResource LuPrimaryFgBrush}" />
+                    <Style Selector="^:pointerover"><Setter Property="Background" Value="{DynamicResource LuPrimaryBgHoverBrush}" /></Style>
+                    <Style Selector="^:pressed"><Setter Property="Background" Value="{DynamicResource LuPrimaryBgPressedBrush}" /></Style>
+                </Style>
+                <Style Selector="^.success">
+                    <Setter Property="Background" Value="{DynamicResource LuSuccessBgBrush}" />
+                    <Setter Property="Foreground" Value="{DynamicResource LuSuccessFgBrush}" />
+                    <Style Selector="^:pointerover"><Setter Property="Background" Value="{DynamicResource LuSuccessBgHoverBrush}" /></Style>
+                    <Style Selector="^:pressed"><Setter Property="Background" Value="{DynamicResource LuSuccessBgPressedBrush}" /></Style>
+                </Style>
+                <Style Selector="^.warning">
+                    <Setter Property="Background" Value="{DynamicResource LuWarningBgBrush}" />
+                    <Setter Property="Foreground" Value="{DynamicResource LuWarningFgBrush}" />
+                    <Style Selector="^:pointerover"><Setter Property="Background" Value="{DynamicResource LuWarningBgHoverBrush}" /></Style>
+                    <Style Selector="^:pressed"><Setter Property="Background" Value="{DynamicResource LuWarningBgPressedBrush}" /></Style>
+                </Style>
+                <Style Selector="^.dimmed">
+                    <Setter Property="Background" Value="{DynamicResource LuDimmedBgBrush}" />
+                    <Setter Property="Foreground" Value="{DynamicResource LuDimmedFgBrush}" />
+                    <Style Selector="^:pointerover"><Setter Property="Background" Value="{DynamicResource LuDimmedBgHoverBrush}" /></Style>
+                    <Style Selector="^:pressed"><Setter Property="Background" Value="{DynamicResource LuDimmedBgPressedBrush}" /></Style>
+                </Style>
+                <Style Selector="^.danger">
+                    <Setter Property="Background" Value="{DynamicResource LuDangerBgBrush}" />
+                    <Setter Property="Foreground" Value="{DynamicResource LuDangerFgBrush}" />
+                    <Style Selector="^:pointerover"><Setter Property="Background" Value="{DynamicResource LuDangerBgHoverBrush}" /></Style>
+                    <Style Selector="^:pressed"><Setter Property="Background" Value="{DynamicResource LuDangerBgPressedBrush}" /></Style>
+                </Style>
+                <Style Selector="^.ghost">
+                    <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="Foreground" Value="{DynamicResource LuPrimaryBrush}" />
+                    <Style Selector="^ /template/ Border#PART_Face"><Setter Property="BoxShadow" Value="none" /></Style>
+                    <Style Selector="^:pointerover"><Setter Property="Background" Value="{DynamicResource LuPrimaryTint10Brush}" /></Style>
+                    <Style Selector="^:pressed"><Setter Property="Background" Value="{DynamicResource LuPrimaryTint20Brush}" /></Style>
+                </Style>
+                <!-- 表の行内・ステータスバー用の小さいボタン -->
+                <Style Selector="^.small">
+                    <Setter Property="MinHeight" Value="22" />
+                    <Setter Property="Padding" Value="6,0" />
+                    <Setter Property="FontSize" Value="11" />
+                    <Setter Property="CornerRadius" Value="{DynamicResource LuRadiusSm}" />
+                </Style>
+            </ControlTheme>
+
+            <!-- ToggleButton：オフは Button と同じ。オンは primary の塗り -->
+            <ControlTheme x:Key="{x:Type ToggleButton}" TargetType="ToggleButton"
+                          BasedOn="{StaticResource {x:Type Button}}">
+                <Style Selector="^:checked">
+                    <Setter Property="Background" Value="{DynamicResource LuPrimaryBgBrush}" />
+                    <Setter Property="Foreground" Value="{DynamicResource LuPrimaryFgBrush}" />
+                    <Style Selector="^:pointerover"><Setter Property="Background" Value="{DynamicResource LuPrimaryBgHoverBrush}" /></Style>
+                    <Style Selector="^:pressed"><Setter Property="Background" Value="{DynamicResource LuPrimaryBgPressedBrush}" /></Style>
+                </Style>
+            </ControlTheme>
+        </ResourceDictionary>
+    </Styles.Resources>
+
+    <!-- ページ全体：background の地に foreground の文字、Koruri -->
+    <Style Selector="Window">
+        <Setter Property="Background" Value="{DynamicResource LuBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource LuForegroundBrush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource LuFontSans}" />
+    </Style>
+
+    <!-- 面の段：panel（カード・サイドバー） -->
+    <Style Selector=":is(Panel).lu-panel">
+        <Setter Property="Background" Value="{DynamicResource LuPanelBrush}" />
+    </Style>
+    <Style Selector="Border.lu-panel">
+        <Setter Property="Background" Value="{DynamicResource LuPanelBrush}" />
+    </Style>
+
+    <!-- 補助テキスト -->
+    <Style Selector="TextBlock.dimmed">
+        <Setter Property="Foreground" Value="{DynamicResource LuDimmedBrush}" />
+    </Style>
+    <Style Selector="TextBlock.caption">
+        <Setter Property="Foreground" Value="{DynamicResource LuDimmedBrush}" />
+        <Setter Property="FontSize" Value="11" />
+    </Style>
+    <Style Selector="TextBlock.title">
+        <Setter Property="Foreground" Value="{DynamicResource LuForegroundStrongBrush}" />
+        <Setter Property="FontWeight" Value="Bold" />
+    </Style>
+
+    <!-- CheckBox：枠なしの panel-button に shadow-control。オンは primary の塗りに primary-fg の印 -->
+    <Style Selector="CheckBox">
+        <Setter Property="FocusAdorner" Value="{DynamicResource LuFocusAdorner}" />
+    </Style>
+    <Style Selector="CheckBox /template/ Border#NormalRectangle">
+        <Setter Property="Background" Value="{DynamicResource LuPanelButtonBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="{DynamicResource LuRadiusSm}" />
+        <Setter Property="BoxShadow" Value="{DynamicResource LuShadowControl}" />
+    </Style>
+    <Style Selector="CheckBox:pointerover /template/ Border#NormalRectangle">
+        <Setter Property="Background" Value="{DynamicResource LuPanelButtonHoverBrush}" />
+    </Style>
+    <Style Selector="CheckBox:pressed /template/ Border#NormalRectangle">
+        <Setter Property="Background" Value="{DynamicResource LuPanelButtonPressedBrush}" />
+    </Style>
+    <Style Selector="CheckBox:checked /template/ Border#NormalRectangle, CheckBox:indeterminate /template/ Border#NormalRectangle">
+        <Setter Property="Background" Value="{DynamicResource LuPrimaryBgBrush}" />
+    </Style>
+    <Style Selector="CheckBox:checked:pointerover /template/ Border#NormalRectangle">
+        <Setter Property="Background" Value="{DynamicResource LuPrimaryBgHoverBrush}" />
+    </Style>
+    <Style Selector="CheckBox /template/ Path#CheckGlyph">
+        <Setter Property="Fill" Value="{DynamicResource LuPrimaryFgBrush}" />
+    </Style>
+    <Style Selector="CheckBox:disabled">
+        <Setter Property="Opacity" Value="0.5" />
+    </Style>
+
+    <!-- ComboBox：Button と同じ panel-button の面（色は上の ComboBox* リソースで差し替え） -->
+    <Style Selector="ComboBox">
+        <Setter Property="CornerRadius" Value="{DynamicResource LuRadiusMd}" />
+        <Setter Property="FocusAdorner" Value="{DynamicResource LuFocusAdorner}" />
+    </Style>
+    <Style Selector="ComboBox:disabled">
+        <Setter Property="Opacity" Value="0.5" />
+    </Style>
+
+    <!-- TextBox：panel の面に shadow-inset で凹んだ入力欄。入力中は primary でふわっと光る -->
+    <Style Selector="TextBox /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{DynamicResource LuPanelBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="5" />
+        <Setter Property="BoxShadow" Value="{DynamicResource LuShadowInset}" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.25" />
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{DynamicResource LuPanelBrush}" />
+    </Style>
+    <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{DynamicResource LuPanelBrush}" />
+        <Setter Property="BoxShadow" Value="{DynamicResource LuShadowInsetFocus}" />
+    </Style>
+    <Style Selector="TextBox:error /template/ Border#PART_BorderElement">
+        <Setter Property="BoxShadow" Value="{DynamicResource LuShadowInset}" />
+    </Style>
+    <Style Selector="TextBox:error">
+        <Setter Property="Foreground" Value="{DynamicResource LuDangerBrush}" />
+    </Style>
+
+    <!-- ListBox：選択中の行は primary を 14% 透かした面、角丸 -->
+    <Style Selector="ListBox">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="ListBoxItem">
+        <Setter Property="Margin" Value="4,1" />
+        <Setter Property="Padding" Value="8,4" />
+        <Setter Property="CornerRadius" Value="{DynamicResource LuRadiusMd}" />
+    </Style>
+    <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource LuPrimaryTint14Brush}" />
+        <Setter Property="Foreground" Value="{DynamicResource LuForegroundStrongBrush}" />
+    </Style>
+    <Style Selector="ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource LuPrimaryTint20Brush}" />
+    </Style>
+
+    <!-- ドロップダウン・メニュー：panel-raised の面、角丸 radius-md -->
+    <Style Selector="MenuFlyoutPresenter, ContextMenu">
+        <Setter Property="Background" Value="{DynamicResource LuPanelRaisedBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource LuDividerBrush}" />
+        <Setter Property="CornerRadius" Value="{DynamicResource LuRadiusMd}" />
+    </Style>
+    <Style Selector="ToolTip">
+        <Setter Property="Background" Value="{DynamicResource LuPanelRaisedBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource LuForegroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource LuDividerBrush}" />
+        <Setter Property="CornerRadius" Value="{DynamicResource LuRadiusMd}" />
+    </Style>
+
+    <Style Selector="Separator">
+        <Setter Property="Background" Value="{DynamicResource LuDividerBrush}" />
+    </Style>
+</Styles>

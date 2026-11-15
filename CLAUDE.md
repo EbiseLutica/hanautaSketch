@@ -9,9 +9,11 @@
 ## 技術情報
 
 - C# / .NET 10。主な対象は Windows。macOS でも動く（ショートカットは Ctrl の代わりに ⌘）
-- UI：Avalonia 12（FluentTheme）、MVVM は CommunityToolkit.Mvvm。コンパイル済みバインディングが既定なので、XAML には `x:DataType` を付ける
+- UI：Avalonia 12。見た目は Lutica Design System（`Themes/LuticaTheme.axaml`。FluentTheme をパレット・リソース差し替えで土台にし、Button / ToggleButton は独自の ControlTheme）、MVVM は CommunityToolkit.Mvvm。コンパイル済みバインディングが既定なので、XAML には `x:DataType` を付ける
   - Avalonia API は推測で書かず、Avalonia MCP（`lookup_avalonia_api` / `search_avalonia_docs`）で確認する
 - ピアノロールは `Control.Render(DrawingContext)` で自前描画する。配色は `PianoRollPalette` にテーマ（ライト／ダーク）ごとに持たせる
+  - 色・影・角丸は `LuticaTheme.axaml` の `Lu*` リソース（`LuPanelBrush`、`LuShadowControl` など）を `DynamicResource` で参照し、値を直書きしない。ボタンの修飾は `Classes`（`primary` / `danger` / `ghost` / `small` など）、補助テキストは `TextBlock.dimmed` / `.caption`
+  - フォントは Koruri（`Assets/Fonts`、TTF）。デザインシステム側は WOFF2 なので TTF に変換して置いている
 - テスト：xUnit
 - 再生：MeltySynth（SF2）でシンセを鳴らす。出力は Windows が NAudio 2.2.1（WASAPI 共有モード）、それ以外（macOS など）が Silk.NET.OpenAL（OpenAL Soft を常に使う）。MeltySynth とシーケンサーは Engine（`PlaybackEngine`）、OS 依存の出力は App（`IAudioOutput`、`AudioOutput.Create` が OS で振り分ける）に置く
   - 音源は `HanautaSketch/SoundFonts/*.sf2` に置く（GM 互換の SGM-V2.01 を想定）。サイズが大きいので git 管理外（`.gitignore` で `*.sf2` を除外）。ビルド時に出力先へコピーされる
@@ -44,10 +46,12 @@
 ```
 HanautaSketch.slnx
 HanautaSketch/               Avalonia アプリ（UI）
+  Assets/Fonts/              Koruri（Lutica Design System の書体）
   Audio/                     オーディオ出力（IAudioOutput：WASAPI / OpenAL）
   Controls/                  自前描画のカスタムコントロール（PianoRollControl など）
   Services/                  View 依存の処理を VM から使うための窓口（ダイアログ）、アプリ設定
   SoundFonts/                SF2 置き場（git 管理外）
+  Themes/                    Lutica Design System のテーマ（LuticaTheme.axaml）
   ViewModels/
   Views/
 HanautaSketch.Engine/        UI 非依存のロジック。Tests に InternalsVisibleTo

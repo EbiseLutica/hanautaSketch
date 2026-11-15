@@ -3,6 +3,7 @@
              x:Class="HanautaSketch.App"
              RequestedThemeVariant="Default">
     <Application.Styles>
-        <FluentTheme />
+        <!-- Lutica Design System（FluentTheme を内包する） -->
+        <StyleInclude Source="avares://HanautaSketch/Themes/LuticaTheme.axaml" />
     </Application.Styles>
 </Application>

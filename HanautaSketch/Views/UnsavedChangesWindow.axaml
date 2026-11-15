@@ -9,7 +9,7 @@
     <StackPanel Margin="20" Spacing="16" MinWidth="320">
         <TextBlock x:Name="MessageText" TextWrapping="Wrap" MaxWidth="420" />
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-            <Button Content="保存する" IsDefault="True" Click="OnSaveClick" />
+            <Button Content="保存する" Classes="primary" IsDefault="True" Click="OnSaveClick" />
             <Button Content="保存しない" Click="OnDiscardClick" />
             <Button Content="キャンセル" IsCancel="True" Click="OnCancelClick" />
         </StackPanel>
