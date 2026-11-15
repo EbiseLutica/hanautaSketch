@@ -8,12 +8,12 @@
 
 ## 技術情報
 
-- C# / .NET 10。当面の対象は Windows
+- C# / .NET 10。主な対象は Windows。macOS でも動く（ショートカットは Ctrl の代わりに ⌘）
 - UI：Avalonia 12（FluentTheme）、MVVM は CommunityToolkit.Mvvm。コンパイル済みバインディングが既定なので、XAML には `x:DataType` を付ける
-  - Avalonia 12 は v11 から API が変わっている箇所がある（例：`ImmutablePen` は `IImmutableBrush` を要求する、`ActualThemeVariantProperty` がない）。API は推測で書かず、Avalonia MCP（`lookup_avalonia_api` / `search_avalonia_docs`）で確認する
+  - Avalonia API は推測で書かず、Avalonia MCP（`lookup_avalonia_api` / `search_avalonia_docs`）で確認する
 - ピアノロールは `Control.Render(DrawingContext)` で自前描画する。配色は `PianoRollPalette` にテーマ（ライト／ダーク）ごとに持たせる
 - テスト：xUnit
-- 再生：MeltySynth（SF2）でシンセを鳴らし、NAudio 2.2.1（WASAPI 共有モード）で出力する。MeltySynth とシーケンサーは Engine（`PlaybackEngine`）、OS 依存の出力は App（`AudioOutput`）に置く
+- 再生：MeltySynth（SF2）でシンセを鳴らす。出力は Windows が NAudio 2.2.1（WASAPI 共有モード）、それ以外（macOS など）が Silk.NET.OpenAL（OpenAL Soft を常に使う）。MeltySynth とシーケンサーは Engine（`PlaybackEngine`）、OS 依存の出力は App（`IAudioOutput`、`AudioOutput.Create` が OS で振り分ける）に置く
   - 音源は `HanautaSketch/SoundFonts/*.sf2` に置く（GM 互換の SGM-V2.01 を想定）。サイズが大きいので git 管理外（`.gitignore` で `*.sf2` を除外）。ビルド時に出力先へコピーされる
 - 保存形式：独自 JSON（`.hsk`、`ProjectSerializer`）。ファイル上の形式は DTO で固定し、`version` で互換性を管理する（`"version": "0.6"` のメジャー.マイナー表記。正式版で 1.0 にする。0.x の間はマイナーまで含めて新しいファイルを弾く。初期の整数表記 1 / 2 は 0.1 / 0.2 として読む。0.2 でスマートコード、0.3 でスマートドラムのトラック種別を追加、0.4 でコードの N.C. override とドラムのベース追従モード（none / fill / full）、0.5 でテンポ・拍子・キーの途中変更（tempos / meters / keys。0.4 までの曲頭の値 bpm / beatsPerBar / key は読み込みのみ）、0.6 でコードの種類に三和音以外（7th・sus・テンションなど）。0.1 の曲全体のスマートコード設定は読み込み時に無視する）。ファイル選択・確認などのダイアログは `IDialogService` 経由で VM から使う。曲に依存しないアプリ設定は `%APPDATA%\hanautaSketch\settings.json`（`AppSettingsStore`）
 - 採用予定：MIDI 入出力は DryWetMIDI
@@ -22,6 +22,7 @@
 
 - 時間はすべて tick の整数で扱う（PPQ=480）
 - スケール構成音は `Key.GetScalePitchClasses()` 経由でのみ取得する（将来のスケール拡張に備えた差し替え口）
+- ショートカットの主修飾キーは `PlatformKeys` 経由で扱う（Windows は Ctrl、macOS は ⌘）。XAML の KeyBinding・メニュー表示は Ctrl で書き、macOS では起動時に `PlatformKeys.Adapt` が ⌘ に置き換える
 - `HanautaSketch.Engine.Core.Key` は `Avalonia.Input.Key` と名前が衝突するため、UI 側では using エイリアスで解決する
 - スマートトラックの出力は派生データとして扱い、保存しない。ユーザーの判断は override として保持する
   - `SmartChordTrack` はソース（ベース・メロディの `NoteTrack` 参照）、判別設定、伴奏設定、override を持ち、`Regenerate(song)` で判別と伴奏生成をやり直す。再生は全トラック共通の `Track.PlaybackNotes` を使う
@@ -43,7 +44,7 @@
 ```
 HanautaSketch.slnx
 HanautaSketch/               Avalonia アプリ（UI）
-  Audio/                     WASAPI 出力（AudioOutput）
+  Audio/                     オーディオ出力（IAudioOutput：WASAPI / OpenAL）
   Controls/                  自前描画のカスタムコントロール（PianoRollControl など）
   Services/                  View 依存の処理を VM から使うための窓口（ダイアログ）、アプリ設定
   SoundFonts/                SF2 置き場（git 管理外）
