@@ -60,6 +60,7 @@ Distributed with the application:
 | [CommunityToolkit.Mvvm](https://github.com/CommunityToolkit/dotnet) | MIT |
 | [MeltySynth](https://github.com/sinshu/meltysynth) | MIT |
 | [NAudio](https://github.com/naudio/NAudio) (NAudio.Wasapi) | MIT |
+| [Silk.NET](https://github.com/dotnet/Silk.NET) (Silk.NET.OpenAL, Silk.NET.OpenAL.Soft.Native) | MIT / LGPL-2.0（OpenAL Soft） |
 
 Used only for tests (not distributed):
 
