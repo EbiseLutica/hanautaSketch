@@ -231,7 +231,7 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
 
         var key = Song.Conductor.KeyAt(segment.Start);
         var previous = Chords.LastOrDefault(c => c.End <= segment.Start)?.Chord;
-        return new ChordSuggestions(key, previous, track.BassSource?.Notes ?? [], segment.Start, segment.End);
+        return new ChordSuggestions(key, previous, track.BassSource?.Notes ?? [], segment.Start, segment.End, ChordTable);
     }
 
     /// <summary>

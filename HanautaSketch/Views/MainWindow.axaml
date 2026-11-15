@@ -32,6 +32,11 @@
                 <MenuItem Header="元に戻す(_U)" Command="{Binding UndoCommand}" InputGesture="Ctrl+Z" />
                 <MenuItem Header="やり直し(_R)" Command="{Binding RedoCommand}" InputGesture="Ctrl+Y" />
             </MenuItem>
+            <MenuItem Header="ツール(_T)">
+                <MenuItem Header="高度なコード遷移データを取得(_C)..." Command="{Binding AcquireChordDataCommand}" />
+                <MenuItem Header="コード情報の抽出を中止" Command="{Binding CancelChordDataCommand}" />
+                <MenuItem Header="高度なコード遷移データを削除" Command="{Binding RemoveChordDataCommand}" />
+            </MenuItem>
             <MenuItem Header="ヘルプ(_H)">
                 <MenuItem Header="データの出典(_D)..." Click="OnShowDataSources" />
             </MenuItem>
@@ -52,6 +57,11 @@
         <!-- ステータスバー -->
         <DockPanel DockPanel.Dock="Bottom" Margin="8,4">
             <TextBlock DockPanel.Dock="Right" Text="{Binding AudioStatus}" Opacity="0.7" />
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6" Margin="0,0,16,0"
+                        IsVisible="{Binding IsExtractingChordData}">
+                <TextBlock Text="{Binding ChordDataStatus}" Opacity="0.7" VerticalAlignment="Center" />
+                <Button Content="中止" Command="{Binding CancelChordDataCommand}" Padding="8,0" FontSize="11" />
+            </StackPanel>
             <TextBlock Text="{Binding Message}" Opacity="0.7" />
         </DockPanel>
 

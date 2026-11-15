@@ -84,13 +84,13 @@ cd ./HanautaSketch && dotnet run
 dotnet run tools/ChordStats/ChordStats.cs
 ```
 
-最後のコマンドは遷移表を作り直すときだけ使う。初回は元データ（約 260MB）を `tools/ChordStats/.cache/` に取得する
+最後のコマンドは同梱の遷移表（Billboard のみ）を作り直すときだけ使う。初回は元データ（約 340KB）を `tools/ChordStats/.cache/` に取得する
 
 ## ライセンス
 
 ソースコードは [MIT License](./LICENSE)
 
-ただし、コード候補の並びに使う遷移表（`chord-transitions.json`）に使用しているソースの一つ Chordonomicon が、CC BY-NC 4.0 ライセンス
+同梱のコード遷移表（`chord-transitions.json`）は McGill Billboard（CC0）だけから作っている。ツールメニューから取得できる高度なコード遷移データは Chordonomicon（CC BY-NC 4.0）を使っていて、取得時にライセンスへの同意を求める（そのデータは非営利の目的でのみ利用できる）
 
 テスト上のフィクスチャ hsk ファイルはパブリックドメイン
 

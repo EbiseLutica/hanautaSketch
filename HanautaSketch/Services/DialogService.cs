@@ -34,6 +34,9 @@ public interface IDialogService
 
     /// <summary>未保存の変更をどうするか尋ねる</summary>
     Task<UnsavedChangesChoice> AskUnsavedChangesAsync(string documentName);
+
+    /// <summary>はい／いいえを尋ねる。OK なら true（閉じるボタン・キャンセルは false）</summary>
+    Task<bool> ConfirmAsync(string title, string message, string okText, string cancelText);
 }
 
 /// <summary>
@@ -87,4 +90,7 @@ public sealed class DialogService(Window owner) : IDialogService
 
     public async Task<UnsavedChangesChoice> AskUnsavedChangesAsync(string documentName) =>
         await new UnsavedChangesWindow(documentName).ShowDialog<UnsavedChangesChoice?>(owner) ?? UnsavedChangesChoice.Cancel;
+
+    public async Task<bool> ConfirmAsync(string title, string message, string okText, string cancelText) =>
+        await new ConfirmWindow(title, message, okText, cancelText).ShowDialog<bool?>(owner) ?? false;
 }

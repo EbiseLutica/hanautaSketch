@@ -30,7 +30,9 @@
 - ピアノロールで編集するのは `INoteEditable`（ノートトラック、ドラムの fix 区間）。スマートトラックの生成ノーツは読み取り専用
 - コードの種類（`ChordQuality`）は構成音と表記を `ChordQualities` の表で持つ。自動判別は三和音だけを使い、それ以外は override と候補のランキングで使う
   - override の候補は、実際の曲から集計した「前のコード → 次のコード」の表（`ChordTransitionTable`、`Smart/Chords/Data/chord-transitions.json` を埋め込み）で並べる。判別の遷移スコア（`ChordTransitions`）とは別物
-  - 表は `tools/ChordStats` で McGill Billboard（CC0）と Chordonomicon（CC BY-NC 4.0）から作る。Chordonomicon が非営利限定なので、アプリは非営利でのみ配布する。出典はヘルプメニューと THIRD_PARTIES.md に書いている（リポジトリ自体は MIT。表の JSON とフィクスチャは別ライセンス）。依存パッケージを足したら THIRD_PARTIES.md にも追記する
+  - 集計処理はエンジン（`Smart/Chords/Corpus`）にある。同梱の表は McGill Billboard（CC0）だけから `tools/ChordStats` で作る
+  - Chordonomicon（CC BY-NC 4.0）は同梱しない。利用者がツールメニューからライセンスに同意したときだけ、アプリが裏で取得（リビジョン固定）・集計し、表だけを `%APPDATA%\hanautaSketch\chord-transitions-extended.json` に保存する（`ChordDataStore`）。元の CSV は保存しない
+  - 出典はヘルプメニューと THIRD_PARTIES.md に書いている（リポジトリ自体は MIT、フィクスチャはパブリックドメイン）。依存パッケージを足したら THIRD_PARTIES.md にも追記する
 - 判別アルゴリズムの回帰テストは `HanautaSketch.Tests/Fixtures/*.hsk` と MML 風の期待値（`ChordFixtureTests`）で行う
 - テンポ・拍子・キーの変化は `Song.Conductor` が持つ（SMF のコンダクタートラック相当）。テンポとキーは tick、拍子は小節番号で変更点を持ち、どれも曲頭に必ず1つある。拍子は n/4 のみ
   - 小節と tick の変換（`BarAt` / `BarToTick` / `PositionInBar` など）、tick と秒の変換（`TickToSeconds` / `SecondsToTick`）は `Conductor` 経由で行い、小節長を固定値で計算しない
@@ -57,7 +59,7 @@ HanautaSketch.Engine/        UI 非依存のロジック。Tests に InternalsVi
   Smart/Rhythm/              ベースのリズム解析（コードの区切り判定、ドラムのベース追従）
 HanautaSketch.Tests/         Engine のテスト
 tools/
-  ChordStats/                コード遷移の表を作る集計ツール（ファイルベースの C#）。元データは .cache/ に取得（git 管理外）
+  ChordStats/                同梱のコード遷移の表（Billboard のみ）を作るツール（ファイルベースの C#）。元データは .cache/ に取得（git 管理外）
 ```
 
 ## コマンド
@@ -66,5 +68,5 @@ tools/
 dotnet build
 dotnet test
 dotnet run --project HanautaSketch
-dotnet run tools/ChordStats/ChordStats.cs   # コード遷移の表を作り直す（初回は元データ約260MBを取得）
+dotnet run tools/ChordStats/ChordStats.cs   # 同梱のコード遷移の表を作り直す（Billboard、約340KBを取得）
 ```

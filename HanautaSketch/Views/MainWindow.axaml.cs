@@ -57,10 +57,12 @@ public partial class MainWindow : Window
     protected override async void OnClosing(WindowClosingEventArgs e)
     {
         base.OnClosing(e);
-        if (_closeConfirmed || ViewModel is not { IsDirty: true } vm) return;
+        if (_closeConfirmed || ViewModel is not { } vm) return;
+        if (!vm.IsDirty && !vm.IsExtractingChordData) return;
 
         e.Cancel = true;
-        if (!await vm.ConfirmDiscardChangesAsync()) return;
+        if (vm.IsDirty && !await vm.ConfirmDiscardChangesAsync()) return;
+        if (!await vm.ConfirmQuitDuringChordExtractionAsync()) return;
 
         _closeConfirmed = true;
         Close();
@@ -153,6 +155,14 @@ public partial class MainWindow : Window
         }
         flyout.Items.Add(all);
 
+        // 追加のデータがまだなら、取得の入口を案内する
+        if (!vm.HasExtendedChordData && !vm.IsExtractingChordData)
+        {
+            var acquire = new MenuItem { Header = "候補を精度よくする..." };
+            acquire.Click += (_, _) => vm.AcquireChordDataCommand.Execute(null);
+            flyout.Items.Add(acquire);
+        }
+
         var noChord = new MenuItem { Header = (segment.Chord is null ? "● " : "　") + "N.C.（鳴らさない）" };
         noChord.Click += (_, _) => vm.SetChordOverride(segment, null);
         flyout.Items.Add(noChord);
@@ -186,14 +196,15 @@ public partial class MainWindow : Window
         var text = string.Join("\n", [
             "コード候補の並び（前のコードからの来やすさ）は、次のデータセットから集計した表を使っています。",
             "",
-            .. ChordTransitionTable.Default.Sources.Select(s => "・" + s),
+            .. (ViewModel?.ChordTable ?? ChordTransitionTable.Default).Sources.Select(s => "・" + s),
             "",
             "McGill Billboard Project: J. A. Burgoyne, J. Wild, I. Fujinaga,",
             "  \"An Expert Ground Truth Set for Audio Chord Recognition and Music Analysis\", ISMIR 2011.",
             "Chordonomicon: S. Kantarelis et al., \"CHORDONOMICON: A Dataset of 666,000 Songs and their",
             "  Chord Progressions\", arXiv:2410.22046, 2024. https://huggingface.co/datasets/ailsntua/Chordonomicon",
             "",
-            "Chordonomicon は CC BY-NC 4.0 のため、この表を含む hanautaSketch は非営利でのみ配布します。",
+            "同梱しているのは McGill Billboard（CC0）だけから集計した表です。Chordonomicon（CC BY-NC 4.0）は、",
+            "ツールメニューからライセンスに同意して取得した場合だけ使い、そのデータは非営利の目的でのみ利用できます。",
             "そのほかのライブラリのライセンスは、リポジトリの THIRD_PARTIES.md にまとめています。",
         ]);
         var window = new Window
