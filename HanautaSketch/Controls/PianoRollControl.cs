@@ -85,6 +85,12 @@ public sealed partial class PianoRollControl : Control
     /// <summary>1音の行の高さ（px）。Ctrl+Shift+ホイールで縦ズームする</summary>
     private double _noteHeight = DefaultNoteHeight;
 
+    /// <summary>再生ヘッドに合わせて横スクロールするか。手動で横にスクロールすると止まり、次の再生開始で再開する</summary>
+    private bool _followPlayhead;
+
+    /// <summary>追従による横スクロール中かどうか。中は手動操作とみなさない</summary>
+    private bool _autoScrolling;
+
     static PianoRollControl()
     {
         AffectsRender<PianoRollControl>(SongProperty, TrackProperty, ConductorRevisionProperty, SnapTicksProperty, ChordsProperty,
@@ -243,6 +249,45 @@ public sealed partial class PianoRollControl : Control
     private Rect EditArea => new(KeyboardWidth, HeaderHeight,
         Math.Max(0, Bounds.Width - KeyboardWidth),
         Math.Max(0, Bounds.Height - HeaderHeight - VelocityLaneHeight - SplitterHeight));
+
+    #region 再生追従
+
+    /// <summary>
+    /// 再生ヘッドの移動に合わせて横スクロールする。開始時は画面外なら表示し、再生中は中央を超えたら中央に保つ。
+    /// </summary>
+    private void OnPlayheadMoved(double oldTick, double newTick)
+    {
+        if (newTick < 0)
+        {
+            _followPlayhead = false;
+            return;
+        }
+
+        if (oldTick < 0) _followPlayhead = true;
+        if (!_followPlayhead) return;
+
+        var viewCenter = EditArea.Width / 2;
+        var headX = newTick * PixelsPerTick - HorizontalOffset;
+        if (headX >= 0 && headX < viewCenter) return;
+
+        ScrollHorizontalTo(newTick * PixelsPerTick - viewCenter);
+    }
+
+    /// <summary>追従による横スクロール。手動操作として扱わないよう印を付けて設定する</summary>
+    private void ScrollHorizontalTo(double offset)
+    {
+        _autoScrolling = true;
+        try
+        {
+            HorizontalOffset = Math.Clamp(offset, 0, HorizontalMaximum);
+        }
+        finally
+        {
+            _autoScrolling = false;
+        }
+    }
+
+    #endregion
 
     #region 座標変換
 
