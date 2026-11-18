@@ -50,7 +50,7 @@ public sealed partial class PianoRollControl : Control
             defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
 
     public static readonly StyledProperty<double> VerticalOffsetProperty =
-        AvaloniaProperty.Register<PianoRollControl, double>(nameof(VerticalOffset), (PitchCount - 1 - 84) * NoteHeight,
+        AvaloniaProperty.Register<PianoRollControl, double>(nameof(VerticalOffset), (PitchCount - 1 - 84) * DefaultNoteHeight,
             defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
 
     public static readonly StyledProperty<double> HorizontalMaximumProperty =
@@ -68,7 +68,9 @@ public sealed partial class PianoRollControl : Control
     private const double KeyboardWidth = 56;
     private const double RulerHeight = 22;
     private const double ChordLaneHeight = 22;
-    private const double NoteHeight = 12;
+    private const double DefaultNoteHeight = 12;
+    private const double MinNoteHeight = 4;
+    private const double MaxNoteHeight = 40;
     private const int PitchCount = 128;
 
     /// <summary>最後のノートの後ろに確保するスクロール余白（小節数）</summary>
@@ -79,6 +81,9 @@ public sealed partial class PianoRollControl : Control
     /// <summary>今のテーマの配色。テーマかリソースが変わるまで使い回す</summary>
     private PianoRollPalette Palette => _palette ??= PianoRollPalette.Load(this, ActualThemeVariant);
     private double _pixelsPerBeat = 80;
+
+    /// <summary>1音の行の高さ（px）。Ctrl+Shift+ホイールで縦ズームする</summary>
+    private double _noteHeight = DefaultNoteHeight;
 
     /// <summary>再生ヘッドに合わせて横スクロールするか。手動で横にスクロールすると止まり、次の再生開始で再開する</summary>
     private bool _followPlayhead;
@@ -290,12 +295,12 @@ public sealed partial class PianoRollControl : Control
 
     private double XToTick(double x) => (x - KeyboardWidth + HorizontalOffset) / PixelsPerTick;
 
-    private double PitchToY(int pitch) => HeaderHeight + (PitchCount - 1 - pitch) * NoteHeight - VerticalOffset;
+    private double PitchToY(int pitch) => HeaderHeight + (PitchCount - 1 - pitch) * _noteHeight - VerticalOffset;
 
-    private int YToPitch(double y) => PitchCount - 1 - (int)Math.Floor((y - HeaderHeight + VerticalOffset) / NoteHeight);
+    private int YToPitch(double y) => PitchCount - 1 - (int)Math.Floor((y - HeaderHeight + VerticalOffset) / _noteHeight);
 
     private Rect NoteRect(Note note) =>
-        new(TickToX(note.Tick), PitchToY(note.Pitch), Math.Max(2, note.Length * PixelsPerTick), NoteHeight);
+        new(TickToX(note.Tick), PitchToY(note.Pitch), Math.Max(2, note.Length * PixelsPerTick), _noteHeight);
 
     private int SnapFloor(double tick) => (int)Math.Floor(tick / SnapTicks) * SnapTicks;
 
@@ -384,7 +389,7 @@ public sealed partial class PianoRollControl : Control
             for (var pitch = bottom; pitch <= top; pitch++)
             {
                 var pc = pitch % 12;
-                var row = new Rect(left, PitchToY(pitch), right - left, NoteHeight);
+                var row = new Rect(left, PitchToY(pitch), right - left, _noteHeight);
                 if (pc == key.Tonic)
                     context.FillRectangle(Palette.TonicRow, row);
                 else if (scale.Contains(pc))
@@ -394,7 +399,7 @@ public sealed partial class PianoRollControl : Control
 
         for (var pitch = bottom; pitch <= top; pitch++)
         {
-            var y = PitchToY(pitch) + NoteHeight;
+            var y = PitchToY(pitch) + _noteHeight;
             context.DrawLine(Palette.RowLine, new Point(area.X, y), new Point(area.Right, y));
         }
     }
@@ -502,9 +507,9 @@ public sealed partial class PianoRollControl : Control
         {
             var y = PitchToY(pitch);
             var isBlack = IsBlackKey(pitch);
-            var rect = new Rect(0, y, KeyboardWidth, NoteHeight);
+            var rect = new Rect(0, y, KeyboardWidth, _noteHeight);
             context.FillRectangle(isBlack ? Palette.BlackKey : Palette.WhiteKey, rect);
-            context.DrawLine(Palette.KeySeparator, new Point(0, y + NoteHeight), new Point(KeyboardWidth, y + NoteHeight));
+            context.DrawLine(Palette.KeySeparator, new Point(0, y + _noteHeight), new Point(KeyboardWidth, y + _noteHeight));
 
             if (pitch % 12 == 0)
                 DrawText(context, $"C{pitch / 12 - 1}", new Point(KeyboardWidth - 22, y), Palette.KeyLabel, 9);
