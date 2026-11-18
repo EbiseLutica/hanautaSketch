@@ -85,6 +85,9 @@
             <ToggleButton Content="{x:Static res:Strings.TogglePlay}" Command="{Binding TogglePlaybackCommand}" IsChecked="{Binding IsPlaying, Mode=OneWay}" Width="80" />
             <TextBlock Text="BPM" VerticalAlignment="Center" Margin="8,0,0,0" />
             <NumericUpDown Value="{Binding Bpm}" Minimum="20" Maximum="400" Increment="1" FormatString="0" Width="110" />
+            <Button Content="{x:Static res:Strings.TapTempo}" Command="{Binding TapCommand}" ToolTip.Tip="{x:Static res:Strings.TapTempoTip}" />
+            <TextBlock Text="{Binding TapStatus}" VerticalAlignment="Center" Classes="dimmed" />
+            <Button Content="{x:Static res:Strings.ApplyTap}" Command="{Binding ApplyTapCommand}" ToolTip.Tip="{x:Static res:Strings.ApplyTapTip}" />
             <TextBlock Text="Key" VerticalAlignment="Center" Margin="16,0,0,0" />
             <ComboBox ItemsSource="{Binding TonicNames}" SelectedIndex="{Binding Tonic}" Width="80" />
             <ComboBox ItemsSource="{Binding Modes}" SelectedItem="{Binding Mode}" Width="100" />

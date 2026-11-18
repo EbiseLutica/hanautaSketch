@@ -136,6 +136,21 @@
   <data name="ThemeDark" xml:space="preserve">
     <value>Dark</value>
   </data>
+  <data name="TapTempo" xml:space="preserve">
+    <value>Tap</value>
+  </data>
+  <data name="TapTempoTip" xml:space="preserve">
+    <value>Tap along to the beat (T key). BPM is the average of the last 8 taps</value>
+  </data>
+  <data name="ApplyTap" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="ApplyTapTip" xml:space="preserve">
+    <value>Apply the candidate BPM at the play start</value>
+  </data>
+  <data name="TapCandidate" xml:space="preserve">
+    <value>Candidate {0} BPM</value>
+  </data>
   <data name="TogglePlay" xml:space="preserve">
     <value>▶ Play</value>
   </data>

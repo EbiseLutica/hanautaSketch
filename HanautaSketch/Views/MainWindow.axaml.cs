@@ -156,12 +156,17 @@ public partial class MainWindow : Window
         public void Redo() => textBox.Redo();
     }
 
+    /// <summary>テキスト入力中は無効。Space は再生の切り替え、T はタップテンポ</summary>
     private void OnPreviewKeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Key != Key.Space || e.KeyModifiers != KeyModifiers.None) return;
+        if (e.KeyModifiers != KeyModifiers.None) return;
+        if (e.Key is not (Key.Space or Key.T)) return;
         if (FocusManager?.GetFocusedElement() is TextBox) return;
 
-        ViewModel?.TogglePlaybackCommand.Execute(null);
+        if (e.Key == Key.Space)
+            ViewModel?.TogglePlaybackCommand.Execute(null);
+        else
+            ViewModel?.TapCommand.Execute(null);
         e.Handled = true;
     }
 
