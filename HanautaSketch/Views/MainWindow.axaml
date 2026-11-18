@@ -104,6 +104,8 @@
             </MenuItem>
             <MenuItem Header="{x:Static res:Strings.MenuHelp}">
                 <MenuItem Header="{x:Static res:Strings.MenuDataSources}" Click="OnShowDataSourcesMenuItem" />
+                <Separator />
+                <MenuItem Header="{x:Static res:Strings.AboutApp}" Click="OnShowAboutMenuItem" />
             </MenuItem>
         </Menu>
 
