@@ -35,6 +35,8 @@ jobs:
   publish:
     name: Publish (${{ matrix.rid }})
     needs: test
+    # PR では publish しない（master への push と手動実行のみ）
+    if: github.event_name != 'pull_request'
     strategy:
       fail-fast: false
       matrix:
