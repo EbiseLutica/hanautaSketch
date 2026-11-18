@@ -12,16 +12,12 @@ public interface IAudioOutput : IDisposable
 }
 
 /// <summary>
-/// 実行中の OS に合った <see cref="IAudioOutput"/> を作る。
-/// Windows は WASAPI（NAudio）、それ以外（macOS など）は OpenAL（Silk.NET）。
+/// <see cref="IAudioOutput"/> を作る。全 OS で OpenAL Soft（Silk.NET）を使う（Windows では内部で WASAPI に出力される）。
 /// </summary>
 public static class AudioOutput
 {
     /// <summary>
     /// 既定の出力デバイスのサンプルレートでエンジンを作り、出力を開始する。SF2 の読み込みは重いので別スレッドで呼ぶ。
     /// </summary>
-    public static IAudioOutput Create(string soundFontPath) =>
-        OperatingSystem.IsWindows()
-            ? WasapiAudioOutput.Create(soundFontPath)
-            : OpenAlAudioOutput.Create(soundFontPath);
+    public static IAudioOutput Create(string soundFontPath) => OpenAlAudioOutput.Create(soundFontPath);
 }

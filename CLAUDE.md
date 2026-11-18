@@ -20,7 +20,9 @@
   - 表示文字列は `HanautaSketch/Resources/Strings.resx`（英語・既定）と `Strings.ja.resx` に置き、`Strings.Designer.cs` のプロパティ経由で使う（XAML は `{x:Static res:Strings.X}`、書式付きは `Strings.Format`）。キーを足すときは両方の resx とプロパティを足す。言語は OS に従い、設定（`AppSettings.Language`）で上書きできる（反映は次回起動時）
   - Engine の例外メッセージは英語。UI に出る文言は App 側で訳す（プロジェクト形式の例外は `ErrorDetail` で表示文に置き換える）
 - テスト：xUnit
-- 再生：MeltySynth（SF2）でシンセを鳴らす。出力は Windows が NAudio 2.2.1（WASAPI 共有モード）、それ以外（macOS など）が Silk.NET.OpenAL（OpenAL Soft を常に使う）。MeltySynth とシーケンサーは Engine（`PlaybackEngine`）、OS 依存の出力は App（`IAudioOutput`、`AudioOutput.Create` が OS で振り分ける）に置く
+- 配布は NativeAOT（`PublishAot`）。リフレクション前提の処理は書かない。JSON は `JsonSerializerContext` のソース生成で読み書きする（`ProjectSerializer`、`AppSettingsStore`）
+- CI：GitHub Actions（`.github/workflows/ci.yml`）。PR と master への push で Windows / macOS / Linux のテストと、win-x64 / osx-arm64（`.app`）/ linux-x64 / linux-arm64 の publish を行い、成果物を Artifacts に上げる（SF2 は含まない）。AOT はビルド環境の glibc にリンクされるので、Linux は ubuntu-22.04 でビルドする（glibc 2.35 以上で動く）
+- 再生：MeltySynth（SF2）でシンセを鳴らす。出力は全 OS で Silk.NET.OpenAL（OpenAL Soft を常に使う。Windows では内部で WASAPI）。NAudio は COM interop が NativeAOT で動かないので使わない。MeltySynth とシーケンサーは Engine（`PlaybackEngine`）、出力は App（`IAudioOutput`、`AudioOutput.Create`）に置く
   - 音源は `HanautaSketch/SoundFonts/*.sf2` に置く（GM 互換の SGM-V2.01 を想定）。サイズが大きいので git 管理外（`.gitignore` で `*.sf2` を除外）。ビルド時に出力先へコピーされる
 - 保存形式：独自 JSON（`.hsk`、`ProjectSerializer`）。ファイル上の形式は DTO で固定し、`version` で互換性を管理する（`"version": "0.6"` のメジャー.マイナー表記。正式版で 1.0 にする。0.x の間はマイナーまで含めて新しいファイルを弾く。初期の整数表記 1 / 2 は 0.1 / 0.2 として読む。0.2 でスマートコード、0.3 でスマートドラムのトラック種別を追加、0.4 でコードの N.C. override とドラムのベース追従モード（none / fill / full）、0.5 でテンポ・拍子・キーの途中変更（tempos / meters / keys。0.4 までの曲頭の値 bpm / beatsPerBar / key は読み込みのみ）、0.6 でコードの種類に三和音以外（7th・sus・テンションなど）。0.1 の曲全体のスマートコード設定は読み込み時に無視する）。ファイル選択・確認などのダイアログは `IDialogService` 経由で VM から使う。曲に依存しないアプリ設定は `%APPDATA%\hanautaSketch\settings.json`（`AppSettingsStore`）
 - 採用予定：MIDI 入出力は DryWetMIDI
@@ -51,7 +53,7 @@
 ```
 HanautaSketch.slnx
 HanautaSketch/               Avalonia アプリ（UI）
-  Audio/                     オーディオ出力（IAudioOutput：WASAPI / OpenAL）
+  Audio/                     オーディオ出力（IAudioOutput：OpenAL）
   Controls/                  自前描画のカスタムコントロール（PianoRollControl など）
   Services/                  View 依存の処理を VM から使うための窓口（ダイアログ）、アプリ設定
   SoundFonts/                SF2 置き場（git 管理外）
