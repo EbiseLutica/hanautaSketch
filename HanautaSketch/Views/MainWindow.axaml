@@ -49,7 +49,7 @@
             </NativeMenuItem>
             <NativeMenuItem Header="{x:Static res:Strings.NativeHelp}">
                 <NativeMenu>
-                    <NativeMenuItem Header="{x:Static res:Strings.NativeDataSources}" Click="OnShowDataSources" />
+                    <NativeMenuItem Header="{x:Static res:Strings.NativeLicenses}" Click="OnShowLicenses" />
                 </NativeMenu>
             </NativeMenuItem>
         </NativeMenu>
@@ -74,7 +74,7 @@
                 <MenuItem Header="{x:Static res:Strings.MenuSettings}" Click="OnShowSettingsMenuItem" InputGesture="Ctrl+OemComma" />
             </MenuItem>
             <MenuItem Header="{x:Static res:Strings.MenuHelp}">
-                <MenuItem Header="{x:Static res:Strings.MenuDataSources}" Click="OnShowDataSourcesMenuItem" />
+                <MenuItem Header="{x:Static res:Strings.MenuLicenses}" Click="OnShowLicensesMenuItem" />
                 <Separator />
                 <MenuItem Header="{x:Static res:Strings.AboutApp}" Click="OnShowAboutMenuItem" />
             </MenuItem>

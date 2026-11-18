@@ -52,6 +52,11 @@ not included in this repository.
 
 ## Libraries
 
+The full list of distributed packages (including transitive dependencies and the .NET SDK), with the
+license texts, is generated into `HanautaSketch/Licenses/third-party.txt` by
+`dotnet run tools/LicenseCollector/CollectLicenses.cs` and shown in the app (Help menu). Run it again
+after changing package references. The tables below are a summary.
+
 Distributed with the application:
 
 | Package | License |

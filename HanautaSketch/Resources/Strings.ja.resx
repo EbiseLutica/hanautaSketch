@@ -10,8 +10,8 @@
   <data name="AboutTagline" xml:space="preserve">
     <value>メロディとベースラインをスケッチする作曲支援ツール</value>
   </data>
-  <data name="AboutLicense" xml:space="preserve">
-    <value>MIT License ・ データの出典はヘルプメニューから</value>
+  <data name="AboutLicensesLink" xml:space="preserve">
+    <value>オープンソースライセンス...</value>
   </data>
   <data name="NativeFile" xml:space="preserve">
     <value>ファイル</value>
@@ -55,8 +55,8 @@
   <data name="NativeHelp" xml:space="preserve">
     <value>ヘルプ</value>
   </data>
-  <data name="NativeDataSources" xml:space="preserve">
-    <value>データの出典...</value>
+  <data name="NativeLicenses" xml:space="preserve">
+    <value>オープンソースライセンス...</value>
   </data>
   <data name="MenuFile" xml:space="preserve">
     <value>ファイル(_F)</value>
@@ -91,8 +91,8 @@
   <data name="MenuHelp" xml:space="preserve">
     <value>ヘルプ(_H)</value>
   </data>
-  <data name="MenuDataSources" xml:space="preserve">
-    <value>データの出典(_D)...</value>
+  <data name="MenuLicenses" xml:space="preserve">
+    <value>オープンソースライセンス(_L)...</value>
   </data>
   <data name="MacServices" xml:space="preserve">
     <value>サービス</value>
@@ -370,17 +370,23 @@
   <data name="ChordGroupTension" xml:space="preserve">
     <value>テンション</value>
   </data>
-  <data name="DataSourcesTitle" xml:space="preserve">
-    <value>データの出典</value>
+  <data name="LicensesTitle" xml:space="preserve">
+    <value>オープンソースライセンス</value>
+  </data>
+  <data name="LicensesAppHeader" xml:space="preserve">
+    <value>hanautaSketch（MIT License）</value>
+  </data>
+  <data name="LicensesDataHeader" xml:space="preserve">
+    <value>データ</value>
+  </data>
+  <data name="LicensesLibrariesHeader" xml:space="preserve">
+    <value>ライブラリ（アプリに同梱）</value>
   </data>
   <data name="DataSourcesIntro" xml:space="preserve">
     <value>コード候補の並び（前のコードからの来やすさ）は、次のデータセットから集計した表を使っています。</value>
   </data>
   <data name="DataSourcesBundled" xml:space="preserve">
     <value>同梱しているのは McGill Billboard（CC0）だけから集計した表です。Chordonomicon（CC BY-NC 4.0）は、設定画面からライセンスに同意して取得した場合だけ使い、そのデータは非営利の目的でのみ利用できます。</value>
-  </data>
-  <data name="DataSourcesLibraries" xml:space="preserve">
-    <value>そのほかのライブラリのライセンスは、リポジトリの THIRD_PARTIES.md にまとめています。</value>
   </data>
   <data name="UnsavedMessage" xml:space="preserve">
     <value>「{0}」への変更を保存しますか？</value>

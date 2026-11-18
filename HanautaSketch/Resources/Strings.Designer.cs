@@ -15,7 +15,7 @@ public static class Strings
 
     public static string AboutApp => Get(nameof(AboutApp));
     public static string AboutTagline => Get(nameof(AboutTagline));
-    public static string AboutLicense => Get(nameof(AboutLicense));
+    public static string AboutLicensesLink => Get(nameof(AboutLicensesLink));
     public static string NativeFile => Get(nameof(NativeFile));
     public static string NativeNew => Get(nameof(NativeNew));
     public static string NativeOpen => Get(nameof(NativeOpen));
@@ -30,7 +30,7 @@ public static class Strings
     public static string NativeMinimize => Get(nameof(NativeMinimize));
     public static string NativeZoom => Get(nameof(NativeZoom));
     public static string NativeHelp => Get(nameof(NativeHelp));
-    public static string NativeDataSources => Get(nameof(NativeDataSources));
+    public static string NativeLicenses => Get(nameof(NativeLicenses));
     public static string MenuFile => Get(nameof(MenuFile));
     public static string MenuNew => Get(nameof(MenuNew));
     public static string MenuOpen => Get(nameof(MenuOpen));
@@ -42,7 +42,7 @@ public static class Strings
     public static string MenuRedo => Get(nameof(MenuRedo));
     public static string MenuTools => Get(nameof(MenuTools));
     public static string MenuHelp => Get(nameof(MenuHelp));
-    public static string MenuDataSources => Get(nameof(MenuDataSources));
+    public static string MenuLicenses => Get(nameof(MenuLicenses));
     public static string MacServices => Get(nameof(MacServices));
     public static string MacHideApp => Get(nameof(MacHideApp));
     public static string MacHideOthers => Get(nameof(MacHideOthers));
@@ -135,10 +135,12 @@ public static class Strings
     public static string ChordGroupSixth => Get(nameof(ChordGroupSixth));
     public static string ChordGroupSeventh => Get(nameof(ChordGroupSeventh));
     public static string ChordGroupTension => Get(nameof(ChordGroupTension));
-    public static string DataSourcesTitle => Get(nameof(DataSourcesTitle));
+    public static string LicensesTitle => Get(nameof(LicensesTitle));
+    public static string LicensesAppHeader => Get(nameof(LicensesAppHeader));
+    public static string LicensesDataHeader => Get(nameof(LicensesDataHeader));
+    public static string LicensesLibrariesHeader => Get(nameof(LicensesLibrariesHeader));
     public static string DataSourcesIntro => Get(nameof(DataSourcesIntro));
     public static string DataSourcesBundled => Get(nameof(DataSourcesBundled));
-    public static string DataSourcesLibraries => Get(nameof(DataSourcesLibraries));
     public static string UnsavedMessage => Get(nameof(UnsavedMessage));
     public static string UnsavedSave => Get(nameof(UnsavedSave));
     public static string UnsavedDiscard => Get(nameof(UnsavedDiscard));

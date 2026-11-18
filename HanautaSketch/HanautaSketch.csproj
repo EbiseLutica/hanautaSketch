@@ -36,4 +36,9 @@
     <ProjectReference Include="..\HanautaSketch.Engine\HanautaSketch.Engine.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="..\LICENSE" LogicalName="LICENSE" />
+    <EmbeddedResource Include="Licenses\third-party.txt" LogicalName="third-party.txt" />
+  </ItemGroup>
+
 </Project>
