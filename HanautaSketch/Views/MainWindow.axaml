@@ -3,6 +3,7 @@
         xmlns:vm="using:HanautaSketch.ViewModels"
         xmlns:c="using:HanautaSketch.Controls"
         xmlns:res="using:HanautaSketch.Resources"
+        xmlns:ic="using:FluentIcons.Avalonia"
         x:Class="HanautaSketch.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="{Binding WindowTitle}"
@@ -104,7 +105,9 @@
 
         <!-- ツールバー -->
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="8">
-            <ToggleButton Content="{x:Static res:Strings.TogglePlay}" Command="{Binding TogglePlaybackCommand}" IsChecked="{Binding IsPlaying, Mode=OneWay}" Width="80" />
+            <ToggleButton Command="{Binding TogglePlaybackCommand}" IsChecked="{Binding IsPlaying, Mode=OneWay}" Width="40" HorizontalContentAlignment="Center" ToolTip.Tip="{x:Static res:Strings.TogglePlayTip}">
+                <ic:FluentIcon Icon="{Binding PlaybackIcon}" IconVariant="Filled" FontSize="16" />
+            </ToggleButton>
             <TextBlock Text="BPM" VerticalAlignment="Center" Margin="8,0,0,0" />
             <NumericUpDown Value="{Binding Bpm}" Minimum="20" Maximum="400" Increment="1" FormatString="0" Width="110" />
             <Button Content="{x:Static res:Strings.TapTempo}" Command="{Binding TapCommand}" ToolTip.Tip="{x:Static res:Strings.TapTempoTip}" />

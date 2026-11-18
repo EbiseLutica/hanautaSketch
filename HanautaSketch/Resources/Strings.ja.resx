@@ -151,8 +151,8 @@
   <data name="TapCandidate" xml:space="preserve">
     <value>候補 {0} BPM</value>
   </data>
-  <data name="TogglePlay" xml:space="preserve">
-    <value>▶ 再生</value>
+  <data name="TogglePlayTip" xml:space="preserve">
+    <value>再生 / 停止（Space）</value>
   </data>
   <data name="DefaultTrackMelody" xml:space="preserve">
     <value>メロディ</value>
