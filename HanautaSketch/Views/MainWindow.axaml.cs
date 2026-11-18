@@ -274,7 +274,12 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// アプリの紹介を表示する（macOS のアプリ名メニューの「について」から）。
+    /// Windows のヘルプメニューから「について」を開く。
+    /// </summary>
+    private void OnShowAboutMenuItem(object? sender, RoutedEventArgs e) => ShowAbout();
+
+    /// <summary>
+    /// アプリの紹介を表示する（macOS のアプリ名メニュー、Windows のヘルプメニューから）。
     /// </summary>
     public void ShowAbout()
     {
