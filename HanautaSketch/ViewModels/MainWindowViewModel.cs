@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using HanautaSketch.Controls;
 using HanautaSketch.Engine.Core;
 using HanautaSketch.Engine.Smart.Chords;
 using HanautaSketch.Engine.Smart.Drums;
@@ -268,6 +269,75 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         if (ChordLaneTrack is not { } track) return;
         OnEditStarted();
         track.ClearOverrides(segment.Start, segment.Length);
+        OnEditCompleted();
+        OnSmartTrackSettingsChanged();
+    }
+
+    /// <summary>
+    /// 指定 tick を含む override を返す。コードレーンの端・内側のドラッグ対象を探すのに使う。
+    /// </summary>
+    public ChordOverride? FindChordOverride(int tick) =>
+        ChordLaneTrack?.Overrides.FirstOrDefault(o => o.Start <= tick && tick < o.End);
+
+    /// <summary>
+    /// override の範囲を [start, end) に伸縮する。重なる他の override は切り詰める。
+    /// </summary>
+    public void ResizeChordOverride(ChordOverride target, int start, int end)
+    {
+        if (ChordLaneTrack is not { } track || end <= start) return;
+        OnEditStarted();
+        track.ResizeOverride(target, start, end);
+        OnEditCompleted();
+        OnSmartTrackSettingsChanged();
+    }
+
+    /// <summary>
+    /// override の長さを保ったまま、開始位置を動かす。重なる他の override は切り詰める。
+    /// </summary>
+    public void MoveChordOverride(ChordOverride target, int start)
+    {
+        if (ChordLaneTrack is not { } track) return;
+        OnEditStarted();
+        track.MoveOverride(target, start);
+        OnEditCompleted();
+        OnSmartTrackSettingsChanged();
+    }
+
+    /// <summary>
+    /// コードレーンのドラッグ結果を、種類に応じた編集にする。伸縮の反対側の端は、対象 override の現在の位置を保つ。
+    /// </summary>
+    public void ApplyChordLaneDrag(ChordLaneDragKind kind, ChordSegment? segment, int start, int end)
+    {
+        if (kind == ChordLaneDragKind.Create)
+        {
+            CreateChordOverride(start, end);
+            return;
+        }
+
+        if (segment is null || FindChordOverride(segment.Start) is not { } target) return;
+        switch (kind)
+        {
+            case ChordLaneDragKind.Move:
+                MoveChordOverride(target, start);
+                break;
+            case ChordLaneDragKind.ResizeStart:
+                ResizeChordOverride(target, start, target.End);
+                break;
+            case ChordLaneDragKind.ResizeEnd:
+                ResizeChordOverride(target, target.Start, end);
+                break;
+        }
+    }
+
+    /// <summary>
+    /// [start, end) を固定区間として新規に作る。コードは開始位置で判別されているものを引き継ぐ（判別が無ければ N.C.）。
+    /// </summary>
+    public void CreateChordOverride(int start, int end)
+    {
+        if (ChordLaneTrack is not { } track || end <= start) return;
+        var chord = Chords.FirstOrDefault(c => c.Start <= start && start < c.End)?.Chord?.RootPosition;
+        OnEditStarted();
+        track.SetOverride(start, end - start, chord);
         OnEditCompleted();
         OnSmartTrackSettingsChanged();
     }

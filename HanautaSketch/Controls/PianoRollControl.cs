@@ -549,6 +549,8 @@ public sealed partial class PianoRollControl : Control
                 DrawText(context, block.GetName(Conductor.KeyAt(block.Start)), new Point(rect.X + 4, rect.Y + 1), Palette.Text, 12);
             }
         }
+
+        RenderChordLaneDragPreview(context);
     }
 
     /// <summary>
