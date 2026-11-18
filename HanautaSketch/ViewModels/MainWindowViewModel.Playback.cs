@@ -8,12 +8,14 @@ namespace HanautaSketch.ViewModels;
 
 /// <summary>
 /// 再生まわり。SF2 の読み込みは重いので起動後にバックグラウンドで行う。
+/// SoundFont は設定（<see cref="Services.AppSettings.SoundFontPath"/>）のものを使い、変えたらその場で読み込み直す。
 /// </summary>
 public partial class MainWindowViewModel
 {
-    private const string SoundFontDirectory = "SoundFonts";
-
     private IAudioOutput? _audio;
+
+    /// <summary>読み込みの世代。読み込み中に次の読み込みや終了が来たら、古い結果は捨てる</summary>
+    private int _audioLoadVersion;
     private DispatcherTimer? _playheadTimer;
 
     [ObservableProperty]
@@ -47,27 +49,51 @@ public partial class MainWindowViewModel
         _ = LoadAudioAsync();
     }
 
+    /// <summary>
+    /// 設定の SoundFont で出力を作り直す。今の出力は止めて破棄し、音色名・ドラムキット名も GM の名前に戻してから読み込む。
+    /// </summary>
     private async Task LoadAudioAsync()
     {
-        var dir = Path.Combine(AppContext.BaseDirectory, SoundFontDirectory);
-        var path = Directory.Exists(dir) ? Directory.EnumerateFiles(dir, "*.sf2").FirstOrDefault() : null;
+        var version = ++_audioLoadVersion;
+        StopPlayback();
+        var previous = _audio;
+        _audio = null;
+        IsAudioReady = false;
+        previous?.Dispose();
+        ResetSoundFontNames();
+
+        var path = _appSettings.SoundFontPath;
         if (path is null)
         {
-            AudioStatus = Strings.Format(Strings.AudioSoundFontMissing, SoundFontDirectory);
+            AudioStatus = Strings.AudioSoundFontNotSet;
+            return;
+        }
+        if (!File.Exists(path))
+        {
+            AudioStatus = Strings.Format(Strings.AudioSoundFontNotFound, Path.GetFileName(path));
             return;
         }
 
+        AudioStatus = Strings.AudioLoading;
         try
         {
-            _audio = await Task.Run(() => AudioOutput.Create(path));
+            var audio = await Task.Run(() => AudioOutput.Create(path));
+            if (version != _audioLoadVersion)
+            {
+                audio.Dispose();
+                return;
+            }
+
+            _audio = audio;
             AudioStatus = Path.GetFileName(path);
             IsAudioReady = true;
-            ApplyPresetNames(_audio.Engine.GetPresetNames());
-            ApplyDrumKitNames(_audio.Engine.GetDrumKitNames());
+            ApplyPresetNames(audio.Engine.GetPresetNames());
+            ApplyDrumKitNames(audio.Engine.GetDrumKitNames());
         }
         catch (Exception ex)
         {
-            AudioStatus = Strings.Format(Strings.AudioInitFailed, ErrorDetail(ex));
+            if (version == _audioLoadVersion)
+                AudioStatus = Strings.Format(Strings.AudioInitFailed, ErrorDetail(ex));
         }
     }
 
@@ -129,6 +155,7 @@ public partial class MainWindowViewModel
     public void Dispose()
     {
         _playheadTimer?.Stop();
+        _audioLoadVersion++;
         _audio?.Dispose();
     }
 }

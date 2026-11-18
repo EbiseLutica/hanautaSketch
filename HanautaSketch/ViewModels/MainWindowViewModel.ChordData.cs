@@ -21,7 +21,11 @@ public partial class MainWindowViewModel
     /// <summary>Chordonomicon を足した表を使っているか</summary>
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(AcquireChordDataCommand), nameof(RemoveChordDataCommand))]
+    [NotifyPropertyChangedFor(nameof(ChordDataState))]
     private bool _hasExtendedChordData = ChordDataStore.HasExtended;
+
+    /// <summary>設定画面に出す、使っている表の説明</summary>
+    public string ChordDataState => HasExtendedChordData ? Strings.ChordDataStateExtended : Strings.ChordDataStateBundled;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(AcquireChordDataCommand), nameof(RemoveChordDataCommand),

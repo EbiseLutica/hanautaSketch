@@ -20,8 +20,6 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     public MainWindowViewModel()
     {
         InitializeTrackItems();
-        LanguageChoice = _appSettings.Language;
-        ThemeChoice = _appSettings.Theme;
         ReplaceTracks(CreateDefaultTracks());
         _selectedSnap = SnapOptions[2];
         SyncConductorDisplay();

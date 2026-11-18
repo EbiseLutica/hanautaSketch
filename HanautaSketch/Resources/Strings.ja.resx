@@ -43,18 +43,6 @@
   <data name="NativeRedo" xml:space="preserve">
     <value>やり直す</value>
   </data>
-  <data name="NativeTools" xml:space="preserve">
-    <value>ツール</value>
-  </data>
-  <data name="NativeAcquireChordData" xml:space="preserve">
-    <value>高度なコード遷移データを取得...</value>
-  </data>
-  <data name="NativeCancelChordData" xml:space="preserve">
-    <value>コード情報の抽出を中止</value>
-  </data>
-  <data name="NativeRemoveChordData" xml:space="preserve">
-    <value>高度なコード遷移データを削除</value>
-  </data>
   <data name="NativeWindow" xml:space="preserve">
     <value>ウィンドウ</value>
   </data>
@@ -99,15 +87,6 @@
   </data>
   <data name="MenuTools" xml:space="preserve">
     <value>ツール(_T)</value>
-  </data>
-  <data name="MenuAcquireChordData" xml:space="preserve">
-    <value>高度なコード遷移データを取得(_C)...</value>
-  </data>
-  <data name="MenuCancelChordData" xml:space="preserve">
-    <value>コード情報の抽出を中止</value>
-  </data>
-  <data name="MenuRemoveChordData" xml:space="preserve">
-    <value>高度なコード遷移データを削除</value>
   </data>
   <data name="MenuHelp" xml:space="preserve">
     <value>ヘルプ(_H)</value>
@@ -383,7 +362,7 @@
     <value>コード候補の並び（前のコードからの来やすさ）は、次のデータセットから集計した表を使っています。</value>
   </data>
   <data name="DataSourcesBundled" xml:space="preserve">
-    <value>同梱しているのは McGill Billboard（CC0）だけから集計した表です。Chordonomicon（CC BY-NC 4.0）は、ツールメニューからライセンスに同意して取得した場合だけ使い、そのデータは非営利の目的でのみ利用できます。</value>
+    <value>同梱しているのは McGill Billboard（CC0）だけから集計した表です。Chordonomicon（CC BY-NC 4.0）は、設定画面からライセンスに同意して取得した場合だけ使い、そのデータは非営利の目的でのみ利用できます。</value>
   </data>
   <data name="DataSourcesLibraries" xml:space="preserve">
     <value>そのほかのライブラリのライセンスは、リポジトリの THIRD_PARTIES.md にまとめています。</value>
@@ -480,9 +459,6 @@ https://huggingface.co/datasets/ailsntua/Chordonomicon
   <data name="AudioLoading" xml:space="preserve">
     <value>音源を読み込み中…</value>
   </data>
-  <data name="AudioSoundFontMissing" xml:space="preserve">
-    <value>SF2 が見つからない（{0}/ に置く）</value>
-  </data>
   <data name="AudioInitFailed" xml:space="preserve">
     <value>音源の初期化に失敗: {0}</value>
   </data>
@@ -518,5 +494,73 @@ https://huggingface.co/datasets/ailsntua/Chordonomicon
   </data>
   <data name="StopExtraction" xml:space="preserve">
     <value>中止</value>
+  </data>
+  <data name="NativeSettings" xml:space="preserve">
+    <value>設定…</value>
+  </data>
+  <data name="MenuSettings" xml:space="preserve">
+    <value>設定(_S)...</value>
+  </data>
+  <data name="SettingsTitle" xml:space="preserve">
+    <value>設定</value>
+  </data>
+  <data name="SettingsSound" xml:space="preserve">
+    <value>サウンド</value>
+  </data>
+  <data name="SettingsAppearance" xml:space="preserve">
+    <value>表示</value>
+  </data>
+  <data name="SettingsChordTable" xml:space="preserve">
+    <value>コードテーブル</value>
+  </data>
+  <data name="SoundFontLabel" xml:space="preserve">
+    <value>SoundFont</value>
+  </data>
+  <data name="SoundFontChoose" xml:space="preserve">
+    <value>参照...</value>
+  </data>
+  <data name="SoundFontNotSet" xml:space="preserve">
+    <value>未設定</value>
+  </data>
+  <data name="SoundFontSetupPrompt" xml:space="preserve">
+    <value>音を鳴らすには SoundFont（.sf2）が必要です。GM 互換の SF2 ファイルを選んでください。
+
+あとで設定画面から選ぶこともできます。</value>
+  </data>
+  <data name="SoundFontNotFoundPrompt" xml:space="preserve">
+    <value>設定した SoundFont が見つかりません。
+{0}
+
+別のファイルを選んでください。</value>
+  </data>
+  <data name="Later" xml:space="preserve">
+    <value>あとで</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>閉じる</value>
+  </data>
+  <data name="DialogChooseSoundFont" xml:space="preserve">
+    <value>SoundFont を選ぶ</value>
+  </data>
+  <data name="AudioSoundFontNotSet" xml:space="preserve">
+    <value>SoundFont 未設定（設定で選ぶ）</value>
+  </data>
+  <data name="AudioSoundFontNotFound" xml:space="preserve">
+    <value>SoundFont が見つからない: {0}</value>
+  </data>
+  <data name="ChordDataSettingsHint" xml:space="preserve">
+    <value>コード候補の並び順に使うデータです。Chordonomicon（約66万曲、CC BY-NC 4.0）を取得して足すと、並び順の精度が上がります。</value>
+  </data>
+  <data name="ChordDataStateBundled" xml:space="preserve">
+    <value>使用中: 同梱のデータ（McGill Billboard）</value>
+  </data>
+  <data name="ChordDataStateExtended" xml:space="preserve">
+    <value>使用中: 同梱のデータ＋Chordonomicon</value>
+  </data>
+  <data name="ChordDataAcquire" xml:space="preserve">
+    <value>取得…</value>
+  </data>
+  <data name="ChordDataRemove" xml:space="preserve">
+    <value>削除</value>
   </data>
 </root>

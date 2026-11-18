@@ -5,6 +5,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using CommunityToolkit.Mvvm.Input;
 using HanautaSketch.Controls;
 using HanautaSketch.Engine.Smart.Chords;
 using HanautaSketch.Resources;
@@ -33,6 +34,14 @@ public partial class MainWindow : Window
         {
             WindowMenu.IsVisible = false;
             KeyBindings.Clear();
+        }
+        else
+        {
+            KeyBindings.Add(new KeyBinding
+            {
+                Gesture = new KeyGesture(Key.OemComma, KeyModifiers.Control),
+                Command = new RelayCommand(ShowSettings),
+            });
         }
 
         // 文字の入力欄にフォーカスがある間は、取り消す・やり直すをその入力欄に向ける
@@ -63,6 +72,43 @@ public partial class MainWindow : Window
         if (ViewModel is { } vm)
             vm.Dialogs = new DialogService(this);
     }
+
+    /// <summary>
+    /// 開いたら、SoundFont が未設定・見つからない場合に選ぶよう促す。
+    /// </summary>
+    protected override async void OnOpened(EventArgs e)
+    {
+        base.OnOpened(e);
+        if (ViewModel is { } vm)
+            await vm.PromptSoundFontSetupAsync();
+    }
+
+    #region 設定
+
+    private void OnShowSettingsMenuItem(object? sender, RoutedEventArgs e) => ShowSettings();
+
+    /// <summary>
+    /// 設定画面をモーダルで開く（macOS のアプリ名メニュー、Windows のツールメニューから）。
+    /// 開いている間は、確認やファイル選択のダイアログを設定画面の上に出す。
+    /// </summary>
+    public async void ShowSettings()
+    {
+        if (ViewModel is not { } vm || OwnedWindows.OfType<SettingsWindow>().Any()) return;
+
+        var window = new SettingsWindow { DataContext = vm };
+        var previous = vm.Dialogs;
+        vm.Dialogs = new DialogService(window);
+        try
+        {
+            await window.ShowDialog(this);
+        }
+        finally
+        {
+            vm.Dialogs = previous;
+        }
+    }
+
+    #endregion
 
     /// <summary>
     /// 未保存の変更があれば、閉じる前に確認する。確認は非同期なので一度キャンセルし、続行なら改めて閉じる。

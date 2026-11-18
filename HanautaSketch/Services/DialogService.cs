@@ -38,6 +38,9 @@ public interface IDialogService
 
     /// <summary>はい／いいえを尋ねる。OK なら true（閉じるボタン・キャンセルは false）</summary>
     Task<bool> ConfirmAsync(string title, string message, string okText, string cancelText);
+
+    /// <summary>SoundFont（.sf2）を選ぶ。ローカルのパスを返す。キャンセルなら null</summary>
+    Task<string?> PickSoundFontAsync();
 }
 
 /// <summary>
@@ -53,6 +56,11 @@ public sealed class DialogService(Window owner) : IDialogService
     private static readonly FilePickerFileType MidiFileType = new("Standard MIDI File")
     {
         Patterns = [$"*{MidiExporter.FileExtension}"],
+    };
+
+    private static readonly FilePickerFileType SoundFontFileType = new("SoundFont (.sf2)")
+    {
+        Patterns = ["*.sf2", "*.SF2"],
     };
 
     public async Task<IStorageFile?> PickOpenAsync()
@@ -94,4 +102,15 @@ public sealed class DialogService(Window owner) : IDialogService
 
     public async Task<bool> ConfirmAsync(string title, string message, string okText, string cancelText) =>
         await new ConfirmWindow(title, message, okText, cancelText).ShowDialog<bool?>(owner) ?? false;
+
+    public async Task<string?> PickSoundFontAsync()
+    {
+        var files = await owner.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = Strings.DialogChooseSoundFont,
+            AllowMultiple = false,
+            FileTypeFilter = [SoundFontFileType],
+        });
+        return files.Count > 0 ? files[0].TryGetLocalPath() : null;
+    }
 }

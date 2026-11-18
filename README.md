@@ -33,10 +33,10 @@
 Windows、[.NET 10 SDK](https://dotnet.microsoft.com/)、GM 互換の SF2 サウンドフォントを用意する
 
 1. このリポジトリを clone する
-2. SF2 を `HanautaSketch/SoundFonts/` に置く
-3. `dotnet run --project HanautaSketch` で起動する
+2. `dotnet run --project HanautaSketch` で起動する
+3. 起動時の案内か設定画面（Windows はツールメニュー、macOS はアプリ名メニューの「設定…」）で SF2 を選ぶ
 
-SF2 がなくても起動して編集はできるが、音は鳴らない
+SF2 がなくても起動して編集はできるが、音は鳴らない。SF2 はアプリに同梱していない
 
 ## 基本の使い方
 
@@ -90,7 +90,7 @@ dotnet run tools/ChordStats/ChordStats.cs
 
 ソースコードは [MIT License](./LICENSE)
 
-同梱のコード遷移表（`chord-transitions.json`）は McGill Billboard（CC0）だけから作っている。ツールメニューから取得できる高度なコード遷移データは Chordonomicon（CC BY-NC 4.0）を使っていて、取得時にライセンスへの同意を求める（そのデータは非営利の目的でのみ利用できる）
+同梱のコード遷移表（`chord-transitions.json`）は McGill Billboard（CC0）だけから作っている。設定画面から取得できる高度なコード遷移データは Chordonomicon（CC BY-NC 4.0）を使っていて、取得時にライセンスへの同意を求める（そのデータは非営利の目的でのみ利用できる）
 
 テスト上のフィクスチャ hsk ファイルはパブリックドメイン
 
