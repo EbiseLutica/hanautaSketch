@@ -74,7 +74,7 @@ public static class Strings
     public static string ApplyTap => Get(nameof(ApplyTap));
     public static string ApplyTapTip => Get(nameof(ApplyTapTip));
     public static string TapCandidate => Get(nameof(TapCandidate));
-    public static string TogglePlay => Get(nameof(TogglePlay));
+    public static string TogglePlayTip => Get(nameof(TogglePlayTip));
     public static string DefaultTrackMelody => Get(nameof(DefaultTrackMelody));
     public static string DefaultTrackBass => Get(nameof(DefaultTrackBass));
     public static string DefaultTrackNote => Get(nameof(DefaultTrackNote));

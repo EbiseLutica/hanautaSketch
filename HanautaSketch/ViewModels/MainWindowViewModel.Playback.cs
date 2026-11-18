@@ -1,6 +1,7 @@
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using FluentIcons.Common;
 using HanautaSketch.Audio;
 using HanautaSketch.Resources;
 
@@ -26,7 +27,11 @@ public partial class MainWindowViewModel
     private bool _isAudioReady;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PlaybackIcon))]
     private bool _isPlaying;
+
+    /// <summary>再生ボタンのアイコン。停止中は ▶、再生中は ■</summary>
+    public Icon PlaybackIcon => IsPlaying ? Icon.Stop : Icon.Play;
 
     /// <summary>再生ヘッドの位置（tick）。停止中は -1</summary>
     [ObservableProperty]
