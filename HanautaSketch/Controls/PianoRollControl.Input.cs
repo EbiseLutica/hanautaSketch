@@ -37,6 +37,9 @@ public sealed partial class PianoRollControl
     private Point _selectCurrent;
     private HashSet<int> _selectionBeforeBox = [];
 
+    /// <summary>Ctrl+ドラッグでの複製待ち。実際に動かした時点で元の位置に複製を残す</summary>
+    private bool _duplicatePending;
+
     /// <summary>
     /// 現在の選択が、配置や未選択ノートの移動のために一時的に付けたものか。そうなら操作の終了時に解除する。
     /// 矩形選択・Shift+クリック・Ctrl+A・貼り付けなど、意図して選んだ選択は残す。
@@ -50,6 +53,7 @@ public sealed partial class PianoRollControl
         None,
         Move,
         Resize,
+        ResizeStart,
         Select,
         Ruler,
         Keyboard,
@@ -138,7 +142,7 @@ public sealed partial class PianoRollControl
 
         if (EditTrack is null || !EditArea.Contains(pos)) return;
 
-        var hit = HitTest(pos, out var onResizeHandle);
+        var hit = HitTest(pos, out var handle);
 
         if (point.Properties.IsRightButtonPressed)
         {
@@ -160,6 +164,18 @@ public sealed partial class PianoRollControl
         }
 
         var modifiers = e.KeyModifiers;
+        if (PlatformKeys.IsCommand(modifiers) && hit >= 0 && _selection.Contains(hit))
+        {
+            // Ctrl（macOS は ⌘）+選択中のノートをドラッグで、選択中のノーツを複製して動かす
+            _temporarySelection = false;
+            _duplicatePending = true;
+            EditStarted?.Invoke(this, EventArgs.Empty);
+            BeginNoteDrag(hit, DragMode.Move, pos);
+            StartPreview(EditTrack.EditableNotes[hit].Pitch);
+            BeginDrag(_dragMode, e);
+            return;
+        }
+
         if (PlatformKeys.IsCommand(modifiers))
         {
             // Ctrl（macOS は ⌘）+ドラッグで矩形選択。押した位置を再生開始位置（貼り付け先）にする。Shift も押していれば既存の選択に追加
@@ -190,7 +206,13 @@ public sealed partial class PianoRollControl
             }
 
             EditStarted?.Invoke(this, EventArgs.Empty);
-            BeginNoteDrag(hit, onResizeHandle ? DragMode.Resize : DragMode.Move, pos);
+            var mode = handle switch
+            {
+                NoteHandle.Start => DragMode.ResizeStart,
+                NoteHandle.End => DragMode.Resize,
+                _ => DragMode.Move,
+            };
+            BeginNoteDrag(hit, mode, pos);
             StartPreview(EditTrack.EditableNotes[hit].Pitch);
             BeginDrag(_dragMode, e);
             return;
@@ -257,6 +279,9 @@ public sealed partial class PianoRollControl
             case DragMode.Resize:
                 DragResize(pos);
                 break;
+            case DragMode.ResizeStart:
+                DragResizeStart(pos);
+                break;
             case DragMode.Pan:
                 HorizontalOffset = _panStartOffset.X - (pos.X - _panStart.X);
                 VerticalOffset = _panStartOffset.Y - (pos.Y - _panStart.Y);
@@ -269,19 +294,19 @@ public sealed partial class PianoRollControl
         base.OnPointerReleased(e);
         if (_dragMode == DragMode.None) return;
 
-        if (_dragMode == DragMode.Resize && EditTrack is not null && _dragAnchor >= 0 && _dragAnchor < EditTrack.EditableNotes.Count)
+        if (_dragMode is DragMode.Resize or DragMode.ResizeStart && EditTrack is not null && _dragAnchor >= 0 && _dragAnchor < EditTrack.EditableNotes.Count)
             _lastNoteLength = EditTrack.EditableNotes[_dragAnchor].Length;
 
-        if (_dragMode is DragMode.Move or DragMode.Resize)
+        if (_dragMode is DragMode.Move or DragMode.Resize or DragMode.ResizeStart)
             ResolveOverlaps();
 
-        if (_dragMode is DragMode.Move or DragMode.Resize or DragMode.Velocity)
+        if (_dragMode is DragMode.Move or DragMode.Resize or DragMode.ResizeStart or DragMode.Velocity)
         {
             EditCompleted?.Invoke(this, EventArgs.Empty);
             UpdateScrollExtents();
         }
 
-        if (_dragMode is DragMode.Move or DragMode.Resize && _temporarySelection)
+        if (_dragMode is DragMode.Move or DragMode.Resize or DragMode.ResizeStart && _temporarySelection)
             _selection.Clear();
         _temporarySelection = false;
 
@@ -292,6 +317,7 @@ public sealed partial class PianoRollControl
 
         StopPreview();
         _dragMode = DragMode.None;
+        _duplicatePending = false;
         _dragAnchor = -1;
         _dragOrigins = [];
         e.Pointer.Capture(null);
@@ -301,12 +327,12 @@ public sealed partial class PianoRollControl
     protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
     {
         base.OnPointerCaptureLost(e);
-        if (_dragMode is DragMode.Move or DragMode.Resize)
+        if (_dragMode is DragMode.Move or DragMode.Resize or DragMode.ResizeStart)
             ResolveOverlaps();
-        if (_dragMode is DragMode.Move or DragMode.Resize or DragMode.Velocity)
+        if (_dragMode is DragMode.Move or DragMode.Resize or DragMode.ResizeStart or DragMode.Velocity)
             EditCompleted?.Invoke(this, EventArgs.Empty);
 
-        if (_dragMode is DragMode.Move or DragMode.Resize && _temporarySelection)
+        if (_dragMode is DragMode.Move or DragMode.Resize or DragMode.ResizeStart && _temporarySelection)
             _selection.Clear();
         _temporarySelection = false;
 
@@ -317,6 +343,7 @@ public sealed partial class PianoRollControl
 
         StopPreview();
         _dragMode = DragMode.None;
+        _duplicatePending = false;
         InvalidateVisual();
     }
 
@@ -357,6 +384,14 @@ public sealed partial class PianoRollControl
         if (EditTrack.EditableNotes[_dragAnchor] == anchor with { Tick = anchor.Tick + deltaTick, Pitch = anchor.Pitch + deltaPitch })
             return;
 
+        if (_duplicatePending)
+        {
+            // 動かすのは元のノーツのまま、元の位置に複製を置く
+            _duplicatePending = false;
+            foreach (var origin in _dragOrigins.Values)
+                EditTrack.EditableNotes.Add(origin);
+        }
+
         foreach (var (index, origin) in _dragOrigins)
             EditTrack.EditableNotes[index] = origin with { Tick = origin.Tick + deltaTick, Pitch = origin.Pitch + deltaPitch };
 
@@ -378,6 +413,31 @@ public sealed partial class PianoRollControl
             EditTrack.EditableNotes[index] = origin with { Length = Math.Max(SnapTicks, origin.Length + deltaLength) };
 
         RaiseNotesEdited();
+    }
+
+    /// <summary>
+    /// 掴んだノートの開始をカーソルに合わせ、選択中のノーツの開始を同じだけずらす。終端は動かさない。
+    /// </summary>
+    private void DragResizeStart(Point pos)
+    {
+        if (EditTrack is null || !_dragOrigins.TryGetValue(_dragAnchor, out var anchor)) return;
+
+        var deltaTick = SnapRound(XToTick(pos.X)) - anchor.Tick;
+        if (EditTrack.EditableNotes[_dragAnchor] == MoveStart(anchor, deltaTick)) return;
+
+        foreach (var (index, origin) in _dragOrigins)
+            EditTrack.EditableNotes[index] = MoveStart(origin, deltaTick);
+
+        RaiseNotesEdited();
+    }
+
+    /// <summary>
+    /// 終端を保ったまま開始をずらす。開始は 0 以上、長さはスナップ幅以上に収める。
+    /// </summary>
+    private Note MoveStart(Note origin, int deltaTick)
+    {
+        var tick = Math.Max(0, Math.Min(origin.Tick + deltaTick, origin.EndTick - SnapTicks));
+        return origin with { Tick = tick, Length = origin.EndTick - tick };
     }
 
     /// <summary>
@@ -415,18 +475,26 @@ public sealed partial class PianoRollControl
             return;
         }
 
-        var hit = HitTest(pos, out var onResizeHandle);
-        Cursor = hit < 0 ? Cursor.Default : onResizeHandle ? ResizeCursor : MoveCursor;
+        var hit = HitTest(pos, out var handle);
+        Cursor = hit < 0 ? Cursor.Default : handle != NoteHandle.None ? ResizeCursor : MoveCursor;
     }
 
     private void SetPlayStartFromX(double x) => PlayStartTick = Math.Max(0, SnapRound(XToTick(x)));
 
+    /// <summary>ノートの伸縮つまみ</summary>
+    private enum NoteHandle
+    {
+        None,
+        Start,
+        End,
+    }
+
     /// <summary>
     /// 座標にあるノーツのインデックスを返す。前面（後に追加された方）を優先。
     /// </summary>
-    private int HitTest(Point pos, out bool onResizeHandle)
+    private int HitTest(Point pos, out NoteHandle handle)
     {
-        onResizeHandle = false;
+        handle = NoteHandle.None;
         if (EditTrack is null || !EditArea.Contains(pos)) return -1;
 
         for (var i = EditTrack.EditableNotes.Count - 1; i >= 0; i--)
@@ -434,8 +502,9 @@ public sealed partial class PianoRollControl
             var rect = NoteRect(EditTrack.EditableNotes[i]);
             if (!rect.Contains(pos)) continue;
 
-            var handle = Math.Min(ResizeHandleWidth, rect.Width / 3);
-            onResizeHandle = pos.X >= rect.Right - handle;
+            var width = Math.Min(ResizeHandleWidth, rect.Width / 3);
+            if (pos.X >= rect.Right - width) handle = NoteHandle.End;
+            else if (pos.X <= rect.Left + width) handle = NoteHandle.Start;
             return i;
         }
 
