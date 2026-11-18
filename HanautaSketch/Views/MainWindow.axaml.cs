@@ -298,44 +298,35 @@ public partial class MainWindow : Window
     private void OnShowLicenses(object? sender, EventArgs e) => ShowLicenses();
 
     /// <summary>
-    /// 本体（MIT）・同梱ライブラリのライセンスと、コード候補に使ったデータの出典をまとめて表示する。
+    /// 本体（MIT）、コード候補に使ったデータの出典、配布物に含む依存パッケージ（.NET SDK を含む）のライセンスを開く。
     /// </summary>
     /// <param name="owner">親にする窓（省略時はメインウィンドウ）</param>
     public void ShowLicenses(Window? owner = null)
     {
-        var text = string.Join("\n", [
-            "■ " + Strings.LicensesAppHeader,
-            OpenSourceLicenses.ReadAppLicense().TrimEnd(),
-            "",
-            "■ " + Strings.LicensesDataHeader,
-            Strings.DataSourcesIntro,
-            "",
-            .. (ViewModel?.ChordTable ?? ChordTransitionTable.Default).Sources.Select(s =>
-                Strings.Format(Strings.DataSourceEntry, s.Name, s.License, s.Songs)),
-            "",
-            "McGill Billboard Project: J. A. Burgoyne, J. Wild, I. Fujinaga,",
-            "  \"An Expert Ground Truth Set for Audio Chord Recognition and Music Analysis\", ISMIR 2011.",
-            "Chordonomicon: S. Kantarelis et al., \"CHORDONOMICON: A Dataset of 666,000 Songs and their",
-            "  Chord Progressions\", arXiv:2410.22046, 2024. https://huggingface.co/datasets/ailsntua/Chordonomicon",
-            "",
-            Strings.DataSourcesBundled,
-            "",
-            "■ " + Strings.LicensesLibrariesHeader,
-            .. OpenSourceLicenses.Libraries.Select(l => $"{l.Name}: {l.License}\n  {l.Url}"),
-        ]);
-        var window = new Window
+        var entries = new List<LicenseEntry>
         {
-            Title = Strings.LicensesTitle,
-            Width = 640,
-            Height = 560,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner,
-            Content = new ScrollViewer
-            {
-                Content = new SelectableTextBlock { Text = text, Margin = new Thickness(16), TextWrapping = Avalonia.Media.TextWrapping.Wrap },
-            },
+            new("hanautaSketch", "", "MIT License", [new LicenseText("LICENSE", OpenSourceLicenses.ReadAppLicense().TrimEnd())]),
+            new(Strings.LicensesDataHeader, "", "", [new LicenseText(Strings.LicensesDataHeader, DataSourcesText())]),
         };
-        window.ShowDialog(owner ?? this);
+        entries.AddRange(OpenSourceLicenses.LoadPackages());
+
+        new LicensesWindow(entries).ShowDialog(owner ?? this);
     }
+
+    /// <summary>コード候補の表に使ったデータセットの出典を、本文にまとめる</summary>
+    private string DataSourcesText() => string.Join("\n", [
+        Strings.DataSourcesIntro,
+        "",
+        .. (ViewModel?.ChordTable ?? ChordTransitionTable.Default).Sources.Select(s =>
+            Strings.Format(Strings.DataSourceEntry, s.Name, s.License, s.Songs)),
+        "",
+        "McGill Billboard Project: J. A. Burgoyne, J. Wild, I. Fujinaga,",
+        "  \"An Expert Ground Truth Set for Audio Chord Recognition and Music Analysis\", ISMIR 2011.",
+        "Chordonomicon: S. Kantarelis et al., \"CHORDONOMICON: A Dataset of 666,000 Songs and their",
+        "  Chord Progressions\", arXiv:2410.22046, 2024. https://huggingface.co/datasets/ailsntua/Chordonomicon",
+        "",
+        Strings.DataSourcesBundled,
+    ]);
 
     /// <summary>
     /// Windows のヘルプメニューから「について」を開く。

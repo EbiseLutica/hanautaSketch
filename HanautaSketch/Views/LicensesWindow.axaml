@@ -1,0 +1,17 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:res="using:HanautaSketch.Resources"
+        x:Class="HanautaSketch.Views.LicensesWindow"
+        Title="{x:Static res:Strings.LicensesTitle}"
+        Width="920" Height="620"
+        WindowStartupLocation="CenterOwner">
+    <!-- 左に項目名、右に全項目の本文。右をスクロールすると左の選択が追従し、左を選ぶと右がそこへ移動する -->
+    <Grid ColumnDefinitions="240,*">
+        <Border Background="{DynamicResource LuPanelBrush}" BorderBrush="{DynamicResource LuDividerBrush}" BorderThickness="0,0,1,0">
+            <ListBox x:Name="EntryList" Background="Transparent" Margin="8" SelectionMode="Single" SelectionChanged="OnEntryChanged" />
+        </Border>
+        <ScrollViewer x:Name="Scroller" Grid.Column="1" ScrollChanged="OnScrollChanged">
+            <StackPanel x:Name="Sections" Margin="24,16" Spacing="24" />
+        </ScrollViewer>
+    </Grid>
+</Window>
