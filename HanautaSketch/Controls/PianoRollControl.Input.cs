@@ -75,6 +75,12 @@ public sealed partial class PianoRollControl
         else if (change.Property == HorizontalOffsetProperty || change.Property == VerticalOffsetProperty)
         {
             ClampOffsets();
+            if (change.Property == HorizontalOffsetProperty && !_autoScrolling)
+                _followPlayhead = false;
+        }
+        else if (change.Property == PlayheadTickProperty)
+        {
+            OnPlayheadMoved(change.GetOldValue<double>(), change.GetNewValue<double>());
         }
     }
 
