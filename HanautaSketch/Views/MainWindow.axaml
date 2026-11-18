@@ -41,34 +41,6 @@
                     <NativeMenuItem Header="{x:Static res:Strings.NativeRedo}" Command="{Binding RedoCommand}" Gesture="Meta+Shift+Z" />
                 </NativeMenu>
             </NativeMenuItem>
-            <NativeMenuItem Header="{x:Static res:Strings.NativeTools}">
-                <NativeMenu>
-                    <NativeMenuItem Header="{x:Static res:Strings.NativeAcquireChordData}" Command="{Binding AcquireChordDataCommand}" />
-                    <NativeMenuItem Header="{x:Static res:Strings.NativeCancelChordData}" Command="{Binding CancelChordDataCommand}" />
-                    <NativeMenuItem Header="{x:Static res:Strings.NativeRemoveChordData}" Command="{Binding RemoveChordDataCommand}" />
-                    <NativeMenuItemSeparator />
-                    <NativeMenuItem Header="{x:Static res:Strings.ThemeMenu}">
-                        <NativeMenu>
-                            <NativeMenuItem Header="{x:Static res:Strings.ThemeSystem}" Command="{Binding SetThemeCommand}" CommandParameter="system"
-                                            ToggleType="Radio" IsChecked="{Binding IsThemeSystem}" />
-                            <NativeMenuItem Header="{x:Static res:Strings.ThemeLight}" Command="{Binding SetThemeCommand}" CommandParameter="light"
-                                            ToggleType="Radio" IsChecked="{Binding IsThemeLight}" />
-                            <NativeMenuItem Header="{x:Static res:Strings.ThemeDark}" Command="{Binding SetThemeCommand}" CommandParameter="dark"
-                                            ToggleType="Radio" IsChecked="{Binding IsThemeDark}" />
-                        </NativeMenu>
-                    </NativeMenuItem>
-                    <NativeMenuItem Header="{x:Static res:Strings.LanguageMenu}">
-                        <NativeMenu>
-                            <NativeMenuItem Header="{x:Static res:Strings.LanguageSystem}" Command="{Binding SetLanguageCommand}" CommandParameter="system"
-                                            ToggleType="Radio" IsChecked="{Binding IsLanguageSystem}" />
-                            <NativeMenuItem Header="{x:Static res:Strings.LanguageJapanese}" Command="{Binding SetLanguageCommand}" CommandParameter="ja"
-                                            ToggleType="Radio" IsChecked="{Binding IsLanguageJapanese}" />
-                            <NativeMenuItem Header="{x:Static res:Strings.LanguageEnglish}" Command="{Binding SetLanguageCommand}" CommandParameter="en"
-                                            ToggleType="Radio" IsChecked="{Binding IsLanguageEnglish}" />
-                        </NativeMenu>
-                    </NativeMenuItem>
-                </NativeMenu>
-            </NativeMenuItem>
             <NativeMenuItem Header="{x:Static res:Strings.NativeWindow}">
                 <NativeMenu>
                     <NativeMenuItem Header="{x:Static res:Strings.NativeMinimize}" Click="OnMinimizeWindow" Gesture="Meta+M" />
@@ -99,26 +71,7 @@
                 <MenuItem Header="{x:Static res:Strings.MenuRedo}" Command="{Binding RedoCommand}" InputGesture="Ctrl+Y" />
             </MenuItem>
             <MenuItem Header="{x:Static res:Strings.MenuTools}">
-                <MenuItem Header="{x:Static res:Strings.MenuAcquireChordData}" Command="{Binding AcquireChordDataCommand}" />
-                <MenuItem Header="{x:Static res:Strings.MenuCancelChordData}" Command="{Binding CancelChordDataCommand}" />
-                <MenuItem Header="{x:Static res:Strings.MenuRemoveChordData}" Command="{Binding RemoveChordDataCommand}" />
-                <Separator />
-                <MenuItem Header="{x:Static res:Strings.ThemeMenu}">
-                    <MenuItem Header="{x:Static res:Strings.ThemeSystem}" Command="{Binding SetThemeCommand}" CommandParameter="system"
-                              ToggleType="Radio" IsChecked="{Binding IsThemeSystem}" />
-                    <MenuItem Header="{x:Static res:Strings.ThemeLight}" Command="{Binding SetThemeCommand}" CommandParameter="light"
-                              ToggleType="Radio" IsChecked="{Binding IsThemeLight}" />
-                    <MenuItem Header="{x:Static res:Strings.ThemeDark}" Command="{Binding SetThemeCommand}" CommandParameter="dark"
-                              ToggleType="Radio" IsChecked="{Binding IsThemeDark}" />
-                </MenuItem>
-                <MenuItem Header="{x:Static res:Strings.LanguageMenu}">
-                    <MenuItem Header="{x:Static res:Strings.LanguageSystem}" Command="{Binding SetLanguageCommand}" CommandParameter="system"
-                              ToggleType="Radio" IsChecked="{Binding IsLanguageSystem}" />
-                    <MenuItem Header="{x:Static res:Strings.LanguageJapanese}" Command="{Binding SetLanguageCommand}" CommandParameter="ja"
-                              ToggleType="Radio" IsChecked="{Binding IsLanguageJapanese}" />
-                    <MenuItem Header="{x:Static res:Strings.LanguageEnglish}" Command="{Binding SetLanguageCommand}" CommandParameter="en"
-                              ToggleType="Radio" IsChecked="{Binding IsLanguageEnglish}" />
-                </MenuItem>
+                <MenuItem Header="{x:Static res:Strings.MenuSettings}" Click="OnShowSettingsMenuItem" InputGesture="Ctrl+OemComma" />
             </MenuItem>
             <MenuItem Header="{x:Static res:Strings.MenuHelp}">
                 <MenuItem Header="{x:Static res:Strings.MenuDataSources}" Click="OnShowDataSourcesMenuItem" />

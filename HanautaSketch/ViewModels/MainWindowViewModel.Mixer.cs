@@ -65,7 +65,9 @@ public partial class MainWindowViewModel
     /// ドラムキットの選択肢（SF2 のバンク128）。SF2 の読み込み前は Standard だけ。
     /// 一覧は差し替えず追加だけにする（差し替えると ComboBox の選択が外れるため）。
     /// </summary>
-    public ObservableCollection<DrumKitOption> DrumKits { get; } = [new DrumKitOption(0, "Standard")];
+    public ObservableCollection<DrumKitOption> DrumKits { get; } = [new DrumKitOption(0, DefaultDrumKitName)];
+
+    private const string DefaultDrumKitName = "Standard";
 
     /// <summary>選択中のドラムトラックのキットの、一覧内での位置。一覧にないキットなら -1</summary>
     public int SelectedDrumKitIndex
@@ -162,6 +164,23 @@ public partial class MainWindowViewModel
         var first = SelectedProgramCategory * GeneralMidi.ProgramsPerCategory;
         for (var i = 0; i < ProgramSlots.Count; i++)
             ProgramSlots[i].Label = $"{first + i + 1} {_programNames[first + i]}";
+    }
+
+    /// <summary>
+    /// SoundFont を読み込み直す前に、音色名を GM の名前に、ドラムキットを Standard だけに戻す。
+    /// Standard は選択が外れないよう要素を残して表示名だけ戻す。
+    /// </summary>
+    private void ResetSoundFontNames()
+    {
+        for (var i = 0; i < _programNames.Length; i++) _programNames[i] = GeneralMidi.ProgramNames[i];
+        RefreshProgramSlots();
+
+        for (var i = DrumKits.Count - 1; i >= 0; i--)
+        {
+            if (DrumKits[i].Program != 0) DrumKits.RemoveAt(i);
+        }
+        if (DrumKits.Count > 0) DrumKits[0].Label = $"1 {DefaultDrumKitName}";
+        OnPropertyChanged(nameof(SelectedDrumKitIndex));
     }
 
     /// <summary>

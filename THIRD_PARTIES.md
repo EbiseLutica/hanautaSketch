@@ -72,5 +72,5 @@ Used only for tests (not distributed):
 
 ## SoundFont
 
-No SoundFont is included in this repository. Place a GM-compatible `.sf2` file in
-`HanautaSketch/SoundFonts/` yourself, and follow the license of the SoundFont you use.
+No SoundFont is included in this repository or in the app. Choose a GM-compatible `.sf2` file
+in the app's Settings, and follow the license of the SoundFont you use.

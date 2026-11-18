@@ -43,18 +43,6 @@
   <data name="NativeRedo" xml:space="preserve">
     <value>Redo</value>
   </data>
-  <data name="NativeTools" xml:space="preserve">
-    <value>Tools</value>
-  </data>
-  <data name="NativeAcquireChordData" xml:space="preserve">
-    <value>Get Advanced Chord Transition Data...</value>
-  </data>
-  <data name="NativeCancelChordData" xml:space="preserve">
-    <value>Stop Chord Data Extraction</value>
-  </data>
-  <data name="NativeRemoveChordData" xml:space="preserve">
-    <value>Delete Advanced Chord Transition Data</value>
-  </data>
   <data name="NativeWindow" xml:space="preserve">
     <value>Window</value>
   </data>
@@ -99,15 +87,6 @@
   </data>
   <data name="MenuTools" xml:space="preserve">
     <value>Tools(_T)</value>
-  </data>
-  <data name="MenuAcquireChordData" xml:space="preserve">
-    <value>Get Advanced Chord Transition Data(_C)...</value>
-  </data>
-  <data name="MenuCancelChordData" xml:space="preserve">
-    <value>Stop Chord Data Extraction</value>
-  </data>
-  <data name="MenuRemoveChordData" xml:space="preserve">
-    <value>Delete Advanced Chord Transition Data</value>
   </data>
   <data name="MenuHelp" xml:space="preserve">
     <value>Help(_H)</value>
@@ -383,7 +362,7 @@
     <value>Chord suggestion order (how likely each chord is to follow the previous one) uses tables aggregated from these datasets.</value>
   </data>
   <data name="DataSourcesBundled" xml:space="preserve">
-    <value>The bundled table is aggregated only from McGill Billboard (CC0). Chordonomicon (CC BY-NC 4.0) is used only if you agree to its license from the Tools menu and download it, and that data may only be used non-commercially.</value>
+    <value>The bundled table is aggregated only from McGill Billboard (CC0). Chordonomicon (CC BY-NC 4.0) is used only if you agree to its license in Settings and download it, and that data may only be used non-commercially.</value>
   </data>
   <data name="DataSourcesLibraries" xml:space="preserve">
     <value>Licenses for other libraries are summarized in THIRD_PARTIES.md in the repository.</value>
@@ -480,9 +459,6 @@ Do you agree to the license and download it?</value>
   <data name="AudioLoading" xml:space="preserve">
     <value>Loading sound source…</value>
   </data>
-  <data name="AudioSoundFontMissing" xml:space="preserve">
-    <value>SoundFont (.sf2) not found (place it in {0}/)</value>
-  </data>
   <data name="AudioInitFailed" xml:space="preserve">
     <value>Failed to initialize the sound source: {0}</value>
   </data>
@@ -518,5 +494,73 @@ Do you agree to the license and download it?</value>
   </data>
   <data name="StopExtraction" xml:space="preserve">
     <value>Stop</value>
+  </data>
+  <data name="NativeSettings" xml:space="preserve">
+    <value>Settings…</value>
+  </data>
+  <data name="MenuSettings" xml:space="preserve">
+    <value>Settings(_S)...</value>
+  </data>
+  <data name="SettingsTitle" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="SettingsSound" xml:space="preserve">
+    <value>Sound</value>
+  </data>
+  <data name="SettingsAppearance" xml:space="preserve">
+    <value>Appearance</value>
+  </data>
+  <data name="SettingsChordTable" xml:space="preserve">
+    <value>Chord Table</value>
+  </data>
+  <data name="SoundFontLabel" xml:space="preserve">
+    <value>SoundFont</value>
+  </data>
+  <data name="SoundFontChoose" xml:space="preserve">
+    <value>Choose…</value>
+  </data>
+  <data name="SoundFontNotSet" xml:space="preserve">
+    <value>Not set</value>
+  </data>
+  <data name="SoundFontSetupPrompt" xml:space="preserve">
+    <value>A SoundFont (.sf2) is needed to play sound. Choose a GM-compatible SF2 file.
+
+You can also choose one later in Settings.</value>
+  </data>
+  <data name="SoundFontNotFoundPrompt" xml:space="preserve">
+    <value>The SoundFont in your settings was not found.
+{0}
+
+Choose another file.</value>
+  </data>
+  <data name="Later" xml:space="preserve">
+    <value>Later</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="DialogChooseSoundFont" xml:space="preserve">
+    <value>Choose SoundFont</value>
+  </data>
+  <data name="AudioSoundFontNotSet" xml:space="preserve">
+    <value>No SoundFont (choose one in Settings)</value>
+  </data>
+  <data name="AudioSoundFontNotFound" xml:space="preserve">
+    <value>SoundFont not found: {0}</value>
+  </data>
+  <data name="ChordDataSettingsHint" xml:space="preserve">
+    <value>Data used to order chord suggestions. Adding Chordonomicon (about 660,000 songs, CC BY-NC 4.0) makes the order more accurate.</value>
+  </data>
+  <data name="ChordDataStateBundled" xml:space="preserve">
+    <value>In use: bundled data (McGill Billboard)</value>
+  </data>
+  <data name="ChordDataStateExtended" xml:space="preserve">
+    <value>In use: bundled data + Chordonomicon</value>
+  </data>
+  <data name="ChordDataAcquire" xml:space="preserve">
+    <value>Get…</value>
+  </data>
+  <data name="ChordDataRemove" xml:space="preserve">
+    <value>Delete</value>
   </data>
 </root>

@@ -9,7 +9,7 @@ using HanautaSketch.Services;
 namespace HanautaSketch.ViewModels;
 
 /// <summary>
-/// プロジェクトの保存・読み込み、表示言語の設定。
+/// プロジェクトの保存・読み込み、MIDI の書き出し。
 /// </summary>
 public partial class MainWindowViewModel
 {
@@ -21,28 +21,6 @@ public partial class MainWindowViewModel
     private IStorageFile? _currentFile;
     private AppSettings _appSettings = AppSettingsStore.Load();
     private bool _suppressDirty;
-
-    /// <summary>表示言語の選択（<see cref="AppLanguage"/> の値）。反映は次回起動時</summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsLanguageSystem), nameof(IsLanguageJapanese), nameof(IsLanguageEnglish))]
-    private string _languageChoice = AppLanguage.System;
-
-    public bool IsLanguageSystem => LanguageChoice == AppLanguage.System;
-
-    public bool IsLanguageJapanese => LanguageChoice == AppLanguage.Japanese;
-
-    public bool IsLanguageEnglish => LanguageChoice == AppLanguage.English;
-
-    /// <summary>配色テーマの選択（<see cref="AppTheme"/> の値）。すぐに反映する</summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsThemeSystem), nameof(IsThemeLight), nameof(IsThemeDark))]
-    private string _themeChoice = AppTheme.System;
-
-    public bool IsThemeSystem => ThemeChoice == AppTheme.System;
-
-    public bool IsThemeLight => ThemeChoice == AppTheme.Light;
-
-    public bool IsThemeDark => ThemeChoice == AppTheme.Dark;
 
     /// <summary>View 側から設定するダイアログ</summary>
     public IDialogService? Dialogs { get; set; }
@@ -56,30 +34,6 @@ public partial class MainWindowViewModel
     public string WindowTitle => $"{(IsDirty ? "*" : "")}{_currentFile?.Name ?? UntitledName} - {AppName}";
 
     partial void OnIsDirtyChanged(bool value) => OnPropertyChanged(nameof(WindowTitle));
-
-    /// <summary>
-    /// 表示言語を設定に保存する。画面の文字列は次回起動時から切り替わる。
-    /// </summary>
-    [RelayCommand]
-    private void SetLanguage(string choice)
-    {
-        LanguageChoice = choice;
-        _appSettings = _appSettings with { Language = choice };
-        AppSettingsStore.Save(_appSettings);
-        Message = Strings.LanguageRestartNotice;
-    }
-
-    /// <summary>
-    /// 配色テーマを切り替えて設定に保存する。画面にすぐ反映する。
-    /// </summary>
-    [RelayCommand]
-    private void SetTheme(string choice)
-    {
-        ThemeChoice = choice;
-        _appSettings = _appSettings with { Theme = choice };
-        AppSettingsStore.Save(_appSettings);
-        AppTheme.Apply(choice);
-    }
 
     /// <summary>
     /// 例外の詳細文。プロジェクト形式のエラーは Engine の文（英語）ではなく、表示言語の文にする。

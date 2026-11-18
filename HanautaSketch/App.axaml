@@ -8,6 +8,8 @@
     <NativeMenu.Menu>
         <NativeMenu>
             <NativeMenuItem Header="{x:Static res:Strings.AboutApp}" Click="OnAbout" />
+            <NativeMenuItemSeparator />
+            <NativeMenuItem Header="{x:Static res:Strings.NativeSettings}" Click="OnSettings" Gesture="Meta+OemComma" />
         </NativeMenu>
     </NativeMenu.Menu>
     <Application.Styles>

@@ -15,6 +15,9 @@ public sealed record AppSettings
     /// <summary>配色テーマ。<see cref="AppTheme.System"/>（OS に従う）・<see cref="AppTheme.Light"/>・<see cref="AppTheme.Dark"/></summary>
     public string Theme { get; init; } = AppTheme.System;
 
+    /// <summary>再生に使う SoundFont（.sf2）のパス。未設定なら null</summary>
+    public string? SoundFontPath { get; init; }
+
     public MidiExportOptions MidiExport { get; init; } = new();
 }
 

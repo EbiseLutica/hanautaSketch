@@ -26,10 +26,6 @@ public static class Strings
     public static string NativeEdit => Get(nameof(NativeEdit));
     public static string NativeUndo => Get(nameof(NativeUndo));
     public static string NativeRedo => Get(nameof(NativeRedo));
-    public static string NativeTools => Get(nameof(NativeTools));
-    public static string NativeAcquireChordData => Get(nameof(NativeAcquireChordData));
-    public static string NativeCancelChordData => Get(nameof(NativeCancelChordData));
-    public static string NativeRemoveChordData => Get(nameof(NativeRemoveChordData));
     public static string NativeWindow => Get(nameof(NativeWindow));
     public static string NativeMinimize => Get(nameof(NativeMinimize));
     public static string NativeZoom => Get(nameof(NativeZoom));
@@ -45,9 +41,6 @@ public static class Strings
     public static string MenuUndo => Get(nameof(MenuUndo));
     public static string MenuRedo => Get(nameof(MenuRedo));
     public static string MenuTools => Get(nameof(MenuTools));
-    public static string MenuAcquireChordData => Get(nameof(MenuAcquireChordData));
-    public static string MenuCancelChordData => Get(nameof(MenuCancelChordData));
-    public static string MenuRemoveChordData => Get(nameof(MenuRemoveChordData));
     public static string MenuHelp => Get(nameof(MenuHelp));
     public static string MenuDataSources => Get(nameof(MenuDataSources));
     public static string MacServices => Get(nameof(MacServices));
@@ -169,7 +162,6 @@ public static class Strings
     public static string MidiExportKeySignature => Get(nameof(MidiExportKeySignature));
     public static string MidiExportButton => Get(nameof(MidiExportButton));
     public static string AudioLoading => Get(nameof(AudioLoading));
-    public static string AudioSoundFontMissing => Get(nameof(AudioSoundFontMissing));
     public static string AudioInitFailed => Get(nameof(AudioInitFailed));
     public static string AudioDeviceOpenFailed => Get(nameof(AudioDeviceOpenFailed));
     public static string ErrorInvalidProject => Get(nameof(ErrorInvalidProject));
@@ -182,6 +174,27 @@ public static class Strings
     public static string TrackDeleted => Get(nameof(TrackDeleted));
     public static string DataSourceEntry => Get(nameof(DataSourceEntry));
     public static string StopExtraction => Get(nameof(StopExtraction));
+    public static string NativeSettings => Get(nameof(NativeSettings));
+    public static string MenuSettings => Get(nameof(MenuSettings));
+    public static string SettingsTitle => Get(nameof(SettingsTitle));
+    public static string SettingsSound => Get(nameof(SettingsSound));
+    public static string SettingsAppearance => Get(nameof(SettingsAppearance));
+    public static string SettingsChordTable => Get(nameof(SettingsChordTable));
+    public static string SoundFontLabel => Get(nameof(SoundFontLabel));
+    public static string SoundFontChoose => Get(nameof(SoundFontChoose));
+    public static string SoundFontNotSet => Get(nameof(SoundFontNotSet));
+    public static string SoundFontSetupPrompt => Get(nameof(SoundFontSetupPrompt));
+    public static string SoundFontNotFoundPrompt => Get(nameof(SoundFontNotFoundPrompt));
+    public static string Later => Get(nameof(Later));
+    public static string Close => Get(nameof(Close));
+    public static string DialogChooseSoundFont => Get(nameof(DialogChooseSoundFont));
+    public static string AudioSoundFontNotSet => Get(nameof(AudioSoundFontNotSet));
+    public static string AudioSoundFontNotFound => Get(nameof(AudioSoundFontNotFound));
+    public static string ChordDataSettingsHint => Get(nameof(ChordDataSettingsHint));
+    public static string ChordDataStateBundled => Get(nameof(ChordDataStateBundled));
+    public static string ChordDataStateExtended => Get(nameof(ChordDataStateExtended));
+    public static string ChordDataAcquire => Get(nameof(ChordDataAcquire));
+    public static string ChordDataRemove => Get(nameof(ChordDataRemove));
 
     /// <summary>書式付きの文字列（{0} など）を、現在の文化情報で埋める</summary>
     public static string Format(string format, params object[] args) =>

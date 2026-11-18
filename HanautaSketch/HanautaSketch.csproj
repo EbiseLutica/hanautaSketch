@@ -36,9 +36,4 @@
     <ProjectReference Include="..\HanautaSketch.Engine\HanautaSketch.Engine.csproj" />
   </ItemGroup>
 
-  <!-- SoundFonts/ の SF2 は git 管理外。存在すれば出力先にコピーする -->
-  <ItemGroup>
-    <None Include="SoundFonts\*.sf2" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
-
 </Project>
