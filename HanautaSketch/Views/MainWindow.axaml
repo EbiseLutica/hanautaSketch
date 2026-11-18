@@ -16,9 +16,53 @@
         <KeyBinding Gesture="Ctrl+Y" Command="{Binding RedoCommand}" />
         <KeyBinding Gesture="Ctrl+Shift+Z" Command="{Binding RedoCommand}" />
     </Window.KeyBindings>
+    <!--
+        macOS の画面上端のメニューバー（Windows では使わない）。並びと名前は macOS の慣例に合わせる。
+        アプリ名のメニュー（について・終了など）は App.axaml。ショートカットは macOS 専用なので最初から ⌘（Meta）で書く
+    -->
+    <NativeMenu.Menu>
+        <NativeMenu>
+            <NativeMenuItem Header="ファイル">
+                <NativeMenu>
+                    <NativeMenuItem Header="新規" Command="{Binding NewCommand}" Gesture="Meta+N" />
+                    <NativeMenuItem Header="開く..." Command="{Binding OpenCommand}" Gesture="Meta+O" />
+                    <NativeMenuItemSeparator />
+                    <NativeMenuItem Header="閉じる" Click="OnCloseWindow" Gesture="Meta+W" />
+                    <NativeMenuItem Header="保存" Command="{Binding SaveCommand}" Gesture="Meta+S" />
+                    <NativeMenuItem Header="別名で保存..." Command="{Binding SaveAsCommand}" Gesture="Meta+Shift+S" />
+                    <NativeMenuItemSeparator />
+                    <NativeMenuItem Header="MIDI 書き出し..." Command="{Binding ExportMidiCommand}" Gesture="Meta+E" />
+                </NativeMenu>
+            </NativeMenuItem>
+            <NativeMenuItem Header="編集">
+                <NativeMenu>
+                    <NativeMenuItem Header="取り消す" Command="{Binding UndoCommand}" Gesture="Meta+Z" />
+                    <NativeMenuItem Header="やり直す" Command="{Binding RedoCommand}" Gesture="Meta+Shift+Z" />
+                </NativeMenu>
+            </NativeMenuItem>
+            <NativeMenuItem Header="ツール">
+                <NativeMenu>
+                    <NativeMenuItem Header="高度なコード遷移データを取得..." Command="{Binding AcquireChordDataCommand}" />
+                    <NativeMenuItem Header="コード情報の抽出を中止" Command="{Binding CancelChordDataCommand}" />
+                    <NativeMenuItem Header="高度なコード遷移データを削除" Command="{Binding RemoveChordDataCommand}" />
+                </NativeMenu>
+            </NativeMenuItem>
+            <NativeMenuItem Header="ウィンドウ">
+                <NativeMenu>
+                    <NativeMenuItem Header="しまう" Click="OnMinimizeWindow" Gesture="Meta+M" />
+                    <NativeMenuItem Header="拡大/縮小" Click="OnZoomWindow" />
+                </NativeMenu>
+            </NativeMenuItem>
+            <NativeMenuItem Header="ヘルプ">
+                <NativeMenu>
+                    <NativeMenuItem Header="データの出典..." Click="OnShowDataSources" />
+                </NativeMenu>
+            </NativeMenuItem>
+        </NativeMenu>
+    </NativeMenu.Menu>
     <DockPanel>
-        <!-- メニューバー -->
-        <Menu DockPanel.Dock="Top">
+        <!-- メニューバー（Windows 用。macOS では隠して上の NativeMenu を使う） -->
+        <Menu x:Name="WindowMenu" DockPanel.Dock="Top">
             <MenuItem Header="ファイル(_F)">
                 <MenuItem Header="新規作成(_N)" Command="{Binding NewCommand}" InputGesture="Ctrl+N" />
                 <MenuItem Header="開く(_O)..." Command="{Binding OpenCommand}" InputGesture="Ctrl+O" />
@@ -38,7 +82,7 @@
                 <MenuItem Header="高度なコード遷移データを削除" Command="{Binding RemoveChordDataCommand}" />
             </MenuItem>
             <MenuItem Header="ヘルプ(_H)">
-                <MenuItem Header="データの出典(_D)..." Click="OnShowDataSources" />
+                <MenuItem Header="データの出典(_D)..." Click="OnShowDataSourcesMenuItem" />
             </MenuItem>
         </Menu>
 

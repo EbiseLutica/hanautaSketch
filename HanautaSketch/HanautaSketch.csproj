@@ -9,6 +9,19 @@
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
 
+  <!--
+    macOS では出力先を .app バンドルの形（hanautaSketch.app/Contents/MacOS）にする。
+    バンドルでないと AppKit が英語のアプリとして扱い、メニューの音声入力やダイアログが英語になる
+  -->
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+    <OutputPath>bin/$(Configuration)/hanautaSketch.app/Contents/MacOS/</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+    <None Include="macOS/Info.plist" Link="../Info.plist" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="12.1.6" />
     <PackageReference Include="Avalonia.Desktop" Version="12.1.6" />

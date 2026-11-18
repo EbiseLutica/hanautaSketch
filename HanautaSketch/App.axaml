@@ -1,7 +1,14 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="HanautaSketch.App"
+             Name="hanautaSketch"
              RequestedThemeVariant="Default">
+    <!-- macOS のアプリ名メニュー。サービス・非表示・終了などは Avalonia がこの後ろに足す（App.axaml.cs で日本語にする） -->
+    <NativeMenu.Menu>
+        <NativeMenu>
+            <NativeMenuItem Header="hanautaSketchについて" Click="OnAbout" />
+        </NativeMenu>
+    </NativeMenu.Menu>
     <Application.Styles>
         <!-- Lutica Design System（FluentTheme を内包する） -->
         <StyleInclude Source="avares://HanautaSketch/Themes/LuticaTheme.axaml" />

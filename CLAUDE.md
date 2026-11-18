@@ -9,6 +9,9 @@
 ## 技術情報
 
 - C# / .NET 10。主な対象は Windows。macOS でも動く（ショートカットは Ctrl の代わりに ⌘）
+  - macOS ではビルド出力を `.app` バンドルの形（`bin/<構成>/hanautaSketch.app`、`macOS/Info.plist`）にする。バンドルでないと AppKit が英語のアプリとして扱うため
+  - メニューは macOS が画面上端の `NativeMenu`（並び・表記は macOS の慣例）、Windows がウィンドウ内の `Menu`。Avalonia が足すアプリ名メニューの標準項目は `App` で日本語に置き換える
+  - 取り消す・やり直すは、文字の入力欄にフォーカスがある間はその入力欄に向ける（`ITextEditTarget`）
 - UI：Avalonia 12。見た目は Lutica Design System（`Themes/LuticaTheme.axaml`。FluentTheme をパレット・リソース差し替えで土台にし、Button / ToggleButton は独自の ControlTheme）、MVVM は CommunityToolkit.Mvvm。コンパイル済みバインディングが既定なので、XAML には `x:DataType` を付ける
   - Avalonia API は推測で書かず、Avalonia MCP（`lookup_avalonia_api` / `search_avalonia_docs`）で確認する
 - ピアノロールは `Control.Render(DrawingContext)` で自前描画する。配色は `LuticaTheme.axaml` のテーマ辞書に `PianoRoll*Brush` として置き（DS と同じ色は `Lu*` を `StaticResource` で参照）、`PianoRollPalette.Load` がテーマごとに読んでペンに組み立てる。コントロールはテーマ・リソースが変わるまで使い回す
