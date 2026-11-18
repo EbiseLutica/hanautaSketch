@@ -74,18 +74,55 @@ public sealed class SmartChordTrack : Track
     }
 
     /// <summary>
-    /// 指定区間をコードで上書きする。null なら N.C.（鳴らさない）にする。重なる既存の override は取り除く。
+    /// 指定区間をコードで上書きする。null なら N.C.（鳴らさない）にする。重なる既存の override は切り詰める。
     /// </summary>
-    public void SetOverride(int start, int length, Chord? chord)
+    public void SetOverride(int start, int length, Chord? chord) =>
+        Place(new ChordOverride(start, length, chord));
+
+    /// <summary>
+    /// override の範囲を [start, end) に変える。コードの設定は保ち、重なる他の override は切り詰める。
+    /// </summary>
+    /// <returns>変えた後の override。対象が無い、または範囲が空なら null</returns>
+    public ChordOverride? ResizeOverride(ChordOverride target, int start, int end)
     {
-        ClearOverrides(start, length);
-        Overrides.Add(new ChordOverride(start, length, chord));
-        Overrides.Sort((a, b) => a.Start.CompareTo(b.Start));
+        if (end <= start || !Overrides.Remove(target)) return null;
+
+        var resized = target with { Start = start, Length = end - start };
+        Place(resized);
+        return resized;
     }
+
+    /// <summary>
+    /// override の長さを保ったまま、開始位置を <paramref name="start"/> に動かす。
+    /// </summary>
+    public ChordOverride? MoveOverride(ChordOverride target, int start) =>
+        ResizeOverride(target, start, start + target.Length);
 
     /// <summary>
     /// 指定区間に重なる override を取り除き、自動判別に戻す。
     /// </summary>
     public void ClearOverrides(int start, int length) =>
         Overrides.RemoveAll(o => o.Start < start + length && start < o.End);
+
+    /// <summary>
+    /// override を置き、重なる既存の override を切り詰める（両側に残る場合は分割する。ドラムの区間と同じ規則）。
+    /// </summary>
+    private void Place(ChordOverride placed)
+    {
+        var rest = new List<ChordOverride>();
+        foreach (var o in Overrides)
+        {
+            if (o.End <= placed.Start || placed.End <= o.Start)
+            {
+                rest.Add(o);
+                continue;
+            }
+            if (o.Start < placed.Start) rest.Add(o with { Length = placed.Start - o.Start });
+            if (placed.End < o.End) rest.Add(o with { Start = placed.End, Length = o.End - placed.End });
+        }
+
+        rest.Add(placed);
+        Overrides.Clear();
+        Overrides.AddRange(rest.OrderBy(o => o.Start));
+    }
 }

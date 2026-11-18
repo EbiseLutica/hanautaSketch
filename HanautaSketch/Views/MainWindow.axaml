@@ -264,6 +264,7 @@
                                 EditStarted="OnEditStarted"
                                 EditCompleted="OnEditCompleted"
                                 ChordSegmentClicked="OnChordSegmentClicked"
+                                ChordLaneDragRequested="OnChordLaneDragRequested"
                                 DrumSections="{Binding DrumSections}"
                                 SelectedDrumSection="{Binding SelectedDrumSection}"
                                 DrumSectionRequested="OnDrumSectionRequested"

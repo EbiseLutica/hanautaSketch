@@ -61,6 +61,7 @@ public sealed partial class PianoRollControl
         Velocity,
         VelocityResize,
         DrumSection,
+        ChordLane,
         Conductor,
     }
 
@@ -122,10 +123,8 @@ public sealed partial class PianoRollControl
                 return;
             }
 
-            // コードレーンのクリックで、そのコードの変更メニューを出してもらう
-            var laneTick = XToTick(pos.X);
-            var block = GetChordBlocks().FirstOrDefault(b => b.Start <= laneTick && laneTick < b.End);
-            if (block is not null) ChordSegmentClicked?.Invoke(this, new ChordSegmentClickedEventArgs(block));
+            // コードレーン: 端・固定区間の内側・区間のドラッグで編集、クリックでコードの変更メニュー
+            BeginChordLaneInput(e, pos);
             e.Handled = true;
             return;
         }
@@ -266,6 +265,9 @@ public sealed partial class PianoRollControl
             case DragMode.DrumSection:
                 UpdateDrumSectionDrag(pos);
                 break;
+            case DragMode.ChordLane:
+                UpdateChordLaneDrag(pos);
+                break;
             case DragMode.Conductor:
                 UpdateConductorDrag(pos);
                 break;
@@ -318,6 +320,8 @@ public sealed partial class PianoRollControl
 
         if (_dragMode == DragMode.DrumSection)
             CompleteDrumSectionInput();
+        if (_dragMode == DragMode.ChordLane)
+            CompleteChordLaneInput();
         if (_dragMode == DragMode.Conductor)
             CompleteConductorInput();
 
@@ -344,6 +348,8 @@ public sealed partial class PianoRollControl
 
         if (_dragMode == DragMode.DrumSection)
             CompleteDrumSectionInput();
+        if (_dragMode == DragMode.ChordLane)
+            CompleteChordLaneInput();
         if (_dragMode == DragMode.Conductor)
             CompleteConductorInput();
 
@@ -469,7 +475,7 @@ public sealed partial class PianoRollControl
 
     private void UpdateHoverCursor(Point pos)
     {
-        if (IsOverDrumSectionEdge(pos) || IsOverMovableConductorMarker(pos))
+        if (IsOverDrumSectionEdge(pos) || IsOverChordOverrideEdge(pos) || IsOverMovableConductorMarker(pos))
         {
             Cursor = ResizeCursor;
             return;

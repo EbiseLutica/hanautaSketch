@@ -186,6 +186,9 @@ public partial class MainWindow : Window
     private void OnDrumSectionResizeRequested(object? sender, DrumSectionResizeRequestedEventArgs e) =>
         ViewModel?.ResizeDrumSection(e.Section, e.Start, e.End);
 
+    private void OnChordLaneDragRequested(object? sender, ChordLaneDragRequestedEventArgs e) =>
+        ViewModel?.ApplyChordLaneDrag(e.Kind, e.Segment, e.Start, e.End);
+
     /// <summary>種類を変える候補として直下に並べる数</summary>
     private const int QualitySuggestionCount = 10;
 
