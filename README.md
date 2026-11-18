@@ -63,7 +63,7 @@ SF2 がなくても起動して編集はできるが、音は鳴らない
 
 ## 開発
 
-C# / .NET 10、UI は Avalonia 12、再生は MeltySynth＋NAudio（Windows）／Silk.NET.OpenAL（macOS）。
+C# / .NET 10、UI は Avalonia 12、再生は MeltySynth＋Silk.NET.OpenAL（OpenAL Soft）。
 
 | パス | 中身 |
 | --- | --- |

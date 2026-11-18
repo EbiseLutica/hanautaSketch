@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using HanautaSketch.Engine.IO;
 
 namespace HanautaSketch.Services;
@@ -20,12 +21,6 @@ public sealed record AppSettings
 /// </summary>
 public static class AppSettingsStore
 {
-    private static readonly JsonSerializerOptions Options = new()
-    {
-        WriteIndented = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-    };
-
     private static string FilePath =>
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "hanautaSketch", "settings.json");
 
@@ -35,7 +30,7 @@ public static class AppSettingsStore
         {
             if (!File.Exists(FilePath)) return new AppSettings();
             using var stream = File.OpenRead(FilePath);
-            return JsonSerializer.Deserialize<AppSettings>(stream, Options) ?? new AppSettings();
+            return JsonSerializer.Deserialize(stream, AppSettingsJsonContext.Default.AppSettings) ?? new AppSettings();
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
         {
@@ -52,7 +47,7 @@ public static class AppSettingsStore
         {
             Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
             using var stream = File.Create(FilePath);
-            JsonSerializer.Serialize(stream, settings, Options);
+            JsonSerializer.Serialize(stream, settings, AppSettingsJsonContext.Default.AppSettings);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
@@ -60,3 +55,10 @@ public static class AppSettingsStore
         }
     }
 }
+
+/// <summary>
+/// 設定ファイルの JSON シリアライザー（NativeAOT で動くようソース生成する）。
+/// </summary>
+[JsonSourceGenerationOptions(WriteIndented = true, PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
+[JsonSerializable(typeof(AppSettings))]
+internal sealed partial class AppSettingsJsonContext : JsonSerializerContext;

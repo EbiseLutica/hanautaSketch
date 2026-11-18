@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using HanautaSketch.Engine.Core;
 using HanautaSketch.Engine.Smart.Chords;
 using HanautaSketch.Engine.Smart.Drums;
@@ -15,7 +16,7 @@ public sealed record ProjectDocument(Song Song);
 /// プロジェクトファイル（.hsk、JSON）の読み書き。
 /// ファイル上の形式は DTO で固定し、ドメインモデルの変更がそのままファイル形式に漏れないようにする。
 /// </summary>
-public static class ProjectSerializer
+public static partial class ProjectSerializer
 {
     public const string FileExtension = ".hsk";
 
@@ -37,12 +38,24 @@ public static class ProjectSerializer
         WriteIndented = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
+        TypeInfoResolver = ProjectJsonContext.Default,
+        Converters =
+        {
+            new JsonStringEnumConverter<TrackType>(JsonNamingPolicy.CamelCase),
+            new JsonStringEnumConverter<Mode>(JsonNamingPolicy.CamelCase),
+            new JsonStringEnumConverter<MinorDominantMode>(JsonNamingPolicy.CamelCase),
+            new JsonStringEnumConverter<AccompanimentPattern>(JsonNamingPolicy.CamelCase),
+            new JsonStringEnumConverter<ChordQuality>(JsonNamingPolicy.CamelCase),
+            new JsonStringEnumConverter<DrumPattern>(JsonNamingPolicy.CamelCase),
+            new JsonStringEnumConverter<DrumBassFollow>(JsonNamingPolicy.CamelCase),
+        },
     };
+
+    private static JsonTypeInfo<ProjectDto> ProjectDtoInfo => (JsonTypeInfo<ProjectDto>)Options.GetTypeInfo(typeof(ProjectDto));
 
     public static async Task SaveAsync(ProjectDocument document, Stream stream, CancellationToken ct = default)
     {
-        await JsonSerializer.SerializeAsync(stream, ToDto(document), Options, ct);
+        await JsonSerializer.SerializeAsync(stream, ToDto(document), ProjectDtoInfo, ct);
     }
 
     /// <exception cref="InvalidDataException">形式が不正、または未対応のバージョン</exception>
@@ -51,7 +64,7 @@ public static class ProjectSerializer
         ProjectDto? dto;
         try
         {
-            dto = await JsonSerializer.DeserializeAsync<ProjectDto>(stream, Options, ct);
+            dto = await JsonSerializer.DeserializeAsync(stream, ProjectDtoInfo, ct);
         }
         catch (JsonException ex)
         {
@@ -284,6 +297,12 @@ public static class ProjectSerializer
     #endregion
 
     #region DTO
+
+    /// <summary>
+    /// DTO の JSON メタデータ（NativeAOT で動くようソース生成する）。書式と enum の変換は <see cref="Options"/> で与える。
+    /// </summary>
+    [JsonSerializable(typeof(ProjectDto))]
+    private sealed partial class ProjectJsonContext : JsonSerializerContext;
 
     private enum TrackType
     {

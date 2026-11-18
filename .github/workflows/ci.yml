@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  test:
+    name: Test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Test
+        run: dotnet test --configuration Release
+
+  publish:
+    name: Publish (${{ matrix.rid }})
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - rid: win-x64
+            os: windows-latest
+          - rid: osx-arm64
+            os: macos-latest
+          - rid: linux-x64
+            os: ubuntu-latest
+          - rid: linux-arm64
+            os: ubuntu-24.04-arm
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      # NativeAOT のリンクに clang と zlib が要る
+      - name: Install NativeAOT prerequisites
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
+
+      # macOS は .app バンドルの形で出力する（Info.plist は csproj が Contents/ に置く）
+      - name: Publish
+        run: |
+          if [ "${{ runner.os }}" = "macOS" ]; then
+            out="publish/hanautaSketch.app/Contents/MacOS"
+          else
+            out="publish/hanautaSketch"
+          fi
+          dotnet publish HanautaSketch --configuration Release --runtime ${{ matrix.rid }} --output "$out"
+          find publish \( -name '*.pdb' -o -name '*.dbg' -o -name '*.dSYM' \) -prune -exec rm -rf {} +
+
+      # 未署名だと Apple Silicon で起動できないので ad-hoc 署名する
+      - name: Sign app bundle (ad-hoc)
+        if: runner.os == 'macOS'
+        run: codesign --force --deep --sign - publish/hanautaSketch.app
+
+      # upload-artifact は実行属性を落とすので、macOS / Linux は自前でアーカイブしてから上げる
+      - name: Archive
+        id: archive
+        working-directory: publish
+        run: |
+          case "${{ runner.os }}" in
+            macOS)
+              ditto -c -k --keepParent hanautaSketch.app ../hanautaSketch-${{ matrix.rid }}.zip
+              echo "path=hanautaSketch-${{ matrix.rid }}.zip" >> "$GITHUB_OUTPUT" ;;
+            Linux)
+              tar -czf ../hanautaSketch-${{ matrix.rid }}.tar.gz hanautaSketch
+              echo "path=hanautaSketch-${{ matrix.rid }}.tar.gz" >> "$GITHUB_OUTPUT" ;;
+            *)
+              echo "path=publish/hanautaSketch" >> "$GITHUB_OUTPUT" ;;
+          esac
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: hanautaSketch-${{ matrix.rid }}
+          path: ${{ steps.archive.outputs.path }}
+          if-no-files-found: error

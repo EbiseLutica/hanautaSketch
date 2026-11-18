@@ -5,7 +5,7 @@ using Silk.NET.OpenAL;
 namespace HanautaSketch.Audio;
 
 /// <summary>
-/// <see cref="PlaybackEngine"/> の出力を OpenAL のバッファキューで鳴らす（macOS など Windows 以外用）。
+/// <see cref="PlaybackEngine"/> の出力を OpenAL のバッファキューで鳴らす。
 /// 専用スレッドでバッファを順に埋めて流し続ける。
 /// </summary>
 public sealed unsafe class OpenAlAudioOutput : IAudioOutput
