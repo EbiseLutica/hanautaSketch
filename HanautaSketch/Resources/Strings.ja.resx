@@ -136,6 +136,21 @@
   <data name="ThemeDark" xml:space="preserve">
     <value>ダーク</value>
   </data>
+  <data name="TapTempo" xml:space="preserve">
+    <value>タップ</value>
+  </data>
+  <data name="TapTempoTip" xml:space="preserve">
+    <value>拍に合わせて叩く（Tキー）。直近8回の平均で BPM を求める</value>
+  </data>
+  <data name="ApplyTap" xml:space="preserve">
+    <value>確定</value>
+  </data>
+  <data name="ApplyTapTip" xml:space="preserve">
+    <value>候補 BPM を再生開始位置に反映</value>
+  </data>
+  <data name="TapCandidate" xml:space="preserve">
+    <value>候補 {0} BPM</value>
+  </data>
   <data name="TogglePlay" xml:space="preserve">
     <value>▶ 再生</value>
   </data>

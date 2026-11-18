@@ -57,6 +57,11 @@ public static class Strings
     public static string ThemeSystem => Get(nameof(ThemeSystem));
     public static string ThemeLight => Get(nameof(ThemeLight));
     public static string ThemeDark => Get(nameof(ThemeDark));
+    public static string TapTempo => Get(nameof(TapTempo));
+    public static string TapTempoTip => Get(nameof(TapTempoTip));
+    public static string ApplyTap => Get(nameof(ApplyTap));
+    public static string ApplyTapTip => Get(nameof(ApplyTapTip));
+    public static string TapCandidate => Get(nameof(TapCandidate));
     public static string TogglePlay => Get(nameof(TogglePlay));
     public static string DefaultTrackMelody => Get(nameof(DefaultTrackMelody));
     public static string DefaultTrackBass => Get(nameof(DefaultTrackBass));
