@@ -25,6 +25,18 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        PlatformKeys.Adapt(this);
+
+        // macOS は画面上端のメニューバー（NativeMenu）を使う。ショートカットもそちらが持つので、二重に効かないよう KeyBinding は外す
+        if (OperatingSystem.IsMacOS())
+        {
+            WindowMenu.IsVisible = false;
+            KeyBindings.Clear();
+        }
+
+        // 文字の入力欄にフォーカスがある間は、取り消す・やり直すをその入力欄に向ける
+        AddHandler(GotFocusEvent, OnFocusChanged, RoutingStrategies.Bubble, handledEventsToo: true);
+        AddHandler(LostFocusEvent, OnFocusChanged, RoutingStrategies.Bubble, handledEventsToo: true);
 
         // Space はボタンやトグルより先に受け取り、テキスト入力中以外は再生の切り替えに使う
         AddHandler(KeyDownEvent, OnPreviewKeyDown, RoutingStrategies.Tunnel);
@@ -66,6 +78,35 @@ public partial class MainWindow : Window
 
         _closeConfirmed = true;
         Close();
+    }
+
+    private TextBox? _focusedTextBox;
+
+    private void OnFocusChanged(object? sender, RoutedEventArgs e)
+    {
+        var textBox = FocusManager?.GetFocusedElement() as TextBox;
+        if (textBox == _focusedTextBox) return;
+
+        if (_focusedTextBox is not null) _focusedTextBox.PropertyChanged -= OnFocusedTextBoxPropertyChanged;
+        _focusedTextBox = textBox;
+        if (textBox is not null) textBox.PropertyChanged += OnFocusedTextBoxPropertyChanged;
+
+        if (ViewModel is { } vm)
+            vm.TextEditTarget = textBox is null ? null : new TextBoxEditTarget(textBox);
+    }
+
+    private void OnFocusedTextBoxPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property == TextBox.CanUndoProperty || e.Property == TextBox.CanRedoProperty)
+            ViewModel?.NotifyHistoryChanged();
+    }
+
+    private sealed class TextBoxEditTarget(TextBox textBox) : ITextEditTarget
+    {
+        public bool CanUndo => textBox.CanUndo;
+        public bool CanRedo => textBox.CanRedo;
+        public void Undo() => textBox.Undo();
+        public void Redo() => textBox.Redo();
     }
 
     private void OnPreviewKeyDown(object? sender, KeyEventArgs e)
@@ -191,7 +232,9 @@ public partial class MainWindow : Window
     /// <summary>
     /// コード候補のランキングに使ったデータセットの出典を表示する。
     /// </summary>
-    private void OnShowDataSources(object? sender, RoutedEventArgs e)
+    private void OnShowDataSourcesMenuItem(object? sender, RoutedEventArgs e) => OnShowDataSources(sender, e);
+
+    private void OnShowDataSources(object? sender, EventArgs e)
     {
         var text = string.Join("\n", [
             "コード候補の並び（前のコードからの来やすさ）は、次のデータセットから集計した表を使っています。",
@@ -217,6 +260,37 @@ public partial class MainWindow : Window
         };
         window.ShowDialog(this);
     }
+
+    /// <summary>
+    /// アプリの紹介を表示する（macOS のアプリ名メニューの「について」から）。
+    /// </summary>
+    public void ShowAbout()
+    {
+        var panel = new StackPanel { Margin = new Thickness(32, 24), Spacing = 8, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center };
+        panel.Children.Add(new TextBlock { Text = "hanautaSketch", FontSize = 20, FontWeight = Avalonia.Media.FontWeight.Bold, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center });
+        panel.Children.Add(new TextBlock { Text = "メロディとベースラインをスケッチする作曲支援ツール", HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center });
+        panel.Children.Add(new TextBlock { Text = "MIT License ・ データの出典はヘルプメニューから", Classes = { "dimmed" }, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center });
+        var window = new Window
+        {
+            Title = "hanautaSketchについて",
+            SizeToContent = SizeToContent.WidthAndHeight,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            CanResize = false,
+            Content = panel,
+        };
+        window.ShowDialog(this);
+    }
+
+    #endregion
+
+    #region ウィンドウ（macOS のメニューから）
+
+    private void OnCloseWindow(object? sender, EventArgs e) => Close();
+
+    private void OnMinimizeWindow(object? sender, EventArgs e) => WindowState = WindowState.Minimized;
+
+    private void OnZoomWindow(object? sender, EventArgs e) =>
+        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
 
     #endregion
 

@@ -7,14 +7,14 @@
         ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner">
     <StackPanel Margin="20" Spacing="10" MinWidth="320">
-        <TextBlock x:Name="FileNameText" Opacity="0.7" TextTrimming="CharacterEllipsis" />
+        <TextBlock x:Name="FileNameText" Classes="dimmed" TextTrimming="CharacterEllipsis" />
         <TextBlock Text="書き出す項目（テンポ・拍子・トラック名・ノーツは常に書き出す）" />
         <CheckBox x:Name="ProgramChangeCheck" Content="Program Change（音色）" />
         <CheckBox x:Name="ControlChangeCheck" Content="Control Change（音量）" />
         <CheckBox x:Name="ChordMarkersCheck" Content="コード名マーカー" />
         <CheckBox x:Name="KeySignatureCheck" Content="調号" />
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,8,0,0">
-            <Button Content="書き出す" IsDefault="True" Click="OnExportClick" />
+            <Button Content="書き出す" Classes="primary" IsDefault="True" Click="OnExportClick" />
             <Button Content="キャンセル" IsCancel="True" Click="OnCancelClick" />
         </StackPanel>
     </StackPanel>

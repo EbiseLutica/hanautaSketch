@@ -16,9 +16,53 @@
         <KeyBinding Gesture="Ctrl+Y" Command="{Binding RedoCommand}" />
         <KeyBinding Gesture="Ctrl+Shift+Z" Command="{Binding RedoCommand}" />
     </Window.KeyBindings>
+    <!--
+        macOS の画面上端のメニューバー（Windows では使わない）。並びと名前は macOS の慣例に合わせる。
+        アプリ名のメニュー（について・終了など）は App.axaml。ショートカットは macOS 専用なので最初から ⌘（Meta）で書く
+    -->
+    <NativeMenu.Menu>
+        <NativeMenu>
+            <NativeMenuItem Header="ファイル">
+                <NativeMenu>
+                    <NativeMenuItem Header="新規" Command="{Binding NewCommand}" Gesture="Meta+N" />
+                    <NativeMenuItem Header="開く..." Command="{Binding OpenCommand}" Gesture="Meta+O" />
+                    <NativeMenuItemSeparator />
+                    <NativeMenuItem Header="閉じる" Click="OnCloseWindow" Gesture="Meta+W" />
+                    <NativeMenuItem Header="保存" Command="{Binding SaveCommand}" Gesture="Meta+S" />
+                    <NativeMenuItem Header="別名で保存..." Command="{Binding SaveAsCommand}" Gesture="Meta+Shift+S" />
+                    <NativeMenuItemSeparator />
+                    <NativeMenuItem Header="MIDI 書き出し..." Command="{Binding ExportMidiCommand}" Gesture="Meta+E" />
+                </NativeMenu>
+            </NativeMenuItem>
+            <NativeMenuItem Header="編集">
+                <NativeMenu>
+                    <NativeMenuItem Header="取り消す" Command="{Binding UndoCommand}" Gesture="Meta+Z" />
+                    <NativeMenuItem Header="やり直す" Command="{Binding RedoCommand}" Gesture="Meta+Shift+Z" />
+                </NativeMenu>
+            </NativeMenuItem>
+            <NativeMenuItem Header="ツール">
+                <NativeMenu>
+                    <NativeMenuItem Header="高度なコード遷移データを取得..." Command="{Binding AcquireChordDataCommand}" />
+                    <NativeMenuItem Header="コード情報の抽出を中止" Command="{Binding CancelChordDataCommand}" />
+                    <NativeMenuItem Header="高度なコード遷移データを削除" Command="{Binding RemoveChordDataCommand}" />
+                </NativeMenu>
+            </NativeMenuItem>
+            <NativeMenuItem Header="ウィンドウ">
+                <NativeMenu>
+                    <NativeMenuItem Header="しまう" Click="OnMinimizeWindow" Gesture="Meta+M" />
+                    <NativeMenuItem Header="拡大/縮小" Click="OnZoomWindow" />
+                </NativeMenu>
+            </NativeMenuItem>
+            <NativeMenuItem Header="ヘルプ">
+                <NativeMenu>
+                    <NativeMenuItem Header="データの出典..." Click="OnShowDataSources" />
+                </NativeMenu>
+            </NativeMenuItem>
+        </NativeMenu>
+    </NativeMenu.Menu>
     <DockPanel>
-        <!-- メニューバー -->
-        <Menu DockPanel.Dock="Top">
+        <!-- メニューバー（Windows 用。macOS では隠して上の NativeMenu を使う） -->
+        <Menu x:Name="WindowMenu" DockPanel.Dock="Top">
             <MenuItem Header="ファイル(_F)">
                 <MenuItem Header="新規作成(_N)" Command="{Binding NewCommand}" InputGesture="Ctrl+N" />
                 <MenuItem Header="開く(_O)..." Command="{Binding OpenCommand}" InputGesture="Ctrl+O" />
@@ -38,7 +82,7 @@
                 <MenuItem Header="高度なコード遷移データを削除" Command="{Binding RemoveChordDataCommand}" />
             </MenuItem>
             <MenuItem Header="ヘルプ(_H)">
-                <MenuItem Header="データの出典(_D)..." Click="OnShowDataSources" />
+                <MenuItem Header="データの出典(_D)..." Click="OnShowDataSourcesMenuItem" />
             </MenuItem>
         </Menu>
 
@@ -56,17 +100,17 @@
 
         <!-- ステータスバー -->
         <DockPanel DockPanel.Dock="Bottom" Margin="8,4">
-            <TextBlock DockPanel.Dock="Right" Text="{Binding AudioStatus}" Opacity="0.7" />
+            <TextBlock DockPanel.Dock="Right" Text="{Binding AudioStatus}" Classes="dimmed" />
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6" Margin="0,0,16,0"
                         IsVisible="{Binding IsExtractingChordData}">
-                <TextBlock Text="{Binding ChordDataStatus}" Opacity="0.7" VerticalAlignment="Center" />
-                <Button Content="中止" Command="{Binding CancelChordDataCommand}" Padding="8,0" FontSize="11" />
+                <TextBlock Text="{Binding ChordDataStatus}" Classes="dimmed" VerticalAlignment="Center" />
+                <Button Content="中止" Command="{Binding CancelChordDataCommand}" Classes="small" />
             </StackPanel>
-            <TextBlock Text="{Binding Message}" Opacity="0.7" />
+            <TextBlock Text="{Binding Message}" Classes="dimmed" />
         </DockPanel>
 
         <!-- トラックメニュー：一覧、追加・削除、選択中トラックの設定 -->
-        <DockPanel DockPanel.Dock="Left" Width="220">
+        <DockPanel DockPanel.Dock="Left" Width="220" Classes="lu-panel">
             <StackPanel DockPanel.Dock="Bottom" Margin="8" Spacing="6">
                 <TextBlock Text="音色" />
                 <StackPanel Spacing="6" IsVisible="{Binding !IsSelectedTrackDrum}">
@@ -90,7 +134,7 @@
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>
-                    <TextBlock Text="ドラムキット（10ch）" Opacity="0.6" FontSize="11" />
+                    <TextBlock Text="ドラムキット（10ch）" Classes="caption" />
                 </StackPanel>
                 <DockPanel>
                     <TextBlock DockPanel.Dock="Left" Text="音量" VerticalAlignment="Center" Width="40" />
@@ -103,7 +147,7 @@
                 <!-- スマートコードトラックの設定 -->
                 <Panel IsVisible="{Binding SelectedSmartTrack, Converter={x:Static ObjectConverters.IsNotNull}}">
                 <StackPanel Spacing="6" DataContext="{Binding SelectedSmartTrack}" x:DataType="vm:SmartChordTrackViewModel">
-                    <TextBlock Text="スマートコード" FontWeight="SemiBold" Margin="0,6,0,0" />
+                    <TextBlock Text="スマートコード" Classes="title" Margin="0,6,0,0" />
                     <TextBlock Text="ベース" />
                     <ComboBox ItemsSource="{Binding BassSourceOptions}" SelectedItem="{Binding BassSource}" HorizontalAlignment="Stretch" />
                     <TextBlock Text="メロディ（ヒント）" />
@@ -127,10 +171,10 @@
                 <!-- スマートドラムトラックの設定 -->
                 <Panel IsVisible="{Binding SelectedDrumTrack, Converter={x:Static ObjectConverters.IsNotNull}}">
                 <StackPanel Spacing="6" DataContext="{Binding SelectedDrumTrack}" x:DataType="vm:SmartDrumTrackViewModel">
-                    <TextBlock Text="スマートドラム" FontWeight="SemiBold" Margin="0,6,0,0" />
+                    <TextBlock Text="スマートドラム" Classes="title" Margin="0,6,0,0" />
                     <TextBlock Text="ベース（ベース追従用）" />
                     <ComboBox ItemsSource="{Binding BassSourceOptions}" SelectedItem="{Binding BassSource}" HorizontalAlignment="Stretch" />
-                    <TextBlock Text="上のレーンをドラッグでセクションを作成、クリックで選択、端のドラッグで伸縮" Opacity="0.6" FontSize="11" TextWrapping="Wrap" />
+                    <TextBlock Text="上のレーンをドラッグでセクションを作成、クリックで選択、端のドラッグで伸縮" Classes="caption" TextWrapping="Wrap" />
                     <StackPanel Spacing="6" IsVisible="{Binding HasSection}">
                         <TextBlock Text="パターン" />
                         <ComboBox ItemsSource="{Binding PatternOptions}" SelectedItem="{Binding Pattern}" HorizontalAlignment="Stretch" />
@@ -151,12 +195,13 @@
                 </Panel>
             </StackPanel>
 
-            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="6" Margin="8,4">
-                <Button Content="＋ ノート" Command="{Binding AddNoteTrackCommand}" />
-                <Button Content="＋ コード" Command="{Binding AddSmartChordTrackCommand}" ToolTip.Tip="スマートコードトラックを追加" />
-                <Button Content="＋ ドラム" Command="{Binding AddSmartDrumTrackCommand}" ToolTip.Tip="スマートドラムトラックを追加" />
-                <Button Content="削除" Command="{Binding RemoveSelectedTrackCommand}" />
-            </StackPanel>
+            <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,*" RowDefinitions="Auto,Auto"
+                  ColumnSpacing="6" RowSpacing="6" Margin="8,4">
+                <Button Grid.Row="0" Grid.Column="0" Content="＋ ノート" Command="{Binding AddNoteTrackCommand}" HorizontalAlignment="Stretch" />
+                <Button Grid.Row="0" Grid.Column="1" Content="＋ コード" Command="{Binding AddSmartChordTrackCommand}" ToolTip.Tip="スマートコードトラックを追加" HorizontalAlignment="Stretch" />
+                <Button Grid.Row="1" Grid.Column="0" Content="＋ ドラム" Command="{Binding AddSmartDrumTrackCommand}" ToolTip.Tip="スマートドラムトラックを追加" HorizontalAlignment="Stretch" />
+                <Button Grid.Row="1" Grid.Column="1" Content="削除" Command="{Binding RemoveSelectedTrackCommand}" HorizontalAlignment="Stretch" />
+            </Grid>
 
             <!-- 行: 名前（ダブルクリックで編集）、M（ミュート）・S（ソロ）。ドラッグで並び替え -->
             <ListBox x:Name="TrackList" ItemsSource="{Binding TrackItems}" SelectedItem="{Binding SelectedTrackItem}">
@@ -164,10 +209,10 @@
                     <DataTemplate x:DataType="vm:TrackItemViewModel">
                         <DockPanel Background="Transparent" DoubleTapped="OnTrackItemDoubleTapped">
                             <ToggleButton DockPanel.Dock="Right" Content="S" IsChecked="{Binding Solo}" ToolTip.Tip="ソロ"
-                                          Padding="6,0" MinWidth="24" FontSize="11" Margin="2,0,0,0" />
+                                          Classes="small" MinWidth="24" Margin="4,0,0,0" />
                             <ToggleButton DockPanel.Dock="Right" Content="M" IsChecked="{Binding Mute}" ToolTip.Tip="ミュート"
-                                          Padding="6,0" MinWidth="24" FontSize="11" />
-                            <TextBlock DockPanel.Dock="Right" Text="スマート" Opacity="0.6" FontSize="11"
+                                          Classes="small" MinWidth="24" />
+                            <TextBlock DockPanel.Dock="Right" Text="スマート" Classes="caption"
                                        VerticalAlignment="Center" Margin="0,0,6,0" IsVisible="{Binding IsSmart}" />
                             <Panel VerticalAlignment="Center">
                                 <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis"

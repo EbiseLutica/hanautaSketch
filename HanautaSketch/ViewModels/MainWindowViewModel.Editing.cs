@@ -4,6 +4,7 @@ using HanautaSketch.Engine.Core;
 using HanautaSketch.Engine.Editing;
 using HanautaSketch.Engine.Smart.Chords;
 using HanautaSketch.Engine.Smart.Drums;
+using HanautaSketch.Services;
 
 namespace HanautaSketch.ViewModels;
 
@@ -137,25 +138,49 @@ public partial class MainWindowViewModel
         _pendingSnapshot = null;
     }
 
+    /// <summary>
+    /// フォーカスのある文字の入力欄（なければ null）。あるあいだは Undo/Redo をその入力欄に向け、曲の履歴には触らない。
+    /// </summary>
+    public ITextEditTarget? TextEditTarget
+    {
+        get;
+        set
+        {
+            field = value;
+            NotifyHistoryChanged();
+        }
+    }
+
     [RelayCommand(CanExecute = nameof(CanUndo))]
     private void Undo()
     {
+        if (TextEditTarget is { } text)
+        {
+            text.Undo();
+            return;
+        }
         RestoreSnapshot(_history.Undo(TakeSnapshot()));
         NotifyHistoryChanged();
     }
 
-    private bool CanUndo() => _history.CanUndo;
+    private bool CanUndo() => TextEditTarget?.CanUndo ?? _history.CanUndo;
 
     [RelayCommand(CanExecute = nameof(CanRedo))]
     private void Redo()
     {
+        if (TextEditTarget is { } text)
+        {
+            text.Redo();
+            return;
+        }
         RestoreSnapshot(_history.Redo(TakeSnapshot()));
         NotifyHistoryChanged();
     }
 
-    private bool CanRedo() => _history.CanRedo;
+    private bool CanRedo() => TextEditTarget?.CanRedo ?? _history.CanRedo;
 
-    private void NotifyHistoryChanged()
+    /// <summary>取り消す・やり直すの可否が変わったとき（履歴・入力欄の中身・フォーカス）に呼ぶ</summary>
+    public void NotifyHistoryChanged()
     {
         UndoCommand.NotifyCanExecuteChanged();
         RedoCommand.NotifyCanExecuteChanged();
