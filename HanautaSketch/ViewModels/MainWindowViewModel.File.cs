@@ -33,6 +33,17 @@ public partial class MainWindowViewModel
 
     public bool IsLanguageEnglish => LanguageChoice == AppLanguage.English;
 
+    /// <summary>配色テーマの選択（<see cref="AppTheme"/> の値）。すぐに反映する</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsThemeSystem), nameof(IsThemeLight), nameof(IsThemeDark))]
+    private string _themeChoice = AppTheme.System;
+
+    public bool IsThemeSystem => ThemeChoice == AppTheme.System;
+
+    public bool IsThemeLight => ThemeChoice == AppTheme.Light;
+
+    public bool IsThemeDark => ThemeChoice == AppTheme.Dark;
+
     /// <summary>View 側から設定するダイアログ</summary>
     public IDialogService? Dialogs { get; set; }
 
@@ -56,6 +67,18 @@ public partial class MainWindowViewModel
         _appSettings = _appSettings with { Language = choice };
         AppSettingsStore.Save(_appSettings);
         Message = Strings.LanguageRestartNotice;
+    }
+
+    /// <summary>
+    /// 配色テーマを切り替えて設定に保存する。画面にすぐ反映する。
+    /// </summary>
+    [RelayCommand]
+    private void SetTheme(string choice)
+    {
+        ThemeChoice = choice;
+        _appSettings = _appSettings with { Theme = choice };
+        AppSettingsStore.Save(_appSettings);
+        AppTheme.Apply(choice);
     }
 
     /// <summary>
