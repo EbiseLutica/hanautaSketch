@@ -520,7 +520,17 @@ public sealed partial class PianoRollControl
         base.OnPointerWheelChanged(e);
         var pos = e.GetPosition(this);
 
-        if (PlatformKeys.IsCommand(e.KeyModifiers))
+        if (PlatformKeys.IsCommand(e.KeyModifiers) && e.KeyModifiers.HasFlag(KeyModifiers.Shift))
+        {
+            // Ctrl（macOS は ⌘）+Shift+ホイール：カーソル位置の音高を基準に縦ズーム。
+            // 最大値を先に更新してからオフセットを置く（古い最大値で切られないように）
+            var anchorRow = (pos.Y - HeaderHeight + VerticalOffset) / _noteHeight;
+            var factor = e.Delta.Y > 0 ? 1.2 : 1 / 1.2;
+            _noteHeight = Math.Clamp(_noteHeight * factor, MinNoteHeight, MaxNoteHeight);
+            UpdateScrollExtents();
+            VerticalOffset = anchorRow * _noteHeight - (pos.Y - HeaderHeight);
+        }
+        else if (PlatformKeys.IsCommand(e.KeyModifiers))
         {
             // Ctrl（macOS は ⌘）+ホイール：カーソル位置を基準に横ズーム
             var anchorTick = XToTick(pos.X);
@@ -535,7 +545,7 @@ public sealed partial class PianoRollControl
         else
         {
             HorizontalOffset -= e.Delta.X * 80;
-            VerticalOffset -= e.Delta.Y * NoteHeight * 3;
+            VerticalOffset -= e.Delta.Y * _noteHeight * 3;
         }
 
         UpdateScrollExtents();
@@ -561,7 +571,7 @@ public sealed partial class PianoRollControl
         HorizontalViewport = area.Width;
         VerticalViewport = area.Height;
         HorizontalMaximum = Math.Max(0, contentTicks * PixelsPerTick - area.Width);
-        VerticalMaximum = Math.Max(0, PitchCount * NoteHeight - area.Height);
+        VerticalMaximum = Math.Max(0, PitchCount * _noteHeight - area.Height);
         ClampOffsets();
         InvalidateVisual();
     }
