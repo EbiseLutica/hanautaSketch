@@ -584,4 +584,40 @@ Choose another file.</value>
   <data name="ChordDataRemove" xml:space="preserve">
     <value>Delete</value>
   </data>
+  <data name="Transposed" xml:space="preserve">
+    <value>Transposed by {0} semitones ({1}+Z to undo)</value>
+  </data>
+  <data name="TransposeOutOfRange" xml:space="preserve">
+    <value>Can't transpose: a note would go outside the MIDI range (0-127)</value>
+  </data>
+  <data name="MenuTranspose" xml:space="preserve">
+    <value>Transpose</value>
+  </data>
+  <data name="MenuTransposeUp" xml:space="preserve">
+    <value>Up 1 Semitone</value>
+  </data>
+  <data name="MenuTransposeDown" xml:space="preserve">
+    <value>Down 1 Semitone</value>
+  </data>
+  <data name="MenuTransposeOctaveUp" xml:space="preserve">
+    <value>Up 1 Octave</value>
+  </data>
+  <data name="MenuTransposeOctaveDown" xml:space="preserve">
+    <value>Down 1 Octave</value>
+  </data>
+  <data name="NativeTranspose" xml:space="preserve">
+    <value>Transpose</value>
+  </data>
+  <data name="NativeTransposeUp" xml:space="preserve">
+    <value>Up 1 Semitone</value>
+  </data>
+  <data name="NativeTransposeDown" xml:space="preserve">
+    <value>Down 1 Semitone</value>
+  </data>
+  <data name="NativeTransposeOctaveUp" xml:space="preserve">
+    <value>Up 1 Octave</value>
+  </data>
+  <data name="NativeTransposeOctaveDown" xml:space="preserve">
+    <value>Down 1 Octave</value>
+  </data>
 </root>

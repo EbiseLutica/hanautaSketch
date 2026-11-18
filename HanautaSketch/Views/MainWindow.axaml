@@ -16,6 +16,10 @@
         <KeyBinding Gesture="Ctrl+Z" Command="{Binding UndoCommand}" />
         <KeyBinding Gesture="Ctrl+Y" Command="{Binding RedoCommand}" />
         <KeyBinding Gesture="Ctrl+Shift+Z" Command="{Binding RedoCommand}" />
+        <KeyBinding Gesture="Ctrl+Up" Command="{Binding TransposeUpCommand}" />
+        <KeyBinding Gesture="Ctrl+Down" Command="{Binding TransposeDownCommand}" />
+        <KeyBinding Gesture="Ctrl+Shift+Up" Command="{Binding TransposeOctaveUpCommand}" />
+        <KeyBinding Gesture="Ctrl+Shift+Down" Command="{Binding TransposeOctaveDownCommand}" />
     </Window.KeyBindings>
     <!--
         macOS の画面上端のメニューバー（Windows では使わない）。並びと名前は macOS の慣例に合わせる。
@@ -39,6 +43,16 @@
                 <NativeMenu>
                     <NativeMenuItem Header="{x:Static res:Strings.NativeUndo}" Command="{Binding UndoCommand}" Gesture="Meta+Z" />
                     <NativeMenuItem Header="{x:Static res:Strings.NativeRedo}" Command="{Binding RedoCommand}" Gesture="Meta+Shift+Z" />
+                    <NativeMenuItemSeparator />
+                    <NativeMenuItem Header="{x:Static res:Strings.NativeTranspose}">
+                        <NativeMenu>
+                            <NativeMenuItem Header="{x:Static res:Strings.NativeTransposeUp}" Command="{Binding TransposeUpCommand}" Gesture="Meta+Up" />
+                            <NativeMenuItem Header="{x:Static res:Strings.NativeTransposeDown}" Command="{Binding TransposeDownCommand}" Gesture="Meta+Down" />
+                            <NativeMenuItemSeparator />
+                            <NativeMenuItem Header="{x:Static res:Strings.NativeTransposeOctaveUp}" Command="{Binding TransposeOctaveUpCommand}" Gesture="Meta+Shift+Up" />
+                            <NativeMenuItem Header="{x:Static res:Strings.NativeTransposeOctaveDown}" Command="{Binding TransposeOctaveDownCommand}" Gesture="Meta+Shift+Down" />
+                        </NativeMenu>
+                    </NativeMenuItem>
                 </NativeMenu>
             </NativeMenuItem>
             <NativeMenuItem Header="{x:Static res:Strings.NativeWindow}">
@@ -69,6 +83,14 @@
             <MenuItem Header="{x:Static res:Strings.MenuEdit}">
                 <MenuItem Header="{x:Static res:Strings.MenuUndo}" Command="{Binding UndoCommand}" InputGesture="Ctrl+Z" />
                 <MenuItem Header="{x:Static res:Strings.MenuRedo}" Command="{Binding RedoCommand}" InputGesture="Ctrl+Y" />
+                <Separator />
+                <MenuItem Header="{x:Static res:Strings.MenuTranspose}">
+                    <MenuItem Header="{x:Static res:Strings.MenuTransposeUp}" Command="{Binding TransposeUpCommand}" InputGesture="Ctrl+Up" />
+                    <MenuItem Header="{x:Static res:Strings.MenuTransposeDown}" Command="{Binding TransposeDownCommand}" InputGesture="Ctrl+Down" />
+                    <Separator />
+                    <MenuItem Header="{x:Static res:Strings.MenuTransposeOctaveUp}" Command="{Binding TransposeOctaveUpCommand}" InputGesture="Ctrl+Shift+Up" />
+                    <MenuItem Header="{x:Static res:Strings.MenuTransposeOctaveDown}" Command="{Binding TransposeOctaveDownCommand}" InputGesture="Ctrl+Shift+Down" />
+                </MenuItem>
             </MenuItem>
             <MenuItem Header="{x:Static res:Strings.MenuTools}">
                 <MenuItem Header="{x:Static res:Strings.MenuSettings}" Click="OnShowSettingsMenuItem" InputGesture="Ctrl+OemComma" />
