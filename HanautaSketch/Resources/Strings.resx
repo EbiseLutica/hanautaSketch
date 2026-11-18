@@ -10,8 +10,8 @@
   <data name="AboutTagline" xml:space="preserve">
     <value>A composition tool for sketching melodies and basslines</value>
   </data>
-  <data name="AboutLicense" xml:space="preserve">
-    <value>MIT License · Data sources are in the Help menu</value>
+  <data name="AboutLicensesLink" xml:space="preserve">
+    <value>Open Source Licenses...</value>
   </data>
   <data name="NativeFile" xml:space="preserve">
     <value>File</value>
@@ -55,8 +55,8 @@
   <data name="NativeHelp" xml:space="preserve">
     <value>Help</value>
   </data>
-  <data name="NativeDataSources" xml:space="preserve">
-    <value>Data Sources...</value>
+  <data name="NativeLicenses" xml:space="preserve">
+    <value>Open Source Licenses...</value>
   </data>
   <data name="MenuFile" xml:space="preserve">
     <value>File(_F)</value>
@@ -91,8 +91,8 @@
   <data name="MenuHelp" xml:space="preserve">
     <value>Help(_H)</value>
   </data>
-  <data name="MenuDataSources" xml:space="preserve">
-    <value>Data Sources(_D)...</value>
+  <data name="MenuLicenses" xml:space="preserve">
+    <value>Open Source Licenses(_L)...</value>
   </data>
   <data name="MacServices" xml:space="preserve">
     <value>Services</value>
@@ -355,17 +355,23 @@
   <data name="ChordGroupTension" xml:space="preserve">
     <value>Tensions</value>
   </data>
-  <data name="DataSourcesTitle" xml:space="preserve">
-    <value>Data Sources</value>
+  <data name="LicensesTitle" xml:space="preserve">
+    <value>Open Source Licenses</value>
+  </data>
+  <data name="LicensesAppHeader" xml:space="preserve">
+    <value>hanautaSketch (MIT License)</value>
+  </data>
+  <data name="LicensesDataHeader" xml:space="preserve">
+    <value>Data</value>
+  </data>
+  <data name="LicensesLibrariesHeader" xml:space="preserve">
+    <value>Libraries (included in the app)</value>
   </data>
   <data name="DataSourcesIntro" xml:space="preserve">
     <value>Chord suggestion order (how likely each chord is to follow the previous one) uses tables aggregated from these datasets.</value>
   </data>
   <data name="DataSourcesBundled" xml:space="preserve">
     <value>The bundled table is aggregated only from McGill Billboard (CC0). Chordonomicon (CC BY-NC 4.0) is used only if you agree to its license in Settings and download it, and that data may only be used non-commercially.</value>
-  </data>
-  <data name="DataSourcesLibraries" xml:space="preserve">
-    <value>Licenses for other libraries are summarized in THIRD_PARTIES.md in the repository.</value>
   </data>
   <data name="UnsavedMessage" xml:space="preserve">
     <value>Do you want to save the changes to &quot;{0}&quot;?</value>

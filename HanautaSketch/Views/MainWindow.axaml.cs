@@ -288,13 +288,26 @@ public partial class MainWindow : Window
     #region ヘルプ
 
     /// <summary>
-    /// コード候補のランキングに使ったデータセットの出典を表示する。
+    /// Windows のヘルプメニューから、オープンソースライセンスを開く。
     /// </summary>
-    private void OnShowDataSourcesMenuItem(object? sender, RoutedEventArgs e) => OnShowDataSources(sender, e);
+    private void OnShowLicensesMenuItem(object? sender, RoutedEventArgs e) => ShowLicenses();
 
-    private void OnShowDataSources(object? sender, EventArgs e)
+    /// <summary>
+    /// macOS のヘルプメニューから、オープンソースライセンスを開く。
+    /// </summary>
+    private void OnShowLicenses(object? sender, EventArgs e) => ShowLicenses();
+
+    /// <summary>
+    /// 本体（MIT）・同梱ライブラリのライセンスと、コード候補に使ったデータの出典をまとめて表示する。
+    /// </summary>
+    /// <param name="owner">親にする窓（省略時はメインウィンドウ）</param>
+    public void ShowLicenses(Window? owner = null)
     {
         var text = string.Join("\n", [
+            "■ " + Strings.LicensesAppHeader,
+            OpenSourceLicenses.ReadAppLicense().TrimEnd(),
+            "",
+            "■ " + Strings.LicensesDataHeader,
             Strings.DataSourcesIntro,
             "",
             .. (ViewModel?.ChordTable ?? ChordTransitionTable.Default).Sources.Select(s =>
@@ -306,17 +319,22 @@ public partial class MainWindow : Window
             "  Chord Progressions\", arXiv:2410.22046, 2024. https://huggingface.co/datasets/ailsntua/Chordonomicon",
             "",
             Strings.DataSourcesBundled,
-            Strings.DataSourcesLibraries,
+            "",
+            "■ " + Strings.LicensesLibrariesHeader,
+            .. OpenSourceLicenses.Libraries.Select(l => $"{l.Name}: {l.License}\n  {l.Url}"),
         ]);
         var window = new Window
         {
-            Title = Strings.DataSourcesTitle,
-            SizeToContent = SizeToContent.WidthAndHeight,
+            Title = Strings.LicensesTitle,
+            Width = 640,
+            Height = 560,
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
-            CanResize = false,
-            Content = new SelectableTextBlock { Text = text, Margin = new Thickness(16), TextWrapping = Avalonia.Media.TextWrapping.NoWrap },
+            Content = new ScrollViewer
+            {
+                Content = new SelectableTextBlock { Text = text, Margin = new Thickness(16), TextWrapping = Avalonia.Media.TextWrapping.Wrap },
+            },
         };
-        window.ShowDialog(this);
+        window.ShowDialog(owner ?? this);
     }
 
     /// <summary>
@@ -332,7 +350,6 @@ public partial class MainWindow : Window
         var panel = new StackPanel { Margin = new Thickness(32, 24), Spacing = 8, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center };
         panel.Children.Add(new TextBlock { Text = "hanautaSketch", FontSize = 20, FontWeight = Avalonia.Media.FontWeight.Bold, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center });
         panel.Children.Add(new TextBlock { Text = Strings.AboutTagline, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center });
-        panel.Children.Add(new TextBlock { Text = Strings.AboutLicense, Classes = { "dimmed" }, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center });
         var window = new Window
         {
             Title = Strings.AboutApp,
@@ -341,6 +358,9 @@ public partial class MainWindow : Window
             CanResize = false,
             Content = panel,
         };
+        var licensesLink = new Button { Content = Strings.AboutLicensesLink, Classes = { "ghost" }, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center };
+        licensesLink.Click += (_, _) => ShowLicenses(window);
+        panel.Children.Add(licensesLink);
         window.ShowDialog(this);
     }
 
