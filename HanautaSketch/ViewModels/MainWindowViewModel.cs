@@ -21,7 +21,7 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     {
         InitializeTrackItems();
         ReplaceTracks(CreateDefaultTracks());
-        _selectedSnap = SnapOptions[2];
+        _selectedSnap = SnapOptions.Single(o => o.Ticks == Song.DefaultPpq / 4);
         SyncConductorDisplay();
         InitializePlayback();
         IsDirty = false;
@@ -36,12 +36,17 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
 
     public IReadOnlyList<Mode> Modes { get; } = Enum.GetValues<Mode>();
 
+    /// <summary>スナップ候補。3連符は 1 拍 = PPQ の 2/3 単位で、PPQ=480 なら整数 tick に収まる</summary>
     public IReadOnlyList<SnapOption> SnapOptions { get; } =
     [
         new("1/4", Song.DefaultPpq),
+        new("1/4T", Song.DefaultPpq * 2 / 3),
         new("1/8", Song.DefaultPpq / 2),
+        new("1/8T", Song.DefaultPpq / 3),
         new("1/16", Song.DefaultPpq / 4),
+        new("1/16T", Song.DefaultPpq / 6),
         new("1/32", Song.DefaultPpq / 8),
+        new("1/32T", Song.DefaultPpq / 12),
     ];
 
     [ObservableProperty]
