@@ -36,11 +36,6 @@
     <ProjectReference Include="..\HanautaSketch.Engine\HanautaSketch.Engine.csproj" />
   </ItemGroup>
 
-  <!-- Lutica Design System のフォント（Koruri、Apache License 2.0） -->
-  <ItemGroup>
-    <AvaloniaResource Include="Assets\Fonts\*.ttf" />
-  </ItemGroup>
-
   <!-- SoundFonts/ の SF2 は git 管理外。存在すれば出力先にコピーする -->
   <ItemGroup>
     <None Include="SoundFonts\*.sf2" CopyToOutputDirectory="PreserveNewest" />

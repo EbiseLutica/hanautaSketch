@@ -1,6 +1,6 @@
 <!--
   Lutica Design System の Avalonia テーマ。
-  FluentTheme を土台にして、配色（パレット）・フォント（Koruri）・押せる部品の影を Lutica に合わせる。
+  FluentTheme を土台にして、配色（パレット）・押せる部品の影を Lutica に合わせる。フォントはシステムフォント。
   値は Lutica Design System の tokens.json（v2）から写している。color-mix() で作る色は oklab で事前に混ぜた値。
   App.axaml からこのファイルだけを StyleInclude する（FluentTheme はここで読み込む）。
 -->
@@ -64,10 +64,6 @@
 
     <Styles.Resources>
         <ResourceDictionary>
-            <!-- Typography：本文は Koruri（Regular 400 / SemiBold 600 / Bold 700） -->
-            <FontFamily x:Key="LuFontSans">avares://HanautaSketch/Assets/Fonts#Koruri</FontFamily>
-            <FontFamily x:Key="ContentControlThemeFontFamily">avares://HanautaSketch/Assets/Fonts#Koruri</FontFamily>
-
             <!-- Radius -->
             <CornerRadius x:Key="LuRadiusSm">4</CornerRadius>
             <CornerRadius x:Key="LuRadiusMd">8</CornerRadius>
@@ -407,11 +403,10 @@
         </ResourceDictionary>
     </Styles.Resources>
 
-    <!-- ページ全体：background の地に foreground の文字、Koruri -->
+    <!-- ページ全体：background の地に foreground の文字。フォントは OS のシステムフォント（Fluent の既定） -->
     <Style Selector="Window">
         <Setter Property="Background" Value="{DynamicResource LuBackgroundBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource LuForegroundBrush}" />
-        <Setter Property="FontFamily" Value="{DynamicResource LuFontSans}" />
     </Style>
 
     <!-- 面の段：panel（カード・サイドバー） -->
