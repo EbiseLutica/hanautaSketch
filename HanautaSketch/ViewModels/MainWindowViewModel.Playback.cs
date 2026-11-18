@@ -2,6 +2,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HanautaSketch.Audio;
+using HanautaSketch.Resources;
 
 namespace HanautaSketch.ViewModels;
 
@@ -16,7 +17,7 @@ public partial class MainWindowViewModel
     private DispatcherTimer? _playheadTimer;
 
     [ObservableProperty]
-    private string _audioStatus = "音源を読み込み中…";
+    private string _audioStatus = Strings.AudioLoading;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(TogglePlaybackCommand))]
@@ -52,7 +53,7 @@ public partial class MainWindowViewModel
         var path = Directory.Exists(dir) ? Directory.EnumerateFiles(dir, "*.sf2").FirstOrDefault() : null;
         if (path is null)
         {
-            AudioStatus = $"SF2 が見つからない（{SoundFontDirectory}/ に置く）";
+            AudioStatus = Strings.Format(Strings.AudioSoundFontMissing, SoundFontDirectory);
             return;
         }
 
@@ -66,7 +67,7 @@ public partial class MainWindowViewModel
         }
         catch (Exception ex)
         {
-            AudioStatus = $"音源の初期化に失敗: {ex.Message}";
+            AudioStatus = Strings.Format(Strings.AudioInitFailed, ErrorDetail(ex));
         }
     }
 

@@ -8,6 +8,9 @@ namespace HanautaSketch.Services;
 /// </summary>
 public sealed record AppSettings
 {
+    /// <summary>表示言語。<see cref="AppLanguage.System"/>（OS に従う）・<see cref="AppLanguage.Japanese"/>・<see cref="AppLanguage.English"/></summary>
+    public string Language { get; init; } = AppLanguage.System;
+
     public MidiExportOptions MidiExport { get; init; } = new();
 }
 

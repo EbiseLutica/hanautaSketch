@@ -7,6 +7,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using HanautaSketch.Controls;
 using HanautaSketch.Engine.Smart.Chords;
+using HanautaSketch.Resources;
 using HanautaSketch.Services;
 using HanautaSketch.ViewModels;
 
@@ -164,7 +165,7 @@ public partial class MainWindow : Window
                 Text = (suggestion.Chord == current ? "● " : "　") + suggestion.Chord.GetName(key),
             });
             if (suggestion.ClashesWithBass)
-                header.Children.Add(new TextBlock { Text = "ベース外", Opacity = 0.5, FontSize = 11 });
+                header.Children.Add(new TextBlock { Text = Strings.ChordOutOfBass, Opacity = 0.5, FontSize = 11 });
             var item = new MenuItem { Header = header };
             item.Click += (_, _) => vm.SetChordOverride(segment, suggestion.Chord);
             return item;
@@ -175,19 +176,19 @@ public partial class MainWindow : Window
 
         flyout.Items.Add(new Separator());
 
-        var otherRoots = new MenuItem { Header = "基音を変える" };
+        var otherRoots = new MenuItem { Header = Strings.ChordChangeRoot };
         foreach (var suggestion in suggestions.OtherRoots(currentRoot, RootSuggestionCount))
             otherRoots.Items.Add(ChordItem(suggestion));
         flyout.Items.Add(otherRoots);
 
         // その他: 根音 → 種類（グループごと）で全部から選ぶ
-        var all = new MenuItem { Header = "その他" };
+        var all = new MenuItem { Header = Strings.ChordOther };
         for (var root = 0; root < 12; root++)
         {
             var rootItem = new MenuItem { Header = key.GetPitchName(root) };
             foreach (var group in ChordQualities.All.GroupBy(q => q.Group))
             {
-                var groupItem = new MenuItem { Header = group.Key };
+                var groupItem = new MenuItem { Header = ChordGroupName(group.Key) };
                 foreach (var quality in group)
                     groupItem.Items.Add(ChordItem(suggestions.Evaluate(new Chord(root, quality.Quality))));
                 rootItem.Items.Add(groupItem);
@@ -199,31 +200,42 @@ public partial class MainWindow : Window
         // 追加のデータがまだなら、取得の入口を案内する
         if (!vm.HasExtendedChordData && !vm.IsExtractingChordData)
         {
-            var acquire = new MenuItem { Header = "候補を精度よくする..." };
+            var acquire = new MenuItem { Header = Strings.ChordImprove };
             acquire.Click += (_, _) => vm.AcquireChordDataCommand.Execute(null);
             flyout.Items.Add(acquire);
         }
 
-        var noChord = new MenuItem { Header = (segment.Chord is null ? "● " : "　") + "N.C.（鳴らさない）" };
+        var noChord = new MenuItem { Header = (segment.Chord is null ? "● " : "　") + Strings.ChordNoChord };
         noChord.Click += (_, _) => vm.SetChordOverride(segment, null);
         flyout.Items.Add(noChord);
 
         flyout.Items.Add(new Separator());
         if (segment.IsOverride)
         {
-            var reset = new MenuItem { Header = "自動判別に戻す" };
+            var reset = new MenuItem { Header = Strings.ChordResetAuto };
             reset.Click += (_, _) => vm.ClearChordOverride(segment);
             flyout.Items.Add(reset);
         }
         else
         {
-            var fix = new MenuItem { Header = "このコードで確定" };
+            var fix = new MenuItem { Header = Strings.ChordFixThis };
             fix.Click += (_, _) => vm.SetChordOverride(segment, segment.Chord?.RootPosition);
             flyout.Items.Add(fix);
         }
 
         flyout.ShowAt(target, true);
     }
+
+    /// <summary>コードの種類のグループを、表示言語の名前にする</summary>
+    private static string ChordGroupName(ChordQualityGroup group) => group switch
+    {
+        ChordQualityGroup.Triad => Strings.ChordGroupTriad,
+        ChordQualityGroup.Sus => Strings.ChordGroupSus,
+        ChordQualityGroup.SixthAdd9 => Strings.ChordGroupSixth,
+        ChordQualityGroup.Seventh => Strings.ChordGroupSeventh,
+        ChordQualityGroup.Tension => Strings.ChordGroupTension,
+        _ => group.ToString(),
+    };
 
     #endregion
 
@@ -237,22 +249,22 @@ public partial class MainWindow : Window
     private void OnShowDataSources(object? sender, EventArgs e)
     {
         var text = string.Join("\n", [
-            "コード候補の並び（前のコードからの来やすさ）は、次のデータセットから集計した表を使っています。",
+            Strings.DataSourcesIntro,
             "",
-            .. (ViewModel?.ChordTable ?? ChordTransitionTable.Default).Sources.Select(s => "・" + s),
+            .. (ViewModel?.ChordTable ?? ChordTransitionTable.Default).Sources.Select(s =>
+                Strings.Format(Strings.DataSourceEntry, s.Name, s.License, s.Songs)),
             "",
             "McGill Billboard Project: J. A. Burgoyne, J. Wild, I. Fujinaga,",
             "  \"An Expert Ground Truth Set for Audio Chord Recognition and Music Analysis\", ISMIR 2011.",
             "Chordonomicon: S. Kantarelis et al., \"CHORDONOMICON: A Dataset of 666,000 Songs and their",
             "  Chord Progressions\", arXiv:2410.22046, 2024. https://huggingface.co/datasets/ailsntua/Chordonomicon",
             "",
-            "同梱しているのは McGill Billboard（CC0）だけから集計した表です。Chordonomicon（CC BY-NC 4.0）は、",
-            "ツールメニューからライセンスに同意して取得した場合だけ使い、そのデータは非営利の目的でのみ利用できます。",
-            "そのほかのライブラリのライセンスは、リポジトリの THIRD_PARTIES.md にまとめています。",
+            Strings.DataSourcesBundled,
+            Strings.DataSourcesLibraries,
         ]);
         var window = new Window
         {
-            Title = "データの出典",
+            Title = Strings.DataSourcesTitle,
             SizeToContent = SizeToContent.WidthAndHeight,
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
             CanResize = false,
@@ -268,11 +280,11 @@ public partial class MainWindow : Window
     {
         var panel = new StackPanel { Margin = new Thickness(32, 24), Spacing = 8, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center };
         panel.Children.Add(new TextBlock { Text = "hanautaSketch", FontSize = 20, FontWeight = Avalonia.Media.FontWeight.Bold, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center });
-        panel.Children.Add(new TextBlock { Text = "メロディとベースラインをスケッチする作曲支援ツール", HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center });
-        panel.Children.Add(new TextBlock { Text = "MIT License ・ データの出典はヘルプメニューから", Classes = { "dimmed" }, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center });
+        panel.Children.Add(new TextBlock { Text = Strings.AboutTagline, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center });
+        panel.Children.Add(new TextBlock { Text = Strings.AboutLicense, Classes = { "dimmed" }, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center });
         var window = new Window
         {
-            Title = "hanautaSketchについて",
+            Title = Strings.AboutApp,
             SizeToContent = SizeToContent.WidthAndHeight,
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
             CanResize = false,

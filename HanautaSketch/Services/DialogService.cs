@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using HanautaSketch.Engine.IO;
+using HanautaSketch.Resources;
 using HanautaSketch.Views;
 
 namespace HanautaSketch.Services;
@@ -44,7 +45,7 @@ public interface IDialogService
 /// </summary>
 public sealed class DialogService(Window owner) : IDialogService
 {
-    private static readonly FilePickerFileType ProjectFileType = new("hanautaSketch プロジェクト")
+    private static readonly FilePickerFileType ProjectFileType = new(Strings.ProjectFileTypeName)
     {
         Patterns = [$"*{ProjectSerializer.FileExtension}"],
     };
@@ -58,7 +59,7 @@ public sealed class DialogService(Window owner) : IDialogService
     {
         var files = await owner.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "プロジェクトを開く",
+            Title = Strings.DialogOpenProject,
             AllowMultiple = false,
             FileTypeFilter = [ProjectFileType],
         });
@@ -68,7 +69,7 @@ public sealed class DialogService(Window owner) : IDialogService
     public Task<IStorageFile?> PickSaveAsync(string suggestedName) =>
         owner.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            Title = "プロジェクトを保存",
+            Title = Strings.DialogSaveProject,
             SuggestedFileName = suggestedName,
             DefaultExtension = ProjectSerializer.FileExtension.TrimStart('.'),
             FileTypeChoices = [ProjectFileType],
@@ -78,7 +79,7 @@ public sealed class DialogService(Window owner) : IDialogService
     public Task<IStorageFile?> PickMidiExportAsync(string suggestedName) =>
         owner.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            Title = "MIDI 書き出し",
+            Title = Strings.DialogExportMidi,
             SuggestedFileName = suggestedName,
             DefaultExtension = MidiExporter.FileExtension.TrimStart('.'),
             FileTypeChoices = [MidiFileType],

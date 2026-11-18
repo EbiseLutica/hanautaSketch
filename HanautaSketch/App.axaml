@@ -1,12 +1,13 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:res="using:HanautaSketch.Resources"
              x:Class="HanautaSketch.App"
              Name="hanautaSketch"
              RequestedThemeVariant="Default">
-    <!-- macOS のアプリ名メニュー。サービス・非表示・終了などは Avalonia がこの後ろに足す（App.axaml.cs で日本語にする） -->
+    <!-- macOS のアプリ名メニュー。サービス・非表示・終了などは Avalonia がこの後ろに足す（App.axaml.cs で訳語に置き換える） -->
     <NativeMenu.Menu>
         <NativeMenu>
-            <NativeMenuItem Header="hanautaSketchについて" Click="OnAbout" />
+            <NativeMenuItem Header="{x:Static res:Strings.AboutApp}" Click="OnAbout" />
         </NativeMenu>
     </NativeMenu.Menu>
     <Application.Styles>

@@ -3,6 +3,7 @@ using Avalonia.Input;
 using Avalonia.Layout;
 using HanautaSketch.Controls;
 using HanautaSketch.Engine.Core;
+using HanautaSketch.Resources;
 using Key = HanautaSketch.Engine.Core.Key;
 
 namespace HanautaSketch.Views;
@@ -34,7 +35,7 @@ public partial class MainWindow
                     Minimum = (decimal)Conductor.MinBpm, Maximum = (decimal)Conductor.MaxBpm, Increment = 1,
                     FormatString = "0.##", Value = (decimal)conductor.BpmAt(e.Position),
                 };
-                panel.Children.Add(Labeled("テンポ（BPM）", input));
+                panel.Children.Add(Labeled(Strings.ConductorTempoLabel, input));
                 apply = () => vm.SetTempoChange(e.Position, (double)(input.Value ?? 120));
                 break;
             }
@@ -48,7 +49,7 @@ public partial class MainWindow
                 var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
                 row.Children.Add(input);
                 row.Children.Add(new TextBlock { Text = "/ 4", VerticalAlignment = VerticalAlignment.Center });
-                panel.Children.Add(Labeled($"拍子（{e.Position + 1}小節目から）", row));
+                panel.Children.Add(Labeled(Strings.Format(Strings.ConductorMeterLabel, e.Position + 1), row));
                 apply = () => vm.SetMeterChange(e.Position, (int)(input.Value ?? 4));
                 break;
             }
@@ -60,7 +61,7 @@ public partial class MainWindow
                 var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
                 row.Children.Add(tonic);
                 row.Children.Add(mode);
-                panel.Children.Add(Labeled("キー", row));
+                panel.Children.Add(Labeled(Strings.ConductorKey, row));
                 apply = () => vm.SetKeyChange(e.Position,
                     new Key(Math.Max(0, tonic.SelectedIndex), mode.SelectedItem as Mode? ?? Mode.Major));
                 break;
@@ -68,7 +69,7 @@ public partial class MainWindow
         }
 
         var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
-        var ok = new Button { Content = e.IsExisting ? "変更" : "追加" };
+        var ok = new Button { Content = e.IsExisting ? Strings.ConductorApply : Strings.ConductorAdd };
         ok.Click += (_, _) =>
         {
             apply();
@@ -78,7 +79,7 @@ public partial class MainWindow
 
         if (e.IsExisting && e.Position > 0)
         {
-            var remove = new Button { Content = "削除" };
+            var remove = new Button { Content = Strings.ConductorDelete };
             remove.Click += (_, _) =>
             {
                 vm.RemoveConductorChange(e.Kind, e.Position);

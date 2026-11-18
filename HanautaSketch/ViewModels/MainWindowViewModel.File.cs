@@ -3,21 +3,35 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HanautaSketch.Engine.Core;
 using HanautaSketch.Engine.IO;
+using HanautaSketch.Resources;
 using HanautaSketch.Services;
 
 namespace HanautaSketch.ViewModels;
 
 /// <summary>
-/// プロジェクトの保存・読み込み。
+/// プロジェクトの保存・読み込み、表示言語の設定。
 /// </summary>
 public partial class MainWindowViewModel
 {
     private const string AppName = "hanautaSketch";
-    private const string UntitledName = "無題";
+
+    /// <summary>無題の曲の名前（表示言語に従う）</summary>
+    private static string UntitledName => Strings.Untitled;
 
     private IStorageFile? _currentFile;
     private AppSettings _appSettings = AppSettingsStore.Load();
     private bool _suppressDirty;
+
+    /// <summary>表示言語の選択（<see cref="AppLanguage"/> の値）。反映は次回起動時</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsLanguageSystem), nameof(IsLanguageJapanese), nameof(IsLanguageEnglish))]
+    private string _languageChoice = AppLanguage.System;
+
+    public bool IsLanguageSystem => LanguageChoice == AppLanguage.System;
+
+    public bool IsLanguageJapanese => LanguageChoice == AppLanguage.Japanese;
+
+    public bool IsLanguageEnglish => LanguageChoice == AppLanguage.English;
 
     /// <summary>View 側から設定するダイアログ</summary>
     public IDialogService? Dialogs { get; set; }
@@ -31,6 +45,24 @@ public partial class MainWindowViewModel
     public string WindowTitle => $"{(IsDirty ? "*" : "")}{_currentFile?.Name ?? UntitledName} - {AppName}";
 
     partial void OnIsDirtyChanged(bool value) => OnPropertyChanged(nameof(WindowTitle));
+
+    /// <summary>
+    /// 表示言語を設定に保存する。画面の文字列は次回起動時から切り替わる。
+    /// </summary>
+    [RelayCommand]
+    private void SetLanguage(string choice)
+    {
+        LanguageChoice = choice;
+        _appSettings = _appSettings with { Language = choice };
+        AppSettingsStore.Save(_appSettings);
+        Message = Strings.LanguageRestartNotice;
+    }
+
+    /// <summary>
+    /// 例外の詳細文。プロジェクト形式のエラーは Engine の文（英語）ではなく、表示言語の文にする。
+    /// </summary>
+    private static string ErrorDetail(Exception ex) =>
+        ex is InvalidDataException ? Strings.ErrorInvalidProject : ex.Message;
 
     /// <summary>
     /// 曲に変更があったことを記録する。
@@ -74,11 +106,11 @@ public partial class MainWindowViewModel
             var document = await ProjectSerializer.LoadAsync(stream);
             ApplyDocument(document);
             SetCurrentFile(file);
-            Message = $"{file.Name} を開いた";
+            Message = Strings.Format(Strings.FileOpened, file.Name);
         }
         catch (Exception ex) when (ex is InvalidDataException or IOException or UnauthorizedAccessException)
         {
-            Message = $"開けなかった: {ex.Message}";
+            Message = Strings.Format(Strings.FileOpenFailed, ErrorDetail(ex));
         }
     }
 
@@ -119,11 +151,11 @@ public partial class MainWindowViewModel
             }
 
             SetCurrentFile(file);
-            Message = $"{file.Name} に保存した";
+            Message = Strings.Format(Strings.FileSaved, file.Name);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            Message = $"保存できなかった: {ex.Message}";
+            Message = Strings.Format(Strings.FileSaveFailed, ErrorDetail(ex));
         }
     }
 
@@ -154,11 +186,11 @@ public partial class MainWindowViewModel
                 MidiExporter.Export(Song, stream, options);
                 if (stream.CanSeek) stream.SetLength(stream.Position);
             }
-            Message = $"{file.Name} に書き出した";
+            Message = Strings.Format(Strings.FileExported, file.Name);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            Message = $"書き出せなかった: {ex.Message}";
+            Message = Strings.Format(Strings.FileExportFailed, ErrorDetail(ex));
         }
     }
 

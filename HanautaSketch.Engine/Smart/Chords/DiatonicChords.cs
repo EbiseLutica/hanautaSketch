@@ -104,7 +104,7 @@ internal static class DiatonicChords
             (3, 7) => ChordQuality.Minor,
             (3, 6) => ChordQuality.Diminished,
             (4, 8) => ChordQuality.Augmented,
-            _ => throw new InvalidOperationException($"ダイアトニックトライアドとして不正な音程: {third}, {fifth}"),
+            _ => throw new InvalidOperationException($"Invalid interval for a diatonic triad: {third}, {fifth}"),
         };
         return new Chord(root, quality);
     }

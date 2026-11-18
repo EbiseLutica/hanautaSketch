@@ -38,7 +38,7 @@ public sealed class ChordTransitionTable
     public static ChordTransitionCounts LoadBundledCounts()
     {
         using var stream = typeof(ChordTransitionTable).Assembly.GetManifestResourceStream(ResourceName)
-                           ?? throw new InvalidOperationException($"埋め込みリソース {ResourceName} がない");
+                           ?? throw new InvalidOperationException($"Embedded resource {ResourceName} was not found.");
         return ChordTransitionCounts.Read(stream);
     }
 

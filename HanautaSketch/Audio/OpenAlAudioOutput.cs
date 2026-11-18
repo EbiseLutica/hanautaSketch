@@ -1,4 +1,5 @@
 using HanautaSketch.Engine.Audio;
+using HanautaSketch.Resources;
 using Silk.NET.OpenAL;
 
 namespace HanautaSketch.Audio;
@@ -45,7 +46,7 @@ public sealed unsafe class OpenAlAudioOutput : IAudioOutput
         var al = AL.GetApi(soft: true);
 
         var device = alc.OpenDevice(null);
-        if (device == null) throw new InvalidOperationException("出力デバイスを開けない");
+        if (device == null) throw new InvalidOperationException(Strings.AudioDeviceOpenFailed);
         var context = alc.CreateContext(device, null);
         alc.MakeContextCurrent(context);
 

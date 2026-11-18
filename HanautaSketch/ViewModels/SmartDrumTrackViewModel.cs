@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HanautaSketch.Engine.Core;
 using HanautaSketch.Engine.Smart.Drums;
+using HanautaSketch.Resources;
 
 namespace HanautaSketch.ViewModels;
 
@@ -32,23 +33,23 @@ public sealed partial class SmartDrumTrackViewModel : ObservableObject
         _owner = owner;
         _section = section;
         BassSourceOptions = owner.Tracks.OfType<NoteTrack>().Select(t => new SourceOption(t.Name, t))
-            .Prepend(new SourceOption("（なし）", null)).ToList();
+            .Prepend(new SourceOption(Strings.SmartDrumNoSource, null)).ToList();
     }
 
     public IReadOnlyList<SourceOption> BassSourceOptions { get; }
 
     public IReadOnlyList<DrumPatternOption> PatternOptions { get; } =
     [
-        new("4つ打ち", DrumPattern.FourOnTheFloor),
-        new("8ビート", DrumPattern.EightBeat),
-        new("16ビート", DrumPattern.SixteenBeat),
+        new(Strings.DrumPatternFourOnFloor, DrumPattern.FourOnTheFloor),
+        new(Strings.DrumPattern8Beat, DrumPattern.EightBeat),
+        new(Strings.DrumPattern16Beat, DrumPattern.SixteenBeat),
     ];
 
     public IReadOnlyList<DrumBassFollowOption> BassFollowOptions { get; } =
     [
-        new("なし", DrumBassFollow.None),
-        new("フィルだけ", DrumBassFollow.Fill),
-        new("キックを全部", DrumBassFollow.Full),
+        new(Strings.DrumBassFollowNone, DrumBassFollow.None),
+        new(Strings.DrumBassFollowFill, DrumBassFollow.Fill),
+        new(Strings.DrumBassFollowFull, DrumBassFollow.Full),
     ];
 
     public SourceOption? BassSource
@@ -71,7 +72,7 @@ public sealed partial class SmartDrumTrackViewModel : ObservableObject
 
     public bool IsFixed => Section?.IsFixed ?? false;
 
-    public string FixLabel => IsFixed ? "fix を解除（生成に戻す）" : "fix（ノーツを編集できるようにする）";
+    public string FixLabel => IsFixed ? Strings.SmartDrumFixUnlock : Strings.SmartDrumFixLock;
 
     public DrumPatternOption? Pattern
     {

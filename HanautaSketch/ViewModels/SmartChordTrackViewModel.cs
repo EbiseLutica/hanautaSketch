@@ -1,5 +1,6 @@
 using HanautaSketch.Engine.Core;
 using HanautaSketch.Engine.Smart.Chords;
+using HanautaSketch.Resources;
 
 namespace HanautaSketch.ViewModels;
 
@@ -36,7 +37,7 @@ public sealed class SmartChordTrackViewModel
 
         // ソースのトラックが削除されると null になるので、ベースにも「なし」を用意する
         var options = owner.Tracks.OfType<NoteTrack>().Select(t => new SourceOption(t.Name, t))
-            .Prepend(new SourceOption("（なし）", null)).ToList();
+            .Prepend(new SourceOption(Strings.SmartChordNoSource, null)).ToList();
         BassSourceOptions = options;
         MelodySourceOptions = options;
     }
@@ -49,10 +50,10 @@ public sealed class SmartChordTrackViewModel
 
     public IReadOnlyList<PatternOption> PatternOptions { get; } =
     [
-        new("サステイン", AccompanimentPattern.Sustain),
-        new("ビート刻み", AccompanimentPattern.Beat),
-        new("ベースに合わせる", AccompanimentPattern.FollowBass),
-        new("アルペジオ", AccompanimentPattern.Arpeggio),
+        new(Strings.SmartChordPatternSustain, AccompanimentPattern.Sustain),
+        new(Strings.SmartChordPatternBeat, AccompanimentPattern.Beat),
+        new(Strings.SmartChordPatternFollowBass, AccompanimentPattern.FollowBass),
+        new(Strings.SmartChordPatternArpeggio, AccompanimentPattern.Arpeggio),
     ];
 
     public IReadOnlyList<DivisionOption> DivisionOptions { get; } =

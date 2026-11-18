@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Input;
 using Avalonia.Media;
 using HanautaSketch.Engine.Core;
+using HanautaSketch.Resources;
 
 namespace HanautaSketch.Controls;
 
@@ -116,10 +117,11 @@ public sealed partial class PianoRollControl
     /// </summary>
     private void RenderConductorHeader(DrawingContext context)
     {
-        DrawText(context, _conductorExpanded ? "▾ 変化" : "▸ 変化", new Point(4, 4), Palette.Text, 11);
+        var laneName = Strings.ConductorLane;
+        DrawText(context, (_conductorExpanded ? "▾ " : "▸ ") + laneName, new Point(4, 4), Palette.Text, 11);
         if (!_conductorExpanded) return;
 
-        string[] names = ["拍子", "テンポ", "キー"];
+        string[] names = [Strings.ConductorMeter, Strings.ConductorTempo, Strings.ConductorKey];
         for (var i = 0; i < names.Length; i++)
         {
             var kind = (ConductorChangeKind)i;

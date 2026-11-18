@@ -4,6 +4,7 @@ using HanautaSketch.Engine.Core;
 using HanautaSketch.Engine.Editing;
 using HanautaSketch.Engine.Smart.Chords;
 using HanautaSketch.Engine.Smart.Drums;
+using HanautaSketch.Resources;
 using HanautaSketch.Services;
 
 namespace HanautaSketch.ViewModels;
@@ -222,6 +223,6 @@ public partial class MainWindowViewModel
         ClearHistory();
         NotesRevision++;
         RegenerateSmartTracks();
-        Message = "新しい曲";
+        Message = Strings.NewSong;
     }
 }

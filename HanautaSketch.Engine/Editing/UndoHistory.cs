@@ -28,7 +28,7 @@ public sealed class UndoHistory<T>(int capacity = 200)
     /// </summary>
     public T Undo(T current)
     {
-        if (!CanUndo) throw new InvalidOperationException("元に戻せる履歴がない。");
+        if (!CanUndo) throw new InvalidOperationException("Nothing to undo.");
         var previous = _undo[^1];
         _undo.RemoveAt(_undo.Count - 1);
         _redo.Push(current);
@@ -40,7 +40,7 @@ public sealed class UndoHistory<T>(int capacity = 200)
     /// </summary>
     public T Redo(T current)
     {
-        if (!CanRedo) throw new InvalidOperationException("やり直せる履歴がない。");
+        if (!CanRedo) throw new InvalidOperationException("Nothing to redo.");
         var next = _redo.Pop();
         _undo.Add(current);
         return next;

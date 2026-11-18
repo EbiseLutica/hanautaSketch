@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using HanautaSketch.Resources;
 using HanautaSketch.ViewModels;
 using HanautaSketch.Views;
 
@@ -28,7 +29,7 @@ public partial class App : Application
     }
 
     /// <summary>
-    /// Avalonia がアプリ名メニューに足す標準の項目（英語で固定）を、macOS の日本語の表記に置き換える。
+    /// Avalonia がアプリ名メニューに足す標準の項目（英語で固定）を、表示言語の表記に置き換える。
     /// 項目はメニューが書き出されるときに足されるので、追加を待って置き換える。
     /// </summary>
     private void LocalizeStandardMacMenuItems(NativeMenu menu)
@@ -36,11 +37,11 @@ public partial class App : Application
         var name = Name ?? "hanautaSketch";
         var headers = new Dictionary<string, string>
         {
-            ["Services"] = "サービス",
-            ["Hide " + name] = name + "を非表示",
-            ["Hide Others"] = "ほかを非表示",
-            ["Show All"] = "すべてを表示",
-            ["Quit"] = name + "を終了",
+            ["Services"] = Strings.MacServices,
+            ["Hide " + name] = Strings.Format(Strings.MacHideApp, name),
+            ["Hide Others"] = Strings.MacHideOthers,
+            ["Show All"] = Strings.MacShowAll,
+            ["Quit"] = Strings.Format(Strings.MacQuitApp, name),
         };
 
         void Localize()

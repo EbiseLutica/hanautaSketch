@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using HanautaSketch.Engine.Core;
 using HanautaSketch.Engine.Smart.Chords;
 using HanautaSketch.Engine.Smart.Drums;
+using HanautaSketch.Resources;
 using HanautaSketch.Services;
 
 namespace HanautaSketch.ViewModels;
@@ -19,6 +20,7 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     public MainWindowViewModel()
     {
         InitializeTrackItems();
+        LanguageChoice = _appSettings.Language;
         ReplaceTracks(CreateDefaultTracks());
         _selectedSnap = SnapOptions[2];
         SyncConductorDisplay();
@@ -108,11 +110,11 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
 
     #region トラック管理
 
-    /// <summary>新規作成時のトラック構成: Melody / Bass。スマートトラックは必要に応じて追加する</summary>
+    /// <summary>新規作成時のトラック構成: メロディ / ベース（表示言語の名前）。スマートトラックは必要に応じて追加する</summary>
     private static List<Track> CreateDefaultTracks() =>
     [
-        new NoteTrack { Name = "Melody", Program = 0 },
-        new NoteTrack { Name = "Bass", Program = 33 },
+        new NoteTrack { Name = Strings.DefaultTrackMelody, Program = 0 },
+        new NoteTrack { Name = Strings.DefaultTrackBass, Program = 33 },
     ];
 
     /// <summary>
@@ -137,23 +139,30 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void AddNoteTrack()
     {
-        var track = new NoteTrack { Name = UniqueTrackName("Track") };
+        var track = new NoteTrack { Name = UniqueTrackName(Strings.DefaultTrackNote) };
         AddTrack(track);
     }
 
     /// <summary>
-    /// スマートコードトラックを追加する。ソースは「Bass」という名前のトラック（なければ最後のノートトラック）。
+    /// スマートコードトラックを追加する。ソースは「ベース」の名前のトラック（なければ最後のノートトラック）。
     /// </summary>
     [RelayCommand]
     private void AddSmartChordTrack()
     {
         var noteTracks = Tracks.OfType<NoteTrack>().ToList();
-        var bass = noteTracks.FirstOrDefault(t => t.Name.Contains("Bass", StringComparison.OrdinalIgnoreCase))
+        var bass = noteTracks.FirstOrDefault(t => IsBassName(t.Name))
                    ?? noteTracks.LastOrDefault();
         var melody = noteTracks.FirstOrDefault(t => t != bass);
 
-        AddTrack(new SmartChordTrack { Name = UniqueTrackName("Chord"), BassSource = bass, MelodySource = melody });
+        AddTrack(new SmartChordTrack { Name = UniqueTrackName(Strings.DefaultTrackChord), BassSource = bass, MelodySource = melody });
     }
+
+    /// <summary>
+    /// ベースのトラック名か。作成時の言語（英語「Bass」・日本語「ベース」）どちらの名前も認める。
+    /// </summary>
+    private static bool IsBassName(string name) =>
+        name.Contains("Bass", StringComparison.OrdinalIgnoreCase)
+        || name.Contains(Strings.DefaultTrackBass, StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// 選択中のトラックの直後にトラックを追加して選択する。Undo できる。
@@ -200,7 +209,7 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         OnEditCompleted();
 
         SelectedTrack = Tracks.Count > 0 ? Tracks[Math.Clamp(index - 1, 0, Tracks.Count - 1)] : null;
-        Message = $"{track.Name} を削除した（{PlatformKeys.CommandName}+Z で元に戻せる）";
+        Message = Strings.Format(Strings.TrackDeleted, track.Name, PlatformKeys.CommandName);
         MarkDirty();
         RegenerateSmartTracks();
     }

@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HanautaSketch.Engine.Core;
 using HanautaSketch.Engine.Smart.Drums;
+using HanautaSketch.Resources;
 
 namespace HanautaSketch.ViewModels;
 
@@ -65,7 +66,7 @@ public partial class MainWindowViewModel
 
         var end = Song.EndBarTick(Song.Conductor.BarToTick(DefaultDrumSectionBars));
 
-        var track = new SmartDrumTrack { Name = UniqueTrackName("Drums"), BassSource = bass };
+        var track = new SmartDrumTrack { Name = UniqueTrackName(Strings.DefaultTrackDrums), BassSource = bass };
         track.AddSection(0, end);
         AddTrack(track);
     }

@@ -1,0 +1,510 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <data name="AboutApp" xml:space="preserve">
+    <value>About hanautaSketch</value>
+  </data>
+  <data name="AboutTagline" xml:space="preserve">
+    <value>A composition tool for sketching melodies and basslines</value>
+  </data>
+  <data name="AboutLicense" xml:space="preserve">
+    <value>MIT License · Data sources are in the Help menu</value>
+  </data>
+  <data name="NativeFile" xml:space="preserve">
+    <value>File</value>
+  </data>
+  <data name="NativeNew" xml:space="preserve">
+    <value>New</value>
+  </data>
+  <data name="NativeOpen" xml:space="preserve">
+    <value>Open...</value>
+  </data>
+  <data name="NativeClose" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="NativeSave" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="NativeSaveAs" xml:space="preserve">
+    <value>Save As...</value>
+  </data>
+  <data name="NativeExportMidi" xml:space="preserve">
+    <value>Export MIDI...</value>
+  </data>
+  <data name="NativeEdit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="NativeUndo" xml:space="preserve">
+    <value>Undo</value>
+  </data>
+  <data name="NativeRedo" xml:space="preserve">
+    <value>Redo</value>
+  </data>
+  <data name="NativeTools" xml:space="preserve">
+    <value>Tools</value>
+  </data>
+  <data name="NativeAcquireChordData" xml:space="preserve">
+    <value>Get Advanced Chord Transition Data...</value>
+  </data>
+  <data name="NativeCancelChordData" xml:space="preserve">
+    <value>Stop Chord Data Extraction</value>
+  </data>
+  <data name="NativeRemoveChordData" xml:space="preserve">
+    <value>Delete Advanced Chord Transition Data</value>
+  </data>
+  <data name="NativeWindow" xml:space="preserve">
+    <value>Window</value>
+  </data>
+  <data name="NativeMinimize" xml:space="preserve">
+    <value>Minimize</value>
+  </data>
+  <data name="NativeZoom" xml:space="preserve">
+    <value>Zoom</value>
+  </data>
+  <data name="NativeHelp" xml:space="preserve">
+    <value>Help</value>
+  </data>
+  <data name="NativeDataSources" xml:space="preserve">
+    <value>Data Sources...</value>
+  </data>
+  <data name="MenuFile" xml:space="preserve">
+    <value>File(_F)</value>
+  </data>
+  <data name="MenuNew" xml:space="preserve">
+    <value>New(_N)</value>
+  </data>
+  <data name="MenuOpen" xml:space="preserve">
+    <value>Open(_O)...</value>
+  </data>
+  <data name="MenuSave" xml:space="preserve">
+    <value>Save(_S)</value>
+  </data>
+  <data name="MenuSaveAs" xml:space="preserve">
+    <value>Save As(_A)...</value>
+  </data>
+  <data name="MenuExportMidi" xml:space="preserve">
+    <value>Export MIDI(_E)...</value>
+  </data>
+  <data name="MenuEdit" xml:space="preserve">
+    <value>Edit(_E)</value>
+  </data>
+  <data name="MenuUndo" xml:space="preserve">
+    <value>Undo(_U)</value>
+  </data>
+  <data name="MenuRedo" xml:space="preserve">
+    <value>Redo(_R)</value>
+  </data>
+  <data name="MenuTools" xml:space="preserve">
+    <value>Tools(_T)</value>
+  </data>
+  <data name="MenuAcquireChordData" xml:space="preserve">
+    <value>Get Advanced Chord Transition Data(_C)...</value>
+  </data>
+  <data name="MenuCancelChordData" xml:space="preserve">
+    <value>Stop Chord Data Extraction</value>
+  </data>
+  <data name="MenuRemoveChordData" xml:space="preserve">
+    <value>Delete Advanced Chord Transition Data</value>
+  </data>
+  <data name="MenuHelp" xml:space="preserve">
+    <value>Help(_H)</value>
+  </data>
+  <data name="MenuDataSources" xml:space="preserve">
+    <value>Data Sources(_D)...</value>
+  </data>
+  <data name="MacServices" xml:space="preserve">
+    <value>Services</value>
+  </data>
+  <data name="MacHideApp" xml:space="preserve">
+    <value>Hide {0}</value>
+  </data>
+  <data name="MacHideOthers" xml:space="preserve">
+    <value>Hide Others</value>
+  </data>
+  <data name="MacShowAll" xml:space="preserve">
+    <value>Show All</value>
+  </data>
+  <data name="MacQuitApp" xml:space="preserve">
+    <value>Quit {0}</value>
+  </data>
+  <data name="LanguageMenu" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="LanguageSystem" xml:space="preserve">
+    <value>Follow System</value>
+  </data>
+  <data name="LanguageJapanese" xml:space="preserve">
+    <value>日本語</value>
+  </data>
+  <data name="LanguageEnglish" xml:space="preserve">
+    <value>English</value>
+  </data>
+  <data name="LanguageRestartNotice" xml:space="preserve">
+    <value>The language change takes effect after restarting</value>
+  </data>
+  <data name="TogglePlay" xml:space="preserve">
+    <value>▶ Play</value>
+  </data>
+  <data name="DefaultTrackMelody" xml:space="preserve">
+    <value>Melody</value>
+  </data>
+  <data name="DefaultTrackBass" xml:space="preserve">
+    <value>Bass</value>
+  </data>
+  <data name="DefaultTrackNote" xml:space="preserve">
+    <value>Track</value>
+  </data>
+  <data name="DefaultTrackChord" xml:space="preserve">
+    <value>Chord</value>
+  </data>
+  <data name="DefaultTrackDrums" xml:space="preserve">
+    <value>Drums</value>
+  </data>
+  <data name="Untitled" xml:space="preserve">
+    <value>Untitled</value>
+  </data>
+  <data name="NewSong" xml:space="preserve">
+    <value>New song</value>
+  </data>
+  <data name="TrackInstrument" xml:space="preserve">
+    <value>Instrument</value>
+  </data>
+  <data name="TrackDrumKit" xml:space="preserve">
+    <value>Drum kit (ch. 10)</value>
+  </data>
+  <data name="TrackVolume" xml:space="preserve">
+    <value>Volume</value>
+  </data>
+  <data name="TrackAddNote" xml:space="preserve">
+    <value>＋ Note</value>
+  </data>
+  <data name="TrackAddChord" xml:space="preserve">
+    <value>＋ Chord</value>
+  </data>
+  <data name="TrackAddChordTip" xml:space="preserve">
+    <value>Add a smart chord track</value>
+  </data>
+  <data name="TrackAddDrums" xml:space="preserve">
+    <value>＋ Drums</value>
+  </data>
+  <data name="TrackAddDrumsTip" xml:space="preserve">
+    <value>Add a smart drum track</value>
+  </data>
+  <data name="TrackRemove" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="TrackSolo" xml:space="preserve">
+    <value>Solo</value>
+  </data>
+  <data name="TrackMute" xml:space="preserve">
+    <value>Mute</value>
+  </data>
+  <data name="TrackSmartBadge" xml:space="preserve">
+    <value>Smart</value>
+  </data>
+  <data name="SmartChordTitle" xml:space="preserve">
+    <value>Smart Chords</value>
+  </data>
+  <data name="SmartChordBass" xml:space="preserve">
+    <value>Bass</value>
+  </data>
+  <data name="SmartChordMelody" xml:space="preserve">
+    <value>Melody (hint)</value>
+  </data>
+  <data name="SmartChordMinorDominant" xml:space="preserve">
+    <value>Minor V</value>
+  </data>
+  <data name="SmartChordPattern" xml:space="preserve">
+    <value>Accompaniment</value>
+  </data>
+  <data name="SmartChordRhythm" xml:space="preserve">
+    <value>Rhythm</value>
+  </data>
+  <data name="SmartChordVelocity" xml:space="preserve">
+    <value>Velocity</value>
+  </data>
+  <data name="SmartChordNoSource" xml:space="preserve">
+    <value>(none)</value>
+  </data>
+  <data name="SmartChordPatternSustain" xml:space="preserve">
+    <value>Sustain</value>
+  </data>
+  <data name="SmartChordPatternBeat" xml:space="preserve">
+    <value>Beat</value>
+  </data>
+  <data name="SmartChordPatternFollowBass" xml:space="preserve">
+    <value>Follow Bass</value>
+  </data>
+  <data name="SmartChordPatternArpeggio" xml:space="preserve">
+    <value>Arpeggio</value>
+  </data>
+  <data name="SmartDrumTitle" xml:space="preserve">
+    <value>Smart Drums</value>
+  </data>
+  <data name="SmartDrumBass" xml:space="preserve">
+    <value>Bass (for bass follow)</value>
+  </data>
+  <data name="SmartDrumHint" xml:space="preserve">
+    <value>Drag on the lane above to create a section, click to select, and drag an edge to resize</value>
+  </data>
+  <data name="SmartDrumPattern" xml:space="preserve">
+    <value>Pattern</value>
+  </data>
+  <data name="SmartDrumSwing" xml:space="preserve">
+    <value>Swing</value>
+  </data>
+  <data name="SmartDrumSwingAmount" xml:space="preserve">
+    <value>Amount</value>
+  </data>
+  <data name="SmartDrumFollowBass" xml:space="preserve">
+    <value>Follow Bass</value>
+  </data>
+  <data name="SmartDrumDeleteSection" xml:space="preserve">
+    <value>Delete Section</value>
+  </data>
+  <data name="SmartDrumFixUnlock" xml:space="preserve">
+    <value>Unfix (back to generated)</value>
+  </data>
+  <data name="SmartDrumFixLock" xml:space="preserve">
+    <value>Fix (make notes editable)</value>
+  </data>
+  <data name="SmartDrumNoSource" xml:space="preserve">
+    <value>(none)</value>
+  </data>
+  <data name="DrumPatternFourOnFloor" xml:space="preserve">
+    <value>Four on the Floor</value>
+  </data>
+  <data name="DrumPattern8Beat" xml:space="preserve">
+    <value>8 Beat</value>
+  </data>
+  <data name="DrumPattern16Beat" xml:space="preserve">
+    <value>16 Beat</value>
+  </data>
+  <data name="DrumBassFollowNone" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="DrumBassFollowFill" xml:space="preserve">
+    <value>Fill Only</value>
+  </data>
+  <data name="DrumBassFollowFull" xml:space="preserve">
+    <value>All Kicks</value>
+  </data>
+  <data name="DrumFill" xml:space="preserve">
+    <value>Fill</value>
+  </data>
+  <data name="DrumBassFollow" xml:space="preserve">
+    <value>Follow Bass</value>
+  </data>
+  <data name="DrumSwingAmount" xml:space="preserve">
+    <value>Swing {0}%</value>
+  </data>
+  <data name="ConductorLane" xml:space="preserve">
+    <value>Changes</value>
+  </data>
+  <data name="ConductorTempo" xml:space="preserve">
+    <value>Tempo</value>
+  </data>
+  <data name="ConductorMeter" xml:space="preserve">
+    <value>Meter</value>
+  </data>
+  <data name="ConductorKey" xml:space="preserve">
+    <value>Key</value>
+  </data>
+  <data name="ConductorTempoLabel" xml:space="preserve">
+    <value>Tempo (BPM)</value>
+  </data>
+  <data name="ConductorMeterLabel" xml:space="preserve">
+    <value>Meter (from bar {0})</value>
+  </data>
+  <data name="ConductorApply" xml:space="preserve">
+    <value>Change</value>
+  </data>
+  <data name="ConductorAdd" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="ConductorDelete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="ChordOutOfBass" xml:space="preserve">
+    <value>Off bass</value>
+  </data>
+  <data name="ChordNoChord" xml:space="preserve">
+    <value>N.C. (silent)</value>
+  </data>
+  <data name="ChordChangeRoot" xml:space="preserve">
+    <value>Change Root</value>
+  </data>
+  <data name="ChordOther" xml:space="preserve">
+    <value>Other</value>
+  </data>
+  <data name="ChordImprove" xml:space="preserve">
+    <value>Improve Suggestions...</value>
+  </data>
+  <data name="ChordResetAuto" xml:space="preserve">
+    <value>Reset to Auto-Detect</value>
+  </data>
+  <data name="ChordFixThis" xml:space="preserve">
+    <value>Confirm This Chord</value>
+  </data>
+  <data name="ChordGroupTriad" xml:space="preserve">
+    <value>Triads</value>
+  </data>
+  <data name="ChordGroupSus" xml:space="preserve">
+    <value>sus</value>
+  </data>
+  <data name="ChordGroupSixth" xml:space="preserve">
+    <value>6th・add9</value>
+  </data>
+  <data name="ChordGroupSeventh" xml:space="preserve">
+    <value>7th</value>
+  </data>
+  <data name="ChordGroupTension" xml:space="preserve">
+    <value>Tensions</value>
+  </data>
+  <data name="DataSourcesTitle" xml:space="preserve">
+    <value>Data Sources</value>
+  </data>
+  <data name="DataSourcesIntro" xml:space="preserve">
+    <value>Chord suggestion order (how likely each chord is to follow the previous one) uses tables aggregated from these datasets.</value>
+  </data>
+  <data name="DataSourcesBundled" xml:space="preserve">
+    <value>The bundled table is aggregated only from McGill Billboard (CC0). Chordonomicon (CC BY-NC 4.0) is used only if you agree to its license from the Tools menu and download it, and that data may only be used non-commercially.</value>
+  </data>
+  <data name="DataSourcesLibraries" xml:space="preserve">
+    <value>Licenses for other libraries are summarized in THIRD_PARTIES.md in the repository.</value>
+  </data>
+  <data name="UnsavedMessage" xml:space="preserve">
+    <value>Do you want to save the changes to &quot;{0}&quot;?</value>
+  </data>
+  <data name="UnsavedSave" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="UnsavedDiscard" xml:space="preserve">
+    <value>Don&apos;t Save</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="ChordDataTitle" xml:space="preserve">
+    <value>Advanced Chord Transition Data</value>
+  </data>
+  <data name="ChordDataAgree" xml:space="preserve">
+    <value>Agree and Get</value>
+  </data>
+  <data name="ChordDataLicense" xml:space="preserve">
+    <value>Chord suggestion order will be improved using data tallied from a larger set of songs (about 660,000 songs).
+
+The dataset &quot;Chordonomicon&quot; (S. Kantarelis et al., 2024) will be downloaded from Hugging Face (about 260 MB). Only the chord transition counts are tallied and saved on this PC; the downloaded original data is not saved.
+
+This dataset is provided under the CC BY-NC 4.0 (Attribution-NonCommercial) license. The tallied data follows the same license and may only be used for non-commercial purposes.
+https://creativecommons.org/licenses/by-nc/4.0/deed.en
+https://huggingface.co/datasets/ailsntua/Chordonomicon
+
+Do you agree to the license and download it?</value>
+  </data>
+  <data name="ChordDataExtracting" xml:space="preserve">
+    <value>Extracting chord data…</value>
+  </data>
+  <data name="ChordDataProgress" xml:space="preserve">
+    <value>Extracting chord data… {0}% ({1:N0} songs)</value>
+  </data>
+  <data name="ChordDataCount" xml:space="preserve">
+    <value>Extracting chord data… ({0:N0} songs)</value>
+  </data>
+  <data name="ChordDataDone" xml:space="preserve">
+    <value>Chord suggestions are now more accurate with the additional data</value>
+  </data>
+  <data name="ChordDataCancelled" xml:space="preserve">
+    <value>Chord data extraction was cancelled</value>
+  </data>
+  <data name="ChordDataFailed" xml:space="preserve">
+    <value>Chord data extraction failed: {0}</value>
+  </data>
+  <data name="ChordDataRemoved" xml:space="preserve">
+    <value>Removed the additional chord transition data</value>
+  </data>
+  <data name="QuitDuringExtraction" xml:space="preserve">
+    <value>Chord data is being extracted. Quitting now discards the extraction in progress, and it will have to start over. Quit anyway?</value>
+  </data>
+  <data name="QuitAnyway" xml:space="preserve">
+    <value>Quit</value>
+  </data>
+  <data name="ProjectFileTypeName" xml:space="preserve">
+    <value>hanautaSketch Project</value>
+  </data>
+  <data name="DialogOpenProject" xml:space="preserve">
+    <value>Open Project</value>
+  </data>
+  <data name="DialogSaveProject" xml:space="preserve">
+    <value>Save Project</value>
+  </data>
+  <data name="DialogExportMidi" xml:space="preserve">
+    <value>Export MIDI</value>
+  </data>
+  <data name="MidiExportOptionsTitle" xml:space="preserve">
+    <value>MIDI Export Options</value>
+  </data>
+  <data name="MidiExportOptionsHint" xml:space="preserve">
+    <value>Items to export (tempo, meter, track names, and notes are always exported)</value>
+  </data>
+  <data name="MidiExportProgramChange" xml:space="preserve">
+    <value>Program Change (instrument)</value>
+  </data>
+  <data name="MidiExportControlChange" xml:space="preserve">
+    <value>Control Change (volume)</value>
+  </data>
+  <data name="MidiExportChordMarkers" xml:space="preserve">
+    <value>Chord name markers</value>
+  </data>
+  <data name="MidiExportKeySignature" xml:space="preserve">
+    <value>Key signature</value>
+  </data>
+  <data name="MidiExportButton" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="AudioLoading" xml:space="preserve">
+    <value>Loading sound source…</value>
+  </data>
+  <data name="AudioSoundFontMissing" xml:space="preserve">
+    <value>SoundFont (.sf2) not found (place it in {0}/)</value>
+  </data>
+  <data name="AudioInitFailed" xml:space="preserve">
+    <value>Failed to initialize the sound source: {0}</value>
+  </data>
+  <data name="AudioDeviceOpenFailed" xml:space="preserve">
+    <value>Could not open the output device</value>
+  </data>
+  <data name="ErrorInvalidProject" xml:space="preserve">
+    <value>The project file is invalid or was saved by a newer version</value>
+  </data>
+  <data name="FileOpened" xml:space="preserve">
+    <value>Opened {0}</value>
+  </data>
+  <data name="FileOpenFailed" xml:space="preserve">
+    <value>Could not open: {0}</value>
+  </data>
+  <data name="FileSaved" xml:space="preserve">
+    <value>Saved {0}</value>
+  </data>
+  <data name="FileSaveFailed" xml:space="preserve">
+    <value>Could not save: {0}</value>
+  </data>
+  <data name="FileExported" xml:space="preserve">
+    <value>Exported {0}</value>
+  </data>
+  <data name="FileExportFailed" xml:space="preserve">
+    <value>Could not export: {0}</value>
+  </data>
+  <data name="TrackDeleted" xml:space="preserve">
+    <value>Deleted {0} ({1}+Z to undo)</value>
+  </data>
+  <data name="DataSourceEntry" xml:space="preserve">
+    <value>・{0} ({1}, {2:N0} songs)</value>
+  </data>
+  <data name="StopExtraction" xml:space="preserve">
+    <value>Stop</value>
+  </data>
+</root>

@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using HanautaSketch.Resources;
 using HanautaSketch.Services;
 
 namespace HanautaSketch.Views;
@@ -16,7 +17,7 @@ public partial class UnsavedChangesWindow : Window
 
     public UnsavedChangesWindow(string documentName) : this()
     {
-        MessageText.Text = $"「{documentName}」への変更を保存しますか？";
+        MessageText.Text = Strings.Format(Strings.UnsavedMessage, documentName);
     }
 
     private void OnSaveClick(object? sender, RoutedEventArgs e) => Close(UnsavedChangesChoice.Save);

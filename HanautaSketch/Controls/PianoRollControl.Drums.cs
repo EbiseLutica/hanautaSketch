@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Input;
 using Avalonia.Media;
 using HanautaSketch.Engine.Smart.Drums;
+using HanautaSketch.Resources;
 
 namespace HanautaSketch.Controls;
 
@@ -97,15 +98,15 @@ public sealed partial class PianoRollControl
     {
         var pattern = section.Pattern switch
         {
-            DrumPattern.FourOnTheFloor => "4つ打ち",
-            DrumPattern.EightBeat => "8ビート",
-            DrumPattern.SixteenBeat => "16ビート",
+            DrumPattern.FourOnTheFloor => Strings.DrumPatternFourOnFloor,
+            DrumPattern.EightBeat => Strings.DrumPattern8Beat,
+            DrumPattern.SixteenBeat => Strings.DrumPattern16Beat,
             _ => "?",
         };
         var parts = new List<string> { pattern };
-        if (section.Swing) parts.Add($"Swing {section.SwingAmount * 100:0}%");
-        if (section.BassFollow == DrumBassFollow.Fill) parts.Add("フィル");
-        if (section.BassFollow == DrumBassFollow.Full) parts.Add("ベース追従");
+        if (section.Swing) parts.Add(Strings.Format(Strings.DrumSwingAmount, (section.SwingAmount * 100).ToString("0")));
+        if (section.BassFollow == DrumBassFollow.Fill) parts.Add(Strings.DrumFill);
+        if (section.BassFollow == DrumBassFollow.Full) parts.Add(Strings.DrumBassFollow);
         if (section.IsFixed) parts.Add("fix");
         return string.Join(" / ", parts);
     }

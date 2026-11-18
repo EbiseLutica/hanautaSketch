@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HanautaSketch.Engine.Smart.Chords;
 using HanautaSketch.Engine.Smart.Chords.Corpus;
+using HanautaSketch.Resources;
 using HanautaSketch.Services;
 
 namespace HanautaSketch.ViewModels;
@@ -12,20 +13,6 @@ namespace HanautaSketch.ViewModels;
 /// </summary>
 public partial class MainWindowViewModel
 {
-    private const string LicenseMessage =
-        "コード候補の並びを、より多くの曲（約66万曲）から集計したデータで精度よくします。\n\n" +
-        "データセット「Chordonomicon」（S. Kantarelis et al., 2024）を Hugging Face から取得し（約260MB）、" +
-        "この PC 上でコードの遷移の回数だけを集計して保存します。取得した元のデータは保存しません。\n\n" +
-        "このデータセットは CC BY-NC 4.0（表示 - 非営利）ライセンスで提供されています。" +
-        "集計したデータも同じライセンスに従い、非営利の目的でのみ利用できます。\n" +
-        "https://creativecommons.org/licenses/by-nc/4.0/deed.ja\n" +
-        "https://huggingface.co/datasets/ailsntua/Chordonomicon\n\n" +
-        "ライセンスに同意して取得しますか？";
-
-    private const string QuitDuringExtractionMessage =
-        "コード情報の抽出中です。アプリケーションを終了すると、抽出中の情報が削除され、" +
-        "また最初から抽出を始める必要があります。本当に終了しますか？";
-
     private CancellationTokenSource? _chordDataCancellation;
 
     /// <summary>コード候補の並びに使う表</summary>
@@ -50,7 +37,7 @@ public partial class MainWindowViewModel
     private async Task AcquireChordDataAsync()
     {
         if (Dialogs is null) return;
-        if (!await Dialogs.ConfirmAsync("高度なコード遷移データ", LicenseMessage, "同意して取得", "キャンセル")) return;
+        if (!await Dialogs.ConfirmAsync(Strings.ChordDataTitle, Strings.ChordDataLicense, Strings.ChordDataAgree, Strings.Cancel)) return;
         _ = ExtractChordDataAsync();
     }
 
@@ -60,24 +47,24 @@ public partial class MainWindowViewModel
     {
         _chordDataCancellation = new CancellationTokenSource();
         IsExtractingChordData = true;
-        ChordDataStatus = "コード情報を抽出中…";
+        ChordDataStatus = Strings.ChordDataExtracting;
         var progress = new Progress<ChordImportProgress>(p => ChordDataStatus = p.TotalBytes is { } total
-            ? $"コード情報を抽出中… {p.BytesRead * 100 / Math.Max(1, total)}%（{p.Songs:N0} 曲）"
-            : $"コード情報を抽出中…（{p.Songs:N0} 曲）");
+            ? Strings.Format(Strings.ChordDataProgress, p.BytesRead * 100 / Math.Max(1, total), p.Songs)
+            : Strings.Format(Strings.ChordDataCount, p.Songs));
 
         try
         {
             ChordTable = await ChordDataStore.BuildExtendedAsync(progress, _chordDataCancellation.Token);
             HasExtendedChordData = true;
-            Message = "コード候補の並びを、追加のデータで精度よくしました";
+            Message = Strings.ChordDataDone;
         }
         catch (OperationCanceledException)
         {
-            Message = "コード情報の抽出を中止しました";
+            Message = Strings.ChordDataCancelled;
         }
         catch (Exception ex) when (ex is HttpRequestException or IOException or UnauthorizedAccessException)
         {
-            Message = $"コード情報の抽出に失敗しました: {ex.Message}";
+            Message = Strings.Format(Strings.ChordDataFailed, ex.Message);
         }
         finally
         {
@@ -98,7 +85,7 @@ public partial class MainWindowViewModel
         ChordDataStore.DeleteExtended();
         ChordTable = ChordTransitionTable.Default;
         HasExtendedChordData = false;
-        Message = "追加のコード遷移データを削除しました";
+        Message = Strings.ChordDataRemoved;
     }
 
     private bool CanRemoveChordData() => HasExtendedChordData && !IsExtractingChordData;
@@ -109,7 +96,7 @@ public partial class MainWindowViewModel
     public async Task<bool> ConfirmQuitDuringChordExtractionAsync()
     {
         if (!IsExtractingChordData || Dialogs is null) return true;
-        if (!await Dialogs.ConfirmAsync("hanautaSketch", QuitDuringExtractionMessage, "終了する", "キャンセル"))
+        if (!await Dialogs.ConfirmAsync("hanautaSketch", Strings.QuitDuringExtraction, Strings.QuitAnyway, Strings.Cancel))
             return false;
 
         _chordDataCancellation?.Cancel();

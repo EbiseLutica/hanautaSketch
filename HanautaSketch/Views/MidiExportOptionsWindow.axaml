@@ -1,21 +1,22 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:res="using:HanautaSketch.Resources"
         x:Class="HanautaSketch.Views.MidiExportOptionsWindow"
-        Title="MIDI 書き出しオプション"
+        Title="{x:Static res:Strings.MidiExportOptionsTitle}"
         SizeToContent="WidthAndHeight"
         CanResize="False"
         ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner">
     <StackPanel Margin="20" Spacing="10" MinWidth="320">
         <TextBlock x:Name="FileNameText" Classes="dimmed" TextTrimming="CharacterEllipsis" />
-        <TextBlock Text="書き出す項目（テンポ・拍子・トラック名・ノーツは常に書き出す）" />
-        <CheckBox x:Name="ProgramChangeCheck" Content="Program Change（音色）" />
-        <CheckBox x:Name="ControlChangeCheck" Content="Control Change（音量）" />
-        <CheckBox x:Name="ChordMarkersCheck" Content="コード名マーカー" />
-        <CheckBox x:Name="KeySignatureCheck" Content="調号" />
+        <TextBlock Text="{x:Static res:Strings.MidiExportOptionsHint}" />
+        <CheckBox x:Name="ProgramChangeCheck" Content="{x:Static res:Strings.MidiExportProgramChange}" />
+        <CheckBox x:Name="ControlChangeCheck" Content="{x:Static res:Strings.MidiExportControlChange}" />
+        <CheckBox x:Name="ChordMarkersCheck" Content="{x:Static res:Strings.MidiExportChordMarkers}" />
+        <CheckBox x:Name="KeySignatureCheck" Content="{x:Static res:Strings.MidiExportKeySignature}" />
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,8,0,0">
-            <Button Content="書き出す" Classes="primary" IsDefault="True" Click="OnExportClick" />
-            <Button Content="キャンセル" IsCancel="True" Click="OnCancelClick" />
+            <Button Content="{x:Static res:Strings.MidiExportButton}" Classes="primary" IsDefault="True" Click="OnExportClick" />
+            <Button Content="{x:Static res:Strings.Cancel}" IsCancel="True" Click="OnCancelClick" />
         </StackPanel>
     </StackPanel>
 </Window>

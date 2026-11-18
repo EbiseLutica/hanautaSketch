@@ -1,0 +1,510 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <data name="AboutApp" xml:space="preserve">
+    <value>hanautaSketchについて</value>
+  </data>
+  <data name="AboutTagline" xml:space="preserve">
+    <value>メロディとベースラインをスケッチする作曲支援ツール</value>
+  </data>
+  <data name="AboutLicense" xml:space="preserve">
+    <value>MIT License ・ データの出典はヘルプメニューから</value>
+  </data>
+  <data name="NativeFile" xml:space="preserve">
+    <value>ファイル</value>
+  </data>
+  <data name="NativeNew" xml:space="preserve">
+    <value>新規</value>
+  </data>
+  <data name="NativeOpen" xml:space="preserve">
+    <value>開く...</value>
+  </data>
+  <data name="NativeClose" xml:space="preserve">
+    <value>閉じる</value>
+  </data>
+  <data name="NativeSave" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="NativeSaveAs" xml:space="preserve">
+    <value>別名で保存...</value>
+  </data>
+  <data name="NativeExportMidi" xml:space="preserve">
+    <value>MIDI 書き出し...</value>
+  </data>
+  <data name="NativeEdit" xml:space="preserve">
+    <value>編集</value>
+  </data>
+  <data name="NativeUndo" xml:space="preserve">
+    <value>取り消す</value>
+  </data>
+  <data name="NativeRedo" xml:space="preserve">
+    <value>やり直す</value>
+  </data>
+  <data name="NativeTools" xml:space="preserve">
+    <value>ツール</value>
+  </data>
+  <data name="NativeAcquireChordData" xml:space="preserve">
+    <value>高度なコード遷移データを取得...</value>
+  </data>
+  <data name="NativeCancelChordData" xml:space="preserve">
+    <value>コード情報の抽出を中止</value>
+  </data>
+  <data name="NativeRemoveChordData" xml:space="preserve">
+    <value>高度なコード遷移データを削除</value>
+  </data>
+  <data name="NativeWindow" xml:space="preserve">
+    <value>ウィンドウ</value>
+  </data>
+  <data name="NativeMinimize" xml:space="preserve">
+    <value>しまう</value>
+  </data>
+  <data name="NativeZoom" xml:space="preserve">
+    <value>拡大/縮小</value>
+  </data>
+  <data name="NativeHelp" xml:space="preserve">
+    <value>ヘルプ</value>
+  </data>
+  <data name="NativeDataSources" xml:space="preserve">
+    <value>データの出典...</value>
+  </data>
+  <data name="MenuFile" xml:space="preserve">
+    <value>ファイル(_F)</value>
+  </data>
+  <data name="MenuNew" xml:space="preserve">
+    <value>新規作成(_N)</value>
+  </data>
+  <data name="MenuOpen" xml:space="preserve">
+    <value>開く(_O)...</value>
+  </data>
+  <data name="MenuSave" xml:space="preserve">
+    <value>上書き保存(_S)</value>
+  </data>
+  <data name="MenuSaveAs" xml:space="preserve">
+    <value>名前を付けて保存(_A)...</value>
+  </data>
+  <data name="MenuExportMidi" xml:space="preserve">
+    <value>MIDI 書き出し(_E)...</value>
+  </data>
+  <data name="MenuEdit" xml:space="preserve">
+    <value>編集(_E)</value>
+  </data>
+  <data name="MenuUndo" xml:space="preserve">
+    <value>元に戻す(_U)</value>
+  </data>
+  <data name="MenuRedo" xml:space="preserve">
+    <value>やり直し(_R)</value>
+  </data>
+  <data name="MenuTools" xml:space="preserve">
+    <value>ツール(_T)</value>
+  </data>
+  <data name="MenuAcquireChordData" xml:space="preserve">
+    <value>高度なコード遷移データを取得(_C)...</value>
+  </data>
+  <data name="MenuCancelChordData" xml:space="preserve">
+    <value>コード情報の抽出を中止</value>
+  </data>
+  <data name="MenuRemoveChordData" xml:space="preserve">
+    <value>高度なコード遷移データを削除</value>
+  </data>
+  <data name="MenuHelp" xml:space="preserve">
+    <value>ヘルプ(_H)</value>
+  </data>
+  <data name="MenuDataSources" xml:space="preserve">
+    <value>データの出典(_D)...</value>
+  </data>
+  <data name="MacServices" xml:space="preserve">
+    <value>サービス</value>
+  </data>
+  <data name="MacHideApp" xml:space="preserve">
+    <value>{0}を非表示</value>
+  </data>
+  <data name="MacHideOthers" xml:space="preserve">
+    <value>ほかを非表示</value>
+  </data>
+  <data name="MacShowAll" xml:space="preserve">
+    <value>すべてを表示</value>
+  </data>
+  <data name="MacQuitApp" xml:space="preserve">
+    <value>{0}を終了</value>
+  </data>
+  <data name="LanguageMenu" xml:space="preserve">
+    <value>表示言語</value>
+  </data>
+  <data name="LanguageSystem" xml:space="preserve">
+    <value>システムに従う</value>
+  </data>
+  <data name="LanguageJapanese" xml:space="preserve">
+    <value>日本語</value>
+  </data>
+  <data name="LanguageEnglish" xml:space="preserve">
+    <value>English</value>
+  </data>
+  <data name="LanguageRestartNotice" xml:space="preserve">
+    <value>表示言語は次回起動時に反映します</value>
+  </data>
+  <data name="TogglePlay" xml:space="preserve">
+    <value>▶ 再生</value>
+  </data>
+  <data name="DefaultTrackMelody" xml:space="preserve">
+    <value>メロディ</value>
+  </data>
+  <data name="DefaultTrackBass" xml:space="preserve">
+    <value>ベース</value>
+  </data>
+  <data name="DefaultTrackNote" xml:space="preserve">
+    <value>トラック</value>
+  </data>
+  <data name="DefaultTrackChord" xml:space="preserve">
+    <value>コード</value>
+  </data>
+  <data name="DefaultTrackDrums" xml:space="preserve">
+    <value>ドラム</value>
+  </data>
+  <data name="Untitled" xml:space="preserve">
+    <value>無題</value>
+  </data>
+  <data name="NewSong" xml:space="preserve">
+    <value>新しい曲</value>
+  </data>
+  <data name="TrackInstrument" xml:space="preserve">
+    <value>音色</value>
+  </data>
+  <data name="TrackDrumKit" xml:space="preserve">
+    <value>ドラムキット（10ch）</value>
+  </data>
+  <data name="TrackVolume" xml:space="preserve">
+    <value>音量</value>
+  </data>
+  <data name="TrackAddNote" xml:space="preserve">
+    <value>＋ ノート</value>
+  </data>
+  <data name="TrackAddChord" xml:space="preserve">
+    <value>＋ コード</value>
+  </data>
+  <data name="TrackAddChordTip" xml:space="preserve">
+    <value>スマートコードトラックを追加</value>
+  </data>
+  <data name="TrackAddDrums" xml:space="preserve">
+    <value>＋ ドラム</value>
+  </data>
+  <data name="TrackAddDrumsTip" xml:space="preserve">
+    <value>スマートドラムトラックを追加</value>
+  </data>
+  <data name="TrackRemove" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="TrackSolo" xml:space="preserve">
+    <value>ソロ</value>
+  </data>
+  <data name="TrackMute" xml:space="preserve">
+    <value>ミュート</value>
+  </data>
+  <data name="TrackSmartBadge" xml:space="preserve">
+    <value>スマート</value>
+  </data>
+  <data name="SmartChordTitle" xml:space="preserve">
+    <value>スマートコード</value>
+  </data>
+  <data name="SmartChordBass" xml:space="preserve">
+    <value>ベース</value>
+  </data>
+  <data name="SmartChordMelody" xml:space="preserve">
+    <value>メロディ（ヒント）</value>
+  </data>
+  <data name="SmartChordMinorDominant" xml:space="preserve">
+    <value>マイナーの5度</value>
+  </data>
+  <data name="SmartChordPattern" xml:space="preserve">
+    <value>伴奏パターン</value>
+  </data>
+  <data name="SmartChordRhythm" xml:space="preserve">
+    <value>刻み</value>
+  </data>
+  <data name="SmartChordVelocity" xml:space="preserve">
+    <value>ベロシティ</value>
+  </data>
+  <data name="SmartChordNoSource" xml:space="preserve">
+    <value>（なし）</value>
+  </data>
+  <data name="SmartChordPatternSustain" xml:space="preserve">
+    <value>サステイン</value>
+  </data>
+  <data name="SmartChordPatternBeat" xml:space="preserve">
+    <value>ビート刻み</value>
+  </data>
+  <data name="SmartChordPatternFollowBass" xml:space="preserve">
+    <value>ベースに合わせる</value>
+  </data>
+  <data name="SmartChordPatternArpeggio" xml:space="preserve">
+    <value>アルペジオ</value>
+  </data>
+  <data name="SmartDrumTitle" xml:space="preserve">
+    <value>スマートドラム</value>
+  </data>
+  <data name="SmartDrumBass" xml:space="preserve">
+    <value>ベース（ベース追従用）</value>
+  </data>
+  <data name="SmartDrumHint" xml:space="preserve">
+    <value>上のレーンをドラッグでセクションを作成、クリックで選択、端のドラッグで伸縮</value>
+  </data>
+  <data name="SmartDrumPattern" xml:space="preserve">
+    <value>パターン</value>
+  </data>
+  <data name="SmartDrumSwing" xml:space="preserve">
+    <value>スウィング</value>
+  </data>
+  <data name="SmartDrumSwingAmount" xml:space="preserve">
+    <value>強さ</value>
+  </data>
+  <data name="SmartDrumFollowBass" xml:space="preserve">
+    <value>ベースに合わせる</value>
+  </data>
+  <data name="SmartDrumDeleteSection" xml:space="preserve">
+    <value>セクションを削除</value>
+  </data>
+  <data name="SmartDrumFixUnlock" xml:space="preserve">
+    <value>fix を解除（生成に戻す）</value>
+  </data>
+  <data name="SmartDrumFixLock" xml:space="preserve">
+    <value>fix（ノーツを編集できるようにする）</value>
+  </data>
+  <data name="SmartDrumNoSource" xml:space="preserve">
+    <value>（なし）</value>
+  </data>
+  <data name="DrumPatternFourOnFloor" xml:space="preserve">
+    <value>4つ打ち</value>
+  </data>
+  <data name="DrumPattern8Beat" xml:space="preserve">
+    <value>8ビート</value>
+  </data>
+  <data name="DrumPattern16Beat" xml:space="preserve">
+    <value>16ビート</value>
+  </data>
+  <data name="DrumBassFollowNone" xml:space="preserve">
+    <value>なし</value>
+  </data>
+  <data name="DrumBassFollowFill" xml:space="preserve">
+    <value>フィルだけ</value>
+  </data>
+  <data name="DrumBassFollowFull" xml:space="preserve">
+    <value>キックを全部</value>
+  </data>
+  <data name="DrumFill" xml:space="preserve">
+    <value>フィル</value>
+  </data>
+  <data name="DrumBassFollow" xml:space="preserve">
+    <value>ベース追従</value>
+  </data>
+  <data name="DrumSwingAmount" xml:space="preserve">
+    <value>Swing {0}%</value>
+  </data>
+  <data name="ConductorLane" xml:space="preserve">
+    <value>変化</value>
+  </data>
+  <data name="ConductorTempo" xml:space="preserve">
+    <value>テンポ</value>
+  </data>
+  <data name="ConductorMeter" xml:space="preserve">
+    <value>拍子</value>
+  </data>
+  <data name="ConductorKey" xml:space="preserve">
+    <value>キー</value>
+  </data>
+  <data name="ConductorTempoLabel" xml:space="preserve">
+    <value>テンポ（BPM）</value>
+  </data>
+  <data name="ConductorMeterLabel" xml:space="preserve">
+    <value>拍子（{0}小節目から）</value>
+  </data>
+  <data name="ConductorApply" xml:space="preserve">
+    <value>変更</value>
+  </data>
+  <data name="ConductorAdd" xml:space="preserve">
+    <value>追加</value>
+  </data>
+  <data name="ConductorDelete" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="ChordOutOfBass" xml:space="preserve">
+    <value>ベース外</value>
+  </data>
+  <data name="ChordNoChord" xml:space="preserve">
+    <value>N.C.（鳴らさない）</value>
+  </data>
+  <data name="ChordChangeRoot" xml:space="preserve">
+    <value>基音を変える</value>
+  </data>
+  <data name="ChordOther" xml:space="preserve">
+    <value>その他</value>
+  </data>
+  <data name="ChordImprove" xml:space="preserve">
+    <value>候補を精度よくする...</value>
+  </data>
+  <data name="ChordResetAuto" xml:space="preserve">
+    <value>自動判別に戻す</value>
+  </data>
+  <data name="ChordFixThis" xml:space="preserve">
+    <value>このコードで確定</value>
+  </data>
+  <data name="ChordGroupTriad" xml:space="preserve">
+    <value>三和音</value>
+  </data>
+  <data name="ChordGroupSus" xml:space="preserve">
+    <value>sus</value>
+  </data>
+  <data name="ChordGroupSixth" xml:space="preserve">
+    <value>6th・add9</value>
+  </data>
+  <data name="ChordGroupSeventh" xml:space="preserve">
+    <value>7th</value>
+  </data>
+  <data name="ChordGroupTension" xml:space="preserve">
+    <value>テンション</value>
+  </data>
+  <data name="DataSourcesTitle" xml:space="preserve">
+    <value>データの出典</value>
+  </data>
+  <data name="DataSourcesIntro" xml:space="preserve">
+    <value>コード候補の並び（前のコードからの来やすさ）は、次のデータセットから集計した表を使っています。</value>
+  </data>
+  <data name="DataSourcesBundled" xml:space="preserve">
+    <value>同梱しているのは McGill Billboard（CC0）だけから集計した表です。Chordonomicon（CC BY-NC 4.0）は、ツールメニューからライセンスに同意して取得した場合だけ使い、そのデータは非営利の目的でのみ利用できます。</value>
+  </data>
+  <data name="DataSourcesLibraries" xml:space="preserve">
+    <value>そのほかのライブラリのライセンスは、リポジトリの THIRD_PARTIES.md にまとめています。</value>
+  </data>
+  <data name="UnsavedMessage" xml:space="preserve">
+    <value>「{0}」への変更を保存しますか？</value>
+  </data>
+  <data name="UnsavedSave" xml:space="preserve">
+    <value>保存する</value>
+  </data>
+  <data name="UnsavedDiscard" xml:space="preserve">
+    <value>保存しない</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="ChordDataTitle" xml:space="preserve">
+    <value>高度なコード遷移データ</value>
+  </data>
+  <data name="ChordDataAgree" xml:space="preserve">
+    <value>同意して取得</value>
+  </data>
+  <data name="ChordDataLicense" xml:space="preserve">
+    <value>コード候補の並びを、より多くの曲（約66万曲）から集計したデータで精度よくします。
+
+データセット「Chordonomicon」（S. Kantarelis et al., 2024）を Hugging Face から取得し（約260MB）、この PC 上でコードの遷移の回数だけを集計して保存します。取得した元のデータは保存しません。
+
+このデータセットは CC BY-NC 4.0（表示 - 非営利）ライセンスで提供されています。集計したデータも同じライセンスに従い、非営利の目的でのみ利用できます。
+https://creativecommons.org/licenses/by-nc/4.0/deed.ja
+https://huggingface.co/datasets/ailsntua/Chordonomicon
+
+ライセンスに同意して取得しますか？</value>
+  </data>
+  <data name="ChordDataExtracting" xml:space="preserve">
+    <value>コード情報を抽出中…</value>
+  </data>
+  <data name="ChordDataProgress" xml:space="preserve">
+    <value>コード情報を抽出中… {0}%（{1:N0} 曲）</value>
+  </data>
+  <data name="ChordDataCount" xml:space="preserve">
+    <value>コード情報を抽出中…（{0:N0} 曲）</value>
+  </data>
+  <data name="ChordDataDone" xml:space="preserve">
+    <value>コード候補の並びを、追加のデータで精度よくしました</value>
+  </data>
+  <data name="ChordDataCancelled" xml:space="preserve">
+    <value>コード情報の抽出を中止しました</value>
+  </data>
+  <data name="ChordDataFailed" xml:space="preserve">
+    <value>コード情報の抽出に失敗しました: {0}</value>
+  </data>
+  <data name="ChordDataRemoved" xml:space="preserve">
+    <value>追加のコード遷移データを削除しました</value>
+  </data>
+  <data name="QuitDuringExtraction" xml:space="preserve">
+    <value>コード情報の抽出中です。アプリケーションを終了すると、抽出中の情報が削除され、また最初から抽出を始める必要があります。本当に終了しますか？</value>
+  </data>
+  <data name="QuitAnyway" xml:space="preserve">
+    <value>終了する</value>
+  </data>
+  <data name="ProjectFileTypeName" xml:space="preserve">
+    <value>hanautaSketch プロジェクト</value>
+  </data>
+  <data name="DialogOpenProject" xml:space="preserve">
+    <value>プロジェクトを開く</value>
+  </data>
+  <data name="DialogSaveProject" xml:space="preserve">
+    <value>プロジェクトを保存</value>
+  </data>
+  <data name="DialogExportMidi" xml:space="preserve">
+    <value>MIDI 書き出し</value>
+  </data>
+  <data name="MidiExportOptionsTitle" xml:space="preserve">
+    <value>MIDI 書き出しオプション</value>
+  </data>
+  <data name="MidiExportOptionsHint" xml:space="preserve">
+    <value>書き出す項目（テンポ・拍子・トラック名・ノーツは常に書き出す）</value>
+  </data>
+  <data name="MidiExportProgramChange" xml:space="preserve">
+    <value>Program Change（音色）</value>
+  </data>
+  <data name="MidiExportControlChange" xml:space="preserve">
+    <value>Control Change（音量）</value>
+  </data>
+  <data name="MidiExportChordMarkers" xml:space="preserve">
+    <value>コード名マーカー</value>
+  </data>
+  <data name="MidiExportKeySignature" xml:space="preserve">
+    <value>調号</value>
+  </data>
+  <data name="MidiExportButton" xml:space="preserve">
+    <value>書き出す</value>
+  </data>
+  <data name="AudioLoading" xml:space="preserve">
+    <value>音源を読み込み中…</value>
+  </data>
+  <data name="AudioSoundFontMissing" xml:space="preserve">
+    <value>SF2 が見つからない（{0}/ に置く）</value>
+  </data>
+  <data name="AudioInitFailed" xml:space="preserve">
+    <value>音源の初期化に失敗: {0}</value>
+  </data>
+  <data name="AudioDeviceOpenFailed" xml:space="preserve">
+    <value>出力デバイスを開けない</value>
+  </data>
+  <data name="ErrorInvalidProject" xml:space="preserve">
+    <value>プロジェクトファイルが不正か、新しいバージョンで保存されています</value>
+  </data>
+  <data name="FileOpened" xml:space="preserve">
+    <value>{0} を開いた</value>
+  </data>
+  <data name="FileOpenFailed" xml:space="preserve">
+    <value>開けなかった: {0}</value>
+  </data>
+  <data name="FileSaved" xml:space="preserve">
+    <value>{0} に保存した</value>
+  </data>
+  <data name="FileSaveFailed" xml:space="preserve">
+    <value>保存できなかった: {0}</value>
+  </data>
+  <data name="FileExported" xml:space="preserve">
+    <value>{0} に書き出した</value>
+  </data>
+  <data name="FileExportFailed" xml:space="preserve">
+    <value>書き出せなかった: {0}</value>
+  </data>
+  <data name="TrackDeleted" xml:space="preserve">
+    <value>{0} を削除した（{1}+Z で元に戻せる）</value>
+  </data>
+  <data name="DataSourceEntry" xml:space="preserve">
+    <value>・{0}（{1}、{2:N0} 曲）</value>
+  </data>
+  <data name="StopExtraction" xml:space="preserve">
+    <value>中止</value>
+  </data>
+</root>

@@ -41,8 +41,18 @@ public enum ChordQuality
     Dominant13,
 }
 
+/// <summary>和音の種類を選ぶメニューでまとめる単位。表示名はアプリ側で決める</summary>
+public enum ChordQualityGroup
+{
+    Triad,
+    Sus,
+    SixthAdd9,
+    Seventh,
+    Tension,
+}
+
 /// <summary>和音の種類ごとの、根音からの音程（半音。9th 以上は 12 以上で持つ）と表記</summary>
-public sealed record ChordQualityInfo(ChordQuality Quality, IReadOnlyList<int> Intervals, string Suffix, string Group);
+public sealed record ChordQualityInfo(ChordQuality Quality, IReadOnlyList<int> Intervals, string Suffix, ChordQualityGroup Group);
 
 /// <summary>
 /// 和音の種類の表。種類を増やすときは enum とここに1行足す。
@@ -51,36 +61,36 @@ public static class ChordQualities
 {
     public static IReadOnlyList<ChordQualityInfo> All { get; } =
     [
-        new(ChordQuality.Major, [0, 4, 7], "", "三和音"),
-        new(ChordQuality.Minor, [0, 3, 7], "m", "三和音"),
-        new(ChordQuality.Diminished, [0, 3, 6], "dim", "三和音"),
-        new(ChordQuality.Augmented, [0, 4, 8], "aug", "三和音"),
-        new(ChordQuality.Sus2, [0, 2, 7], "sus2", "sus"),
-        new(ChordQuality.Sus4, [0, 5, 7], "sus4", "sus"),
-        new(ChordQuality.Dominant7Sus4, [0, 5, 7, 10], "7sus4", "sus"),
-        new(ChordQuality.Sixth, [0, 4, 7, 9], "6", "6th・add9"),
-        new(ChordQuality.MinorSixth, [0, 3, 7, 9], "m6", "6th・add9"),
-        new(ChordQuality.Add9, [0, 4, 7, 14], "add9", "6th・add9"),
-        new(ChordQuality.MinorAdd9, [0, 3, 7, 14], "madd9", "6th・add9"),
-        new(ChordQuality.SixNine, [0, 4, 7, 9, 14], "6(9)", "6th・add9"),
-        new(ChordQuality.Dominant7, [0, 4, 7, 10], "7", "7th"),
-        new(ChordQuality.Major7, [0, 4, 7, 11], "maj7", "7th"),
-        new(ChordQuality.Minor7, [0, 3, 7, 10], "m7", "7th"),
-        new(ChordQuality.HalfDiminished7, [0, 3, 6, 10], "m7♭5", "7th"),
-        new(ChordQuality.Diminished7, [0, 3, 6, 9], "dim7", "7th"),
-        new(ChordQuality.MinorMajor7, [0, 3, 7, 11], "mM7", "7th"),
-        new(ChordQuality.Augmented7, [0, 4, 8, 10], "aug7", "7th"),
-        new(ChordQuality.Dominant9, [0, 4, 7, 10, 14], "9", "テンション"),
-        new(ChordQuality.Major9, [0, 4, 7, 11, 14], "maj9", "テンション"),
-        new(ChordQuality.Minor9, [0, 3, 7, 10, 14], "m9", "テンション"),
-        new(ChordQuality.Dominant7Flat9, [0, 4, 7, 10, 13], "7(♭9)", "テンション"),
-        new(ChordQuality.Dominant7Sharp9, [0, 4, 7, 10, 15], "7(♯9)", "テンション"),
-        new(ChordQuality.Dominant7Sharp11, [0, 4, 7, 10, 18], "7(♯11)", "テンション"),
-        new(ChordQuality.Dominant7Flat13, [0, 4, 7, 10, 20], "7(♭13)", "テンション"),
-        new(ChordQuality.Dominant11, [0, 7, 10, 14, 17], "11", "テンション"),
-        new(ChordQuality.Minor11, [0, 3, 7, 10, 14, 17], "m11", "テンション"),
-        new(ChordQuality.Major7Sharp11, [0, 4, 7, 11, 18], "maj7(♯11)", "テンション"),
-        new(ChordQuality.Dominant13, [0, 4, 7, 10, 14, 21], "13", "テンション"),
+        new(ChordQuality.Major, [0, 4, 7], "", ChordQualityGroup.Triad),
+        new(ChordQuality.Minor, [0, 3, 7], "m", ChordQualityGroup.Triad),
+        new(ChordQuality.Diminished, [0, 3, 6], "dim", ChordQualityGroup.Triad),
+        new(ChordQuality.Augmented, [0, 4, 8], "aug", ChordQualityGroup.Triad),
+        new(ChordQuality.Sus2, [0, 2, 7], "sus2", ChordQualityGroup.Sus),
+        new(ChordQuality.Sus4, [0, 5, 7], "sus4", ChordQualityGroup.Sus),
+        new(ChordQuality.Dominant7Sus4, [0, 5, 7, 10], "7sus4", ChordQualityGroup.Sus),
+        new(ChordQuality.Sixth, [0, 4, 7, 9], "6", ChordQualityGroup.SixthAdd9),
+        new(ChordQuality.MinorSixth, [0, 3, 7, 9], "m6", ChordQualityGroup.SixthAdd9),
+        new(ChordQuality.Add9, [0, 4, 7, 14], "add9", ChordQualityGroup.SixthAdd9),
+        new(ChordQuality.MinorAdd9, [0, 3, 7, 14], "madd9", ChordQualityGroup.SixthAdd9),
+        new(ChordQuality.SixNine, [0, 4, 7, 9, 14], "6(9)", ChordQualityGroup.SixthAdd9),
+        new(ChordQuality.Dominant7, [0, 4, 7, 10], "7", ChordQualityGroup.Seventh),
+        new(ChordQuality.Major7, [0, 4, 7, 11], "maj7", ChordQualityGroup.Seventh),
+        new(ChordQuality.Minor7, [0, 3, 7, 10], "m7", ChordQualityGroup.Seventh),
+        new(ChordQuality.HalfDiminished7, [0, 3, 6, 10], "m7♭5", ChordQualityGroup.Seventh),
+        new(ChordQuality.Diminished7, [0, 3, 6, 9], "dim7", ChordQualityGroup.Seventh),
+        new(ChordQuality.MinorMajor7, [0, 3, 7, 11], "mM7", ChordQualityGroup.Seventh),
+        new(ChordQuality.Augmented7, [0, 4, 8, 10], "aug7", ChordQualityGroup.Seventh),
+        new(ChordQuality.Dominant9, [0, 4, 7, 10, 14], "9", ChordQualityGroup.Tension),
+        new(ChordQuality.Major9, [0, 4, 7, 11, 14], "maj9", ChordQualityGroup.Tension),
+        new(ChordQuality.Minor9, [0, 3, 7, 10, 14], "m9", ChordQualityGroup.Tension),
+        new(ChordQuality.Dominant7Flat9, [0, 4, 7, 10, 13], "7(♭9)", ChordQualityGroup.Tension),
+        new(ChordQuality.Dominant7Sharp9, [0, 4, 7, 10, 15], "7(♯9)", ChordQualityGroup.Tension),
+        new(ChordQuality.Dominant7Sharp11, [0, 4, 7, 10, 18], "7(♯11)", ChordQualityGroup.Tension),
+        new(ChordQuality.Dominant7Flat13, [0, 4, 7, 10, 20], "7(♭13)", ChordQualityGroup.Tension),
+        new(ChordQuality.Dominant11, [0, 7, 10, 14, 17], "11", ChordQualityGroup.Tension),
+        new(ChordQuality.Minor11, [0, 3, 7, 10, 14, 17], "m11", ChordQualityGroup.Tension),
+        new(ChordQuality.Major7Sharp11, [0, 4, 7, 11, 18], "maj7(♯11)", ChordQualityGroup.Tension),
+        new(ChordQuality.Dominant13, [0, 4, 7, 10, 14, 21], "13", ChordQualityGroup.Tension),
     ];
 
     private static readonly Dictionary<ChordQuality, ChordQualityInfo> ByQuality = All.ToDictionary(q => q.Quality);

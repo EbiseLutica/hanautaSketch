@@ -55,12 +55,12 @@ public static class ProjectSerializer
         }
         catch (JsonException ex)
         {
-            throw new InvalidDataException("プロジェクトファイルの形式が不正です。", ex);
+            throw new InvalidDataException("The project file format is invalid.", ex);
         }
 
-        if (dto is null) throw new InvalidDataException("プロジェクトファイルが空です。");
+        if (dto is null) throw new InvalidDataException("The project file is empty.");
         if (dto.Version > CurrentVersion)
-            throw new InvalidDataException($"新しいバージョン（{dto.Version.ToString(2)}）のファイルには対応していません。");
+            throw new InvalidDataException($"The project file version {dto.Version.ToString(2)} is newer than supported.");
 
         return FromDto(dto);
     }
@@ -313,7 +313,7 @@ public static class ProjectSerializer
             if (reader.TokenType == JsonTokenType.String && Version.TryParse(reader.GetString(), out var version))
                 return new Version(version.Major, Math.Max(0, version.Minor));
 
-            throw new JsonException("バージョンの書式が不正です。");
+            throw new JsonException("The version format is invalid.");
         }
 
         public override void Write(Utf8JsonWriter writer, Version value, JsonSerializerOptions options) =>

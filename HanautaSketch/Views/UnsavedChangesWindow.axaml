@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:res="using:HanautaSketch.Resources"
         x:Class="HanautaSketch.Views.UnsavedChangesWindow"
         Title="hanautaSketch"
         SizeToContent="WidthAndHeight"
@@ -9,9 +10,9 @@
     <StackPanel Margin="20" Spacing="16" MinWidth="320">
         <TextBlock x:Name="MessageText" TextWrapping="Wrap" MaxWidth="420" />
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-            <Button Content="保存する" Classes="primary" IsDefault="True" Click="OnSaveClick" />
-            <Button Content="保存しない" Click="OnDiscardClick" />
-            <Button Content="キャンセル" IsCancel="True" Click="OnCancelClick" />
+            <Button Content="{x:Static res:Strings.UnsavedSave}" Classes="primary" IsDefault="True" Click="OnSaveClick" />
+            <Button Content="{x:Static res:Strings.UnsavedDiscard}" Click="OnDiscardClick" />
+            <Button Content="{x:Static res:Strings.Cancel}" IsCancel="True" Click="OnCancelClick" />
         </StackPanel>
     </StackPanel>
 </Window>

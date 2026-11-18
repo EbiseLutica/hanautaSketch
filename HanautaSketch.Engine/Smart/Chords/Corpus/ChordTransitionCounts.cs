@@ -4,10 +4,7 @@ using HanautaSketch.Engine.Core;
 namespace HanautaSketch.Engine.Smart.Chords.Corpus;
 
 /// <summary>集計元のデータセット（出典表示用）</summary>
-public sealed record ChordCorpusSource(string Name, string License, int Songs)
-{
-    public override string ToString() => $"{Name}（{License}、{Songs:N0} 曲）";
-}
+public sealed record ChordCorpusSource(string Name, string License, int Songs);
 
 /// <summary>
 /// コード進行から数えた「前のコード → 次のコード」の回数。長調・短調で別に持つ。
