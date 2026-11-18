@@ -11,6 +11,9 @@ public sealed record AppSettings
     /// <summary>表示言語。<see cref="AppLanguage.System"/>（OS に従う）・<see cref="AppLanguage.Japanese"/>・<see cref="AppLanguage.English"/></summary>
     public string Language { get; init; } = AppLanguage.System;
 
+    /// <summary>配色テーマ。<see cref="AppTheme.System"/>（OS に従う）・<see cref="AppTheme.Light"/>・<see cref="AppTheme.Dark"/></summary>
+    public string Theme { get; init; } = AppTheme.System;
+
     public MidiExportOptions MidiExport { get; init; } = new();
 }
 

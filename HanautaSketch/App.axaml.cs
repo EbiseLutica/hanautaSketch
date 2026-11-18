@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using HanautaSketch.Resources;
+using HanautaSketch.Services;
 using HanautaSketch.ViewModels;
 using HanautaSketch.Views;
 
@@ -15,6 +16,8 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        AppTheme.Apply(AppSettingsStore.Load().Theme);
+
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             var viewModel = new MainWindowViewModel();
