@@ -43,10 +43,11 @@ jobs:
             os: windows-latest
           - rid: osx-arm64
             os: macos-latest
+          # NativeAOT はビルド環境の glibc にリンクされるので、.NET 10 が対応する最古の Ubuntu（22.04、glibc 2.35）でビルドする
           - rid: linux-x64
-            os: ubuntu-latest
+            os: ubuntu-22.04
           - rid: linux-arm64
-            os: ubuntu-24.04-arm
+            os: ubuntu-22.04-arm
     runs-on: ${{ matrix.os }}
     defaults:
       run:
