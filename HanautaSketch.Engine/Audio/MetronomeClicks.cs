@@ -22,21 +22,25 @@ public static class MetronomeClicks
 
     /// <summary>
     /// 再生開始位置を基準にしたクリックの並び（時刻順）を返す。
-    /// カウントインは開始位置のテンポで、開始位置の手前に拍数分を刻む。
-    /// メトロノームは開始位置以降の拍（tick が PPQ の倍数の位置）に、endTick の手前まで刻む。
+    /// どちらも拍（tick が PPQ の倍数の位置）に刻む。開始位置が拍の途中でも、カウントインとメトロノームの拍がつながる。
+    /// カウントインは開始位置以降の最初の拍の手前に拍数分を、開始位置のテンポで刻む。
+    /// メトロノームは開始位置以降の拍に、endTick の手前まで刻む。
     /// </summary>
     public static IReadOnlyList<MetronomeClick> Build(Conductor conductor, int startTick, PlaybackOptions options, int endTick)
     {
         var clicks = new List<MetronomeClick>();
-        var secondsPerBeat = 60.0 / conductor.BpmAt(startTick);
+        var ppq = conductor.Ppq;
+        var firstBeat = (startTick + ppq - 1) / ppq * ppq;
+        var secondsPerTick = 60.0 / conductor.BpmAt(startTick) / ppq;
         for (var i = 0; i < options.CountInBeats; i++)
-            clicks.Add(new MetronomeClick(-(options.CountInBeats - i) * secondsPerBeat, i == 0));
+        {
+            var tick = firstBeat - (options.CountInBeats - i) * ppq;
+            clicks.Add(new MetronomeClick((tick - startTick) * secondsPerTick, i == 0));
+        }
 
         if (!options.Metronome) return clicks;
 
-        var ppq = conductor.Ppq;
         var startSeconds = conductor.TickToSeconds(startTick);
-        var firstBeat = (startTick + ppq - 1) / ppq * ppq;
         for (var tick = firstBeat; tick < endTick; tick += ppq)
         {
             clicks.Add(new MetronomeClick(conductor.TickToSeconds(tick) - startSeconds, conductor.PositionInBar(tick) == 0));

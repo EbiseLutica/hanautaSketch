@@ -111,13 +111,25 @@ public sealed class PlaybackEngine
         }
     }
 
+    /// <summary>最後に再生を始めてから書き出した長さ（秒）。カウントインを含む</summary>
+    public double ElapsedSeconds
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return (double)(_position + _preRollSamples) / SampleRate;
+            }
+        }
+    }
+
     /// <summary>
     /// 曲を startTick から再生する。呼び出し時点のノーツをスナップショットとして使う。
     /// </summary>
     public void Play(Song song, int startTick = 0, PlaybackOptions? options = null)
     {
         options ??= new PlaybackOptions();
-        var events = BuildEvents(song, startTick, options);
+        var events = BuildEvents(song, startTick, options, SampleRate);
         var preRoll = events.Count > 0 ? Math.Max(0, -events[0].Sample) : 0;
         lock (_lock)
         {
@@ -267,19 +279,19 @@ public sealed class PlaybackEngine
     #region イベント生成
 
     /// <param name="Force">ミュート・ソロに関係なく鳴らす（クリック）</param>
-    private readonly record struct ScheduledEvent(long Sample, int Channel, int Command, int Data1, int Data2, int Order, bool Force = false);
+    internal readonly record struct ScheduledEvent(long Sample, int Channel, int Command, int Data1, int Data2, int Order, bool Force = false);
 
     /// <summary>
     /// 曲のノーツとクリックを、サンプル位置（開始位置が 0。カウントインは負）つきの MIDI メッセージ列に変換する。
     /// 同じ位置ではノートオフ → 設定 → ノートオン の順に並べる。
     /// </summary>
-    private List<ScheduledEvent> BuildEvents(Song song, int startTick, PlaybackOptions options)
+    internal static List<ScheduledEvent> BuildEvents(Song song, int startTick, PlaybackOptions options, int sampleRate)
     {
         var events = new List<ScheduledEvent>();
         var setup = new List<ScheduledEvent>();
         var conductor = song.Conductor;
         var startSeconds = conductor.TickToSeconds(startTick);
-        long SecondsToSample(double seconds) => (long)(seconds * SampleRate);
+        long SecondsToSample(double seconds) => (long)Math.Round(seconds * sampleRate);
         long TickToSample(int tick) => SecondsToSample(conductor.TickToSeconds(tick) - startSeconds);
 
         foreach (var (track, channel) in AssignChannels(song))
@@ -307,7 +319,7 @@ public sealed class PlaybackEngine
         var clickCount = events.Count;
         var clickEndTick = options.Continuous
             ? (int)Math.Ceiling(conductor.SecondsToTick(startSeconds + ContinuousClickSeconds))
-            : (int)Math.Ceiling(conductor.SecondsToTick(startSeconds + (double)songEnd / SampleRate));
+            : (int)Math.Ceiling(conductor.SecondsToTick(startSeconds + (double)songEnd / sampleRate));
         foreach (var click in MetronomeClicks.Build(conductor, startTick, options, clickEndTick))
         {
             var pitch = click.IsAccent ? MetronomeClicks.AccentPitch : MetronomeClicks.BeatPitch;
