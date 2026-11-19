@@ -71,6 +71,7 @@ public sealed partial class PianoRollControl
         if (change.Property == TrackProperty || change.Property == NotesRevisionProperty)
         {
             _selection.Clear();
+            if (change.Property == NotesRevisionProperty) SelectRequestedNotes();
             UpdateScrollExtents();
         }
         else if (change.Property == SongProperty)
@@ -85,7 +86,10 @@ public sealed partial class PianoRollControl
         }
         else if (change.Property == PlayheadTickProperty)
         {
-            OnPlayheadMoved(change.GetOldValue<double>(), change.GetNewValue<double>());
+            // 曲の終わりを越えて録音しているときも追従できるよう、スクロール範囲を広げる
+            var tick = change.GetNewValue<double>();
+            if (tick > _contentEndTick) UpdateScrollExtents();
+            OnPlayheadMoved(change.GetOldValue<double>(), tick);
         }
     }
 
@@ -570,14 +574,19 @@ public sealed partial class PianoRollControl
         UpdateScrollExtents();
     }
 
+    /// <summary>スクロール範囲を決めた内容の終わり（最後のノートか再生ヘッドの位置）</summary>
+    private int _contentEndTick;
+
     /// <summary>
-    /// スクロールバー用の最大値・表示幅を更新する。横は「最後のノート＋余白の小節」までスクロールできる。
+    /// スクロールバー用の最大値・表示幅を更新する。横は「最後のノート（再生ヘッドがそれより先ならその位置）＋余白の小節」までスクロールできる。
     /// </summary>
     private void UpdateScrollExtents()
     {
         var area = EditArea;
         var lastTick = Song?.Tracks.OfType<NoteTrack>().SelectMany(t => t.Notes).Select(n => n.EndTick)
             .DefaultIfEmpty(0).Max() ?? 0;
+        lastTick = Math.Max(lastTick, (int)Math.Ceiling(PlayheadTick));
+        _contentEndTick = lastTick;
         var contentTicks = lastTick + Conductor.TicksPerBarAt(lastTick) * TrailingBars;
 
         HorizontalViewport = area.Width;

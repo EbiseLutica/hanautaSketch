@@ -25,6 +25,18 @@ public sealed record TranscriptionOptions
 
     /// <summary>これより短い音は捨てる（秒）</summary>
     public double MinNoteSeconds { get; init; } = NoteSegmenter.DefaultMinDuration;
+
+    /// <summary>
+    /// 採譜したノーツ全体をオクターブ単位でずらし、<see cref="OctaveRangeLow"/>〜<see cref="OctaveRangeHigh"/> に収めるか。
+    /// 低い声・高い声で歌っても、メロディらしい高さで起こす
+    /// </summary>
+    public bool FitOctave { get; init; } = true;
+
+    /// <summary>オクターブを合わせる範囲の下端（MIDI ノート番号。既定は C4）</summary>
+    public int OctaveRangeLow { get; init; } = 60;
+
+    /// <summary>オクターブを合わせる範囲の上端（MIDI ノート番号。既定は C6）</summary>
+    public int OctaveRangeHigh { get; init; } = 84;
 }
 
 /// <summary>
@@ -101,7 +113,29 @@ public static class HummingTranscriber
             var pitch = PitchSnapper.Snap(midi - tuning, conductor.KeyAt(start), options.SnapMode);
             notes.Add(new Note(start, end - start, pitch, Math.Clamp(options.Velocity, 1, 127)));
         }
-        return notes;
+        return options.FitOctave ? FitOctave(notes, options.OctaveRangeLow, options.OctaveRangeHigh) : notes;
+    }
+
+    /// <summary>
+    /// ノーツ全体を同じだけオクターブ単位でずらし、範囲 [low, high] からはみ出す長さが最も短くなるようにする。
+    /// 同じなら動かす量の少ない方を選ぶ。音程の関係は保つ。
+    /// </summary>
+    internal static List<Note> FitOctave(List<Note> notes, int low, int high)
+    {
+        if (notes.Count == 0) return notes;
+
+        long Outside(int shift) => notes
+            .Where(n => n.Pitch + shift < low || n.Pitch + shift > high)
+            .Sum(n => (long)n.Length);
+
+        var best = Enumerable.Range(-4, 9)
+            .Select(octaves => octaves * 12)
+            .Where(shift => notes.All(n => n.Pitch + shift is >= 0 and <= 127))
+            .OrderBy(Outside)
+            .ThenBy(Math.Abs)
+            .DefaultIfEmpty(0)
+            .First();
+        return best == 0 ? notes : notes.Select(n => n with { Pitch = n.Pitch + best }).ToList();
     }
 
     /// <summary>

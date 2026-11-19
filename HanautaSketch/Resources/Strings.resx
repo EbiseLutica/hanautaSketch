@@ -620,4 +620,97 @@ Choose another file.</value>
   <data name="NativeTransposeOctaveDown" xml:space="preserve">
     <value>Down 1 Octave</value>
   </data>
+  <data name="RecordTip" xml:space="preserve">
+    <value>Record humming (R)</value>
+  </data>
+  <data name="RecordingSettingsTip" xml:space="preserve">
+    <value>Recording settings</value>
+  </data>
+  <data name="RecordingDevice" xml:space="preserve">
+    <value>Input device</value>
+  </data>
+  <data name="RecordingDefaultDevice" xml:space="preserve">
+    <value>Default device</value>
+  </data>
+  <data name="RecordingAccompaniment" xml:space="preserve">
+    <value>Play accompaniment</value>
+  </data>
+  <data name="RecordingMetronome" xml:space="preserve">
+    <value>Metronome</value>
+  </data>
+  <data name="RecordingGrid" xml:space="preserve">
+    <value>Grid</value>
+  </data>
+  <data name="RecordingGrid8th" xml:space="preserve">
+    <value>8th</value>
+  </data>
+  <data name="RecordingGrid16th" xml:space="preserve">
+    <value>16th</value>
+  </data>
+  <data name="RecordingGrid8thTriplet" xml:space="preserve">
+    <value>8th triplet</value>
+  </data>
+  <data name="RecordingGrid16thTriplet" xml:space="preserve">
+    <value>16th triplet</value>
+  </data>
+  <data name="RecordingScale" xml:space="preserve">
+    <value>Scale</value>
+  </data>
+  <data name="RecordingScaleOff" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="RecordingScaleLean" xml:space="preserve">
+    <value>Lean</value>
+  </data>
+  <data name="RecordingScaleSnap" xml:space="preserve">
+    <value>Snap</value>
+  </data>
+  <data name="RecordingLatency" xml:space="preserve">
+    <value>Latency compensation (ms)</value>
+  </data>
+  <data name="RecordingNeedsNoteTrack" xml:space="preserve">
+    <value>Select a note track to record into.</value>
+  </data>
+  <data name="RecordingDeviceOpenFailed" xml:space="preserve">
+    <value>Could not open the input device.</value>
+  </data>
+  <data name="RecordingStartFailed" xml:space="preserve">
+    <value>Could not start recording: {0}</value>
+  </data>
+  <data name="RecordingInProgress" xml:space="preserve">
+    <value>Recording… (R or Space to stop)</value>
+  </data>
+  <data name="RecordingCancelled" xml:space="preserve">
+    <value>Recording cancelled.</value>
+  </data>
+  <data name="Transcribing" xml:space="preserve">
+    <value>Transcribing…</value>
+  </data>
+  <data name="TranscriptionDone" xml:space="preserve">
+    <value>Transcribed {0} notes.</value>
+  </data>
+  <data name="TranscriptionFailed" xml:space="preserve">
+    <value>Transcription failed: {0}</value>
+  </data>
+  <data name="TranscriptionTrackRemoved" xml:space="preserve">
+    <value>The track was removed, so the transcription was discarded.</value>
+  </data>
+  <data name="TranscriptionNoNotes" xml:space="preserve">
+    <value>No voice was detected, so the notes were left unchanged.</value>
+  </data>
+  <data name="RecordingFitOctave" xml:space="preserve">
+    <value>Fit octave to C4–C6</value>
+  </data>
+  <data name="SaveLastRecording" xml:space="preserve">
+    <value>Save last recording…</value>
+  </data>
+  <data name="DialogSaveRecording" xml:space="preserve">
+    <value>Save Recording</value>
+  </data>
+  <data name="RecordingSaved" xml:space="preserve">
+    <value>Saved the recording: {0}</value>
+  </data>
+  <data name="RecordingSaveFailed" xml:space="preserve">
+    <value>Could not save the recording: {0}</value>
+  </data>
 </root>

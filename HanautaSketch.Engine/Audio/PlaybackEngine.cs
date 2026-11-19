@@ -18,6 +18,12 @@ public sealed class PlaybackEngine
     /// <summary>SF2 でドラムキットが入っているバンク</summary>
     private const int DrumBank = 128;
 
+    /// <summary>クリックの長さ（秒）</summary>
+    private const double ClickSeconds = 0.05;
+
+    /// <summary>止めずに鳴らし続けるとき（<see cref="PlaybackOptions.Continuous"/>）に、クリックを用意しておく長さ（秒）</summary>
+    private const double ContinuousClickSeconds = 30 * 60;
+
     private readonly Synthesizer _synth;
     private readonly object _lock = new();
 
@@ -33,6 +39,12 @@ public sealed class PlaybackEngine
     private long _endPosition;
     private Song? _song;
     private int _startTick;
+
+    /// <summary>カウントインの長さ（サンプル）。再生位置はこの分だけ負から始まる</summary>
+    private long _preRollSamples;
+
+    /// <summary>カウントインのテンポ（開始位置のテンポ）</summary>
+    private double _preRollBpm;
 
     /// <param name="soundFontPath">SF2 ファイルのパス</param>
     /// <param name="sampleRate">出力サンプルレート</param>
@@ -76,7 +88,37 @@ public sealed class PlaybackEngine
             {
                 if (_song is null) return 0;
                 var conductor = _song.Conductor;
-                return conductor.SecondsToTick(conductor.TickToSeconds(_startTick) + (double)_position / SampleRate);
+                var seconds = (double)_position / SampleRate;
+                // カウントイン中は開始位置のテンポで、開始位置より前の tick にする
+                if (_position < 0) return _startTick + seconds * _preRollBpm / 60 * conductor.Ppq;
+                return conductor.SecondsToTick(conductor.TickToSeconds(_startTick) + seconds);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 最後に再生を始めたときの、鳴らし始めの曲上の時刻（秒）。カウントインがあればその分だけ開始位置より前（負にもなる）。
+    /// </summary>
+    public double PlaybackStartSeconds
+    {
+        get
+        {
+            lock (_lock)
+            {
+                if (_song is null) return 0;
+                return _song.Conductor.TickToSeconds(_startTick) - (double)_preRollSamples / SampleRate;
+            }
+        }
+    }
+
+    /// <summary>最後に再生を始めてから書き出した長さ（秒）。カウントインを含む</summary>
+    public double ElapsedSeconds
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return (double)(_position + _preRollSamples) / SampleRate;
             }
         }
     }
@@ -84,19 +126,25 @@ public sealed class PlaybackEngine
     /// <summary>
     /// 曲を startTick から再生する。呼び出し時点のノーツをスナップショットとして使う。
     /// </summary>
-    public void Play(Song song, int startTick = 0)
+    public void Play(Song song, int startTick = 0, PlaybackOptions? options = null)
     {
-        var events = BuildEvents(song, startTick);
+        options ??= new PlaybackOptions();
+        var events = BuildEvents(song, startTick, options, SampleRate);
+        var preRoll = events.Count > 0 ? Math.Max(0, -events[0].Sample) : 0;
         lock (_lock)
         {
             _synth.Reset();
             UpdateAudible(song);
             _song = song;
             _startTick = startTick;
+            _preRollSamples = preRoll;
+            _preRollBpm = song.Conductor.BpmAt(startTick);
             _events = events;
             _nextEvent = 0;
-            _position = 0;
-            _endPosition = (events.Count > 0 ? events[^1].Sample : 0) + (long)(ReleaseTailSeconds * SampleRate);
+            _position = -preRoll;
+            _endPosition = options.Continuous
+                ? long.MaxValue
+                : (events.Count > 0 ? events[^1].Sample : 0) + (long)(ReleaseTailSeconds * SampleRate);
             IsPlaying = true;
         }
     }
@@ -206,7 +254,7 @@ public sealed class PlaybackEngine
         while (_nextEvent < _events.Count && _events[_nextEvent].Sample <= _position)
         {
             var e = _events[_nextEvent++];
-            if (e.Command == 0x90 && !_audible[e.Channel]) continue;
+            if (e.Command == 0x90 && !e.Force && !_audible[e.Channel]) continue;
             _synth.ProcessMidiMessage(e.Channel, e.Command, e.Data1, e.Data2);
         }
     }
@@ -230,24 +278,30 @@ public sealed class PlaybackEngine
 
     #region イベント生成
 
-    private readonly record struct ScheduledEvent(long Sample, int Channel, int Command, int Data1, int Data2, int Order);
+    /// <param name="Force">ミュート・ソロに関係なく鳴らす（クリック）</param>
+    internal readonly record struct ScheduledEvent(long Sample, int Channel, int Command, int Data1, int Data2, int Order, bool Force = false);
 
     /// <summary>
-    /// 曲のノーツをサンプル位置つきの MIDI メッセージ列に変換する。
+    /// 曲のノーツとクリックを、サンプル位置（開始位置が 0。カウントインは負）つきの MIDI メッセージ列に変換する。
     /// 同じ位置ではノートオフ → 設定 → ノートオン の順に並べる。
     /// </summary>
-    private List<ScheduledEvent> BuildEvents(Song song, int startTick)
+    internal static List<ScheduledEvent> BuildEvents(Song song, int startTick, PlaybackOptions options, int sampleRate)
     {
         var events = new List<ScheduledEvent>();
-        var startSeconds = song.Conductor.TickToSeconds(startTick);
-        long TickToSample(int tick) => (long)((song.Conductor.TickToSeconds(tick) - startSeconds) * SampleRate);
+        var setup = new List<ScheduledEvent>();
+        var conductor = song.Conductor;
+        var startSeconds = conductor.TickToSeconds(startTick);
+        long SecondsToSample(double seconds) => (long)Math.Round(seconds * sampleRate);
+        long TickToSample(int tick) => SecondsToSample(conductor.TickToSeconds(tick) - startSeconds);
 
         foreach (var (track, channel) in AssignChannels(song))
         {
+            if (ReferenceEquals(track, options.ExcludedTrack)) continue;
             // 10ch の Program Change はドラムキットの切り替え（SF2 のバンク128）
-            events.Add(new ScheduledEvent(0, channel, 0xC0, track.Program, 0, 1));
-            events.Add(new ScheduledEvent(0, channel, 0xB0, 7, track.Volume, 1));
+            setup.Add(new ScheduledEvent(0, channel, 0xC0, track.Program, 0, 1));
+            setup.Add(new ScheduledEvent(0, channel, 0xB0, 7, track.Volume, 1));
 
+            if (!options.PlaySong) continue;
             foreach (var note in track.PlaybackNotes)
             {
                 if (note.EndTick <= startTick) continue;
@@ -260,6 +314,23 @@ public sealed class PlaybackEngine
             }
         }
 
+        // クリックは 10ch（ドラム）で、曲の終わり（止めずに鳴らすときは十分先）まで刻む
+        var songEnd = events.Count > 0 ? events.Max(e => e.Sample) : 0;
+        var clickCount = events.Count;
+        var clickEndTick = options.Continuous
+            ? (int)Math.Ceiling(conductor.SecondsToTick(startSeconds + ContinuousClickSeconds))
+            : (int)Math.Ceiling(conductor.SecondsToTick(startSeconds + (double)songEnd / sampleRate));
+        foreach (var click in MetronomeClicks.Build(conductor, startTick, options, clickEndTick))
+        {
+            var pitch = click.IsAccent ? MetronomeClicks.AccentPitch : MetronomeClicks.BeatPitch;
+            var on = SecondsToSample(click.Seconds);
+            events.Add(new ScheduledEvent(on, MidiChannels.Drum, 0x90, pitch, click.IsAccent ? 110 : 80, 2, Force: true));
+            events.Add(new ScheduledEvent(on + SecondsToSample(ClickSeconds), MidiChannels.Drum, 0x80, pitch, 0, 0, Force: true));
+        }
+
+        // 音色・音量の設定は、カウントインも含めた鳴らし始めに送る（クリックにも曲のドラムキットを使う）
+        var first = events.Skip(clickCount).Select(e => e.Sample).DefaultIfEmpty(0).Min();
+        events.AddRange(setup.Select(e => e with { Sample = Math.Min(0, first) }));
         return events.OrderBy(e => e.Sample).ThenBy(e => e.Order).ToList();
     }
 
