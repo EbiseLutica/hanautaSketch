@@ -43,8 +43,9 @@ public class HummingTranscriberTests
         List<Note> inRange = [new(0, 480, 60, 100), new(480, 480, 84, 100)];
         Assert.Equal(inRange, HummingTranscriber.FitOctave(inRange, 60, 84));
 
-        List<Note> wide = [new(0, 1920, 55, 100), new(1920, 120, 70, 100)];
-        Assert.Equal([67, 82], HummingTranscriber.FitOctave(wide, 60, 84).Select(n => n.Pitch));
+        // どうずらしても片方ははみ出す。長く伸ばした 55 を範囲に入れる +12 を選ぶ（-12 なら短い 86 だけが入る）
+        List<Note> wide = [new(0, 1920, 55, 100), new(1920, 120, 86, 100)];
+        Assert.Equal([67, 98], HummingTranscriber.FitOctave(wide, 60, 84).Select(n => n.Pitch));
     }
 
     [Fact]

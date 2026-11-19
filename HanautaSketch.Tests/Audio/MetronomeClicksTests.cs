@@ -47,6 +47,18 @@ public class MetronomeClicksTests
     }
 
     [Fact]
+    public void CountInStaysOnBeatsWhenStartIsOffBeat()
+    {
+        // 120 BPM・4 拍子で、拍の途中（2160 = 2 小節目の 4 拍目の裏）から始める。
+        // カウントインも拍（480, 960, 1440, 1920）で鳴り、メトロノーム（2400, 2880）まで 0.5 秒間隔でつながる
+        var clicks = MetronomeClicks.Build(
+            CreateConductor(), 2160, new PlaybackOptions { CountInBeats = 4, Metronome = true }, 3360);
+
+        Assert.Equal([-1.75, -1.25, -0.75, -0.25, 0.25, 0.75], clicks.Select(c => c.Seconds));
+        Assert.Equal([true, false, false, false, false, false], clicks.Select(c => c.IsAccent));
+    }
+
+    [Fact]
     public void NoClicksByDefault()
     {
         Assert.Empty(MetronomeClicks.Build(CreateConductor(), 0, new PlaybackOptions(), 1920));
