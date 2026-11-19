@@ -49,6 +49,16 @@ public class PitchSnapperTests
     }
 
     [Fact]
+    public void ConsistentDetuneWithSmallNoiseIsCorrected()
+    {
+        // 全体に +30 セント、音ごとに ±15 セントの揺れ。向きは揃っているので補正する
+        var notes = new[] { 60.15, 62.45, 64.30, 65.20, 67.40, 69.30 }
+            .Select((m, i) => new SungNote(i, i + 0.4, m))
+            .ToList();
+        Assert.InRange(PitchSnapper.EstimateTuningOffset(notes), 0.25, 0.35);
+    }
+
+    [Fact]
     public void LongDetunedNoteDoesNotDominateTuning()
     {
         // C・F#・E は正確、最後の G だけ 3 秒伸ばして +40 セント。全体のずれは小さいままで、F# は F にならない

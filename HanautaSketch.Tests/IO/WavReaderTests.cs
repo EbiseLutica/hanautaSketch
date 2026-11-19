@@ -136,4 +136,21 @@ public class WavReaderTests
     {
         Assert.Throws<InvalidDataException>(() => WavReader.Read(new MemoryStream(Encoding.ASCII.GetBytes("not a wav file"))));
     }
+
+    [Fact]
+    public void WriterRoundTrips()
+    {
+        // 16bit に丸めた分の誤差だけで読み戻せる。範囲外と NaN は収めて書く
+        var clip = new AudioClip([0f, 0.5f, -0.25f, 1.5f, float.NaN], 44100);
+        var stream = new MemoryStream();
+
+        WavWriter.Write(stream, clip);
+        stream.Position = 0;
+        var read = WavReader.Read(stream);
+
+        Assert.Equal(44100, read.SampleRate);
+        float[] expected = [0f, 0.5f, -0.25f, 1f, 0f];
+        Assert.Equal(expected.Length, read.Samples.Length);
+        for (var i = 0; i < expected.Length; i++) Assert.Equal(expected[i], read.Samples[i], 0.001f);
+    }
 }

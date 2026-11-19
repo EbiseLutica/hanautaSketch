@@ -15,6 +15,39 @@ public class HummingTranscriberTests
     }
 
     [Fact]
+    public void FitsLowVoiceIntoMelodyRange()
+    {
+        // C3 付近の低い声で歌っても、全体を 1 オクターブ上げて C4〜C6 に収める（音程の関係は保つ）
+        var sung = new[] { new SungNote(0.0, 0.4, 48), new SungNote(0.5, 0.9, 52), new SungNote(1.0, 1.4, 55) };
+
+        var notes = HummingTranscriber.Quantize(sung, CreateConductor(), new TranscriptionOptions(), 0, 0, 480 * 8);
+
+        Assert.Equal([60, 64, 67], notes.Select(n => n.Pitch));
+    }
+
+    [Fact]
+    public void FitOctaveCanBeDisabled()
+    {
+        var sung = new[] { new SungNote(0.0, 0.4, 48) };
+
+        var notes = HummingTranscriber.Quantize(
+            sung, CreateConductor(), new TranscriptionOptions { FitOctave = false }, 0, 0, 480 * 8);
+
+        Assert.Equal(48, Assert.Single(notes).Pitch);
+    }
+
+    [Fact]
+    public void FitOctavePrefersSmallestShiftAndLongNotes()
+    {
+        // 範囲内なら動かさない。はみ出す長さが最も短いずらし方を選ぶ（長く伸ばした音を範囲に入れる）
+        List<Note> inRange = [new(0, 480, 60, 100), new(480, 480, 84, 100)];
+        Assert.Equal(inRange, HummingTranscriber.FitOctave(inRange, 60, 84));
+
+        List<Note> wide = [new(0, 1920, 55, 100), new(1920, 120, 70, 100)];
+        Assert.Equal([67, 82], HummingTranscriber.FitOctave(wide, 60, 84).Select(n => n.Pitch));
+    }
+
+    [Fact]
     public void TranscribesSimpleMelody()
     {
         // 120 BPM で 4 分音符ずつ、C D E E G。全体に +30 セントずれ、各音の終わりに少し息継ぎする
