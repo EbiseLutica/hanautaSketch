@@ -145,6 +145,12 @@
   <data name="ApplyTap" xml:space="preserve">
     <value>Apply</value>
   </data>
+  <data name="ScaleLock" xml:space="preserve">
+    <value>Scale lock</value>
+  </data>
+  <data name="ScaleLockTip" xml:space="preserve">
+    <value>Snap notes you place, move up/down, or paste to the scale of the key at that position (drums are not affected)</value>
+  </data>
   <data name="ApplyTapTip" xml:space="preserve">
     <value>Apply the candidate BPM at the play start</value>
   </data>

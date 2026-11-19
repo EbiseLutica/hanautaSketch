@@ -61,6 +61,18 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private SnapOption _selectedSnap;
 
+    /// <summary>スケールロック（スケール外の音を置けないモード）。アプリ設定に保存し、次回起動時も引き継ぐ</summary>
+    public bool IsScaleLocked
+    {
+        get => _appSettings.ScaleLock;
+        set
+        {
+            if (value == IsScaleLocked) return;
+            UpdateSettings(_appSettings with { ScaleLock = value });
+            OnPropertyChanged();
+        }
+    }
+
     /// <summary>コードレーンに表示する判別結果</summary>
     [ObservableProperty]
     private IReadOnlyList<ChordSegment> _chords = [];

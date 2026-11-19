@@ -118,6 +118,7 @@
             <ComboBox ItemsSource="{Binding Modes}" SelectedItem="{Binding Mode}" Width="100" />
             <TextBlock Text="Snap" VerticalAlignment="Center" Margin="16,0,0,0" />
             <ComboBox ItemsSource="{Binding SnapOptions}" SelectedItem="{Binding SelectedSnap}" Width="90" />
+            <ToggleButton Content="{x:Static res:Strings.ScaleLock}" Margin="16,0,0,0" IsChecked="{Binding IsScaleLocked}" ToolTip.Tip="{x:Static res:Strings.ScaleLockTip}" />
         </StackPanel>
 
         <!-- ステータスバー -->
@@ -255,6 +256,7 @@
                                 Track="{Binding SelectedTrack}"
                                 ConductorRevision="{Binding ConductorRevision}"
                                 SnapTicks="{Binding SelectedSnap.Ticks}"
+                                IsScaleLocked="{Binding IsScaleLocked}"
                                 Chords="{Binding Chords}"
                                 PlayheadTick="{Binding PlayheadTick}"
                                 PlayStartTick="{Binding PlayStartTick}"
