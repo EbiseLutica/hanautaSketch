@@ -45,6 +45,9 @@ public sealed partial class PianoRollControl : Control
     public static readonly StyledProperty<int> NotesRevisionProperty =
         AvaloniaProperty.Register<PianoRollControl, int>(nameof(NotesRevision));
 
+    public static readonly StyledProperty<int> OnionRevisionProperty =
+        AvaloniaProperty.Register<PianoRollControl, int>(nameof(OnionRevision));
+
     public static readonly StyledProperty<double> HorizontalOffsetProperty =
         AvaloniaProperty.Register<PianoRollControl, double>(nameof(HorizontalOffset),
             defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
@@ -94,7 +97,8 @@ public sealed partial class PianoRollControl : Control
     static PianoRollControl()
     {
         AffectsRender<PianoRollControl>(SongProperty, TrackProperty, ConductorRevisionProperty, SnapTicksProperty, ChordsProperty,
-            PlayheadTickProperty, PlayStartTickProperty, NotesRevisionProperty, RecordingLevelsProperty, HorizontalOffsetProperty,
+            PlayheadTickProperty, PlayStartTickProperty, NotesRevisionProperty, OnionRevisionProperty, RecordingLevelsProperty,
+            HorizontalOffsetProperty,
             VerticalOffsetProperty, DrumSectionsProperty, SelectedDrumSectionProperty);
         FocusableProperty.OverrideDefaultValue<PianoRollControl>(true);
         ClipToBoundsProperty.OverrideDefaultValue<PianoRollControl>(true);
@@ -121,6 +125,15 @@ public sealed partial class PianoRollControl : Control
     {
         get => GetValue(NotesRevisionProperty);
         set => SetValue(NotesRevisionProperty, value);
+    }
+
+    /// <summary>
+    /// オニオンスキンの表示対象を外部で変えたときに増やす。ノーツの選択は保ったまま描き直す
+    /// </summary>
+    public int OnionRevision
+    {
+        get => GetValue(OnionRevisionProperty);
+        set => SetValue(OnionRevisionProperty, value);
     }
 
     /// <summary>横スクロール位置（px）。スクロールバーと双方向に連動する</summary>
@@ -429,14 +442,14 @@ public sealed partial class PianoRollControl : Control
     }
 
     /// <summary>
-    /// 表示中以外のノートトラックのノーツを薄く表示する。
+    /// オニオンスキンが有効な、表示中以外のノートトラックのノーツを薄く表示する。
     /// </summary>
     private void RenderGhostNotes(DrawingContext context)
     {
         if (Song is null) return;
         foreach (var track in Song.Tracks.OfType<NoteTrack>())
         {
-            if (ReferenceEquals(track, Track)) continue;
+            if (ReferenceEquals(track, Track) || !track.OnionSkin) continue;
             foreach (var note in track.Notes)
                 context.FillRectangle(Palette.GhostNote, NoteRect(note));
         }
