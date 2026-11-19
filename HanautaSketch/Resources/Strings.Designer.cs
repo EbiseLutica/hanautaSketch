@@ -72,6 +72,8 @@ public static class Strings
     public static string TapTempo => Get(nameof(TapTempo));
     public static string TapTempoTip => Get(nameof(TapTempoTip));
     public static string ApplyTap => Get(nameof(ApplyTap));
+    public static string ScaleLock => Get(nameof(ScaleLock));
+    public static string ScaleLockTip => Get(nameof(ScaleLockTip));
     public static string ApplyTapTip => Get(nameof(ApplyTapTip));
     public static string TapCandidate => Get(nameof(TapCandidate));
     public static string TogglePlayTip => Get(nameof(TogglePlayTip));

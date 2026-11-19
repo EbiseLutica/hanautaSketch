@@ -19,6 +19,9 @@ public sealed record AppSettings
     /// <summary>再生に使う SoundFont（.sf2）のパス。未設定なら null</summary>
     public string? SoundFontPath { get; init; }
 
+    /// <summary>ピアノロールのスケールロック（スケール外の音を置けないモード）</summary>
+    public bool ScaleLock { get; init; }
+
     public MidiExportOptions MidiExport { get; init; } = new();
 
     public WavExportOptions WavExport { get; init; } = new();

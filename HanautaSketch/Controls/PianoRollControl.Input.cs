@@ -30,6 +30,8 @@ public sealed partial class PianoRollControl
     private DragMode _dragMode;
     private int _dragAnchor = -1;
     private double _dragTickOffset;
+    /// <summary>ノートのドラッグを始めたときのカーソルの行（音高）。スケールロック中、この行にいる間は音高を変えない</summary>
+    private int _dragStartRow;
     private Dictionary<int, Note> _dragOrigins = [];
     /// <summary>鳴らしているプレビュー音。同じ組み合わせなら鳴らし直さない</summary>
     private (int Pitch, int Velocity)[] _previewNotes = [];
@@ -151,7 +153,9 @@ public sealed partial class PianoRollControl
 
         if (EditTrack is null || !EditArea.Contains(pos)) return;
 
-        var hit = HitTest(pos, out var handle);
+        // Ctrl（macOS は ⌘）では矩形選択に使うので、見た目どおりの位置だけで判定する
+        NoteHandle handle;
+        var hit = PlatformKeys.IsCommand(e.KeyModifiers) ? HitTest(pos, out handle) : NoteAt(pos, out handle);
 
         if (point.Properties.IsRightButtonPressed)
         {
@@ -228,7 +232,6 @@ public sealed partial class PianoRollControl
         }
 
         // 空き領域クリックで新規配置し、そのままドラッグで移動（設定により伸縮）
-        var pitch = Math.Clamp(YToPitch(pos.Y), 0, PitchCount - 1);
         var tick = SnapFloor(Math.Max(0, XToTick(pos.X)));
         if (!EditTrack.CanPlaceAt(tick))
         {
@@ -236,6 +239,10 @@ public sealed partial class PianoRollControl
             e.Handled = true;
             return;
         }
+
+        var pitch = ScaleLockActive
+            ? ScaleLock.Snap(YToPitchExact(pos.Y), Conductor.KeyAt(tick))
+            : Math.Clamp(YToPitch(pos.Y), 0, PitchCount - 1);
 
         EditStarted?.Invoke(this, EventArgs.Empty);
         EditTrack.EditableNotes.Add(new Note(tick, _lastNoteLength, pitch, DefaultVelocity));
@@ -379,6 +386,7 @@ public sealed partial class PianoRollControl
         _dragMode = mode;
         _dragAnchor = anchor;
         _dragTickOffset = XToTick(pos.X) - EditTrack.EditableNotes[anchor].Tick;
+        _dragStartRow = Math.Clamp(YToPitch(pos.Y), 0, PitchCount - 1);
         _dragOrigins = _selection.ToDictionary(i => i, i => EditTrack.EditableNotes[i]);
     }
 
@@ -390,14 +398,14 @@ public sealed partial class PianoRollControl
         if (EditTrack is null || !_dragOrigins.TryGetValue(_dragAnchor, out var anchor)) return;
 
         var deltaTick = SnapRound(XToTick(pos.X) - _dragTickOffset) - anchor.Tick;
-        var deltaPitch = Math.Clamp(YToPitch(pos.Y), 0, PitchCount - 1) - anchor.Pitch;
-
         // 選択全体がはみ出さない範囲に収める
         deltaTick = Math.Max(deltaTick, -_dragOrigins.Values.Min(n => n.Tick));
-        deltaPitch = Math.Clamp(deltaPitch, -_dragOrigins.Values.Min(n => n.Pitch),
-            PitchCount - 1 - _dragOrigins.Values.Max(n => n.Pitch));
 
-        if (EditTrack.EditableNotes[_dragAnchor] == anchor with { Tick = anchor.Tick + deltaTick, Pitch = anchor.Pitch + deltaPitch })
+        var pitchOf = ScaleLockActive ? ScaleLockedPitchMover(pos, anchor) : ChromaticPitchMover(pos, anchor);
+        Note Moved(Note origin) => origin with { Tick = origin.Tick + deltaTick, Pitch = pitchOf(origin) };
+
+        // スケールロック中は掴んだノートが同じでも他のノートの寄せ方が変わりうるので、全体で比べる
+        if (_dragOrigins.All(pair => EditTrack.EditableNotes[pair.Key] == Moved(pair.Value)))
             return;
 
         if (_duplicatePending)
@@ -409,10 +417,37 @@ public sealed partial class PianoRollControl
         }
 
         foreach (var (index, origin) in _dragOrigins)
-            EditTrack.EditableNotes[index] = origin with { Tick = origin.Tick + deltaTick, Pitch = origin.Pitch + deltaPitch };
+            EditTrack.EditableNotes[index] = Moved(origin);
 
-        StartPreview(anchor.Pitch + deltaPitch);
+        StartPreview(pitchOf(anchor));
         RaiseNotesEdited();
+    }
+
+    /// <summary>
+    /// 半音単位での上下移動。掴んだノートをカーソルの行に合わせ、選択全体が音域に収まる範囲で同じ半音数だけ動かす。
+    /// </summary>
+    private Func<Note, int> ChromaticPitchMover(Point pos, Note anchor)
+    {
+        var deltaPitch = Math.Clamp(YToPitch(pos.Y), 0, PitchCount - 1) - anchor.Pitch;
+        deltaPitch = Math.Clamp(deltaPitch, -_dragOrigins.Values.Min(n => n.Pitch),
+            PitchCount - 1 - _dragOrigins.Values.Max(n => n.Pitch));
+        return origin => origin.Pitch + deltaPitch;
+    }
+
+    /// <summary>
+    /// スケールロック中の上下移動。掴んだノートをカーソル位置の最寄りのスケール音に合わせ、
+    /// 選択中の各ノートを元の位置のキーで同じ度数だけ動かす。
+    /// カーソルがドラッグを始めた行から出ていなければ音高は変えない（スケール外のノートを横に動かすだけなら寄せない）。
+    /// スケール外の行で掴んだ（寄せた先の行のノートを掴んだ）場合も、その行が基準になる。
+    /// </summary>
+    private Func<Note, int> ScaleLockedPitchMover(Point pos, Note anchor)
+    {
+        if (Math.Clamp(YToPitch(pos.Y), 0, PitchCount - 1) == _dragStartRow) return origin => origin.Pitch;
+
+        var keys = _dragOrigins.Values.Select(n => n.Tick).Distinct().ToDictionary(t => t, Conductor.KeyAt);
+        var steps = ScaleLock.DragSteps(anchor.Pitch, keys[anchor.Tick], YToPitchExact(pos.Y),
+            _dragOrigins.Values.Select(n => (n.Pitch, keys[n.Tick])));
+        return origin => ScaleLock.MoveBySteps(origin.Pitch, keys[origin.Tick], steps);
     }
 
     /// <summary>
@@ -491,7 +526,7 @@ public sealed partial class PianoRollControl
             return;
         }
 
-        var hit = HitTest(pos, out var handle);
+        var hit = NoteAt(pos, out var handle);
         Cursor = hit < 0 ? Cursor.Default : handle != NoteHandle.None ? ResizeCursor : MoveCursor;
     }
 
@@ -518,13 +553,56 @@ public sealed partial class PianoRollControl
             var rect = NoteRect(EditTrack.EditableNotes[i]);
             if (!rect.Contains(pos)) continue;
 
-            var width = Math.Min(ResizeHandleWidth, rect.Width / 3);
-            if (pos.X >= rect.Right - width) handle = NoteHandle.End;
-            else if (pos.X <= rect.Left + width) handle = NoteHandle.Start;
+            handle = HandleAt(rect, pos.X);
             return i;
         }
 
         return -1;
+    }
+
+    /// <summary>
+    /// クリック・ホバーで対象にするノーツのインデックスを返す。
+    /// スケールロック中にスケール外の空いた行を指したときは、寄せた先の行にあるノートを対象にする（新しいノートを重ねて置かない）。
+    /// </summary>
+    private int NoteAt(Point pos, out NoteHandle handle)
+    {
+        var hit = HitTest(pos, out handle);
+        if (hit >= 0 || !ScaleLockActive || !EditArea.Contains(pos)) return hit;
+
+        var snapped = ScaleLock.Snap(YToPitchExact(pos.Y), Conductor.KeyAt(SnapFloor(Math.Max(0, XToTick(pos.X)))));
+        return HitTestRow(pos.X, snapped, out handle);
+    }
+
+    /// <summary>
+    /// 指定の音高の行で、横位置 x にあるノーツのインデックスを返す。行が画面外でも探す。前面（後に追加された方）を優先。
+    /// </summary>
+    private int HitTestRow(double x, int pitch, out NoteHandle handle)
+    {
+        handle = NoteHandle.None;
+        if (EditTrack is null) return -1;
+
+        for (var i = EditTrack.EditableNotes.Count - 1; i >= 0; i--)
+        {
+            var note = EditTrack.EditableNotes[i];
+            if (note.Pitch != pitch) continue;
+
+            var rect = NoteRect(note);
+            if (x < rect.Left || x > rect.Right) continue;
+
+            handle = HandleAt(rect, x);
+            return i;
+        }
+
+        return -1;
+    }
+
+    /// <summary>ノートの矩形の、横位置 x にある伸縮つまみ</summary>
+    private static NoteHandle HandleAt(Rect rect, double x)
+    {
+        var width = Math.Min(ResizeHandleWidth, rect.Width / 3);
+        if (x >= rect.Right - width) return NoteHandle.End;
+        if (x <= rect.Left + width) return NoteHandle.Start;
+        return NoteHandle.None;
     }
 
     #endregion
@@ -664,6 +742,7 @@ public sealed partial class PianoRollControl
 
     /// <summary>
     /// コピーしたノーツを再生開始位置に貼り付け、貼り付けたノーツを選択状態にする。
+    /// スケールロック中は、貼り付け先のキーのスケール音に寄せる。
     /// </summary>
     private void Paste()
     {
@@ -672,7 +751,9 @@ public sealed partial class PianoRollControl
         _selection.Clear();
         foreach (var note in _clipboard)
         {
-            EditTrack.EditableNotes.Add(note with { Tick = note.Tick + PlayStartTick });
+            var tick = note.Tick + PlayStartTick;
+            var pitch = ScaleLockActive ? ScaleLock.Snap(note.Pitch, Conductor.KeyAt(tick)) : note.Pitch;
+            EditTrack.EditableNotes.Add(note with { Tick = tick, Pitch = pitch });
             _selection.Add(EditTrack.EditableNotes.Count - 1);
         }
         ResolveOverlaps();

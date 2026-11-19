@@ -145,6 +145,12 @@
   <data name="ApplyTap" xml:space="preserve">
     <value>確定</value>
   </data>
+  <data name="ScaleLock" xml:space="preserve">
+    <value>スケールロック</value>
+  </data>
+  <data name="ScaleLockTip" xml:space="preserve">
+    <value>置く・上下に動かす・貼り付けるノーツを、その位置のキーのスケール音に寄せる（ドラムは対象外）</value>
+  </data>
   <data name="ApplyTapTip" xml:space="preserve">
     <value>候補 BPM を再生開始位置に反映</value>
   </data>
