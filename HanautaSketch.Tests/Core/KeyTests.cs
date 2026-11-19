@@ -26,4 +26,18 @@ public class KeyTests
     {
         Assert.Equal(expected, new Key(0, Mode.Major).Contains(pitch));
     }
+
+    [Fact]
+    public void KeySignature_RoundTripsForAllKeys()
+    {
+        foreach (var mode in new[] { Mode.Major, Mode.Minor })
+        {
+            for (var tonic = 0; tonic < 12; tonic++)
+            {
+                var key = new Key(tonic, mode);
+                Assert.InRange(key.KeySignatureAccidentals, -7, 7);
+                Assert.Equal(key, Key.FromKeySignature(key.KeySignatureAccidentals, mode));
+            }
+        }
+    }
 }

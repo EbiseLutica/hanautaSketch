@@ -48,6 +48,29 @@ public readonly record struct Key(int Tonic, Mode Mode)
     }
 
     /// <summary>
+    /// 調号の変化記号の数（シャープが正、フラットが負）。平行調のメジャーキーから五度圏で求める。
+    /// </summary>
+    public int KeySignatureAccidentals
+    {
+        get
+        {
+            var relativeMajor = Mode == Mode.Major ? Tonic : (Tonic + 3) % 12;
+            var sharps = relativeMajor * 7 % 12;
+            return PrefersFlats ? sharps - 12 : sharps;
+        }
+    }
+
+    /// <summary>
+    /// 調号（変化記号の数とメジャー／マイナー）から調を求める。
+    /// </summary>
+    /// <param name="accidentals">シャープが正、フラットが負の数</param>
+    public static Key FromKeySignature(int accidentals, Mode mode)
+    {
+        var relativeMajor = ((accidentals * 7 % 12) + 12) % 12;
+        return mode == Mode.Major ? new Key(relativeMajor, Mode.Major) : new Key((relativeMajor + 9) % 12, Mode.Minor);
+    }
+
+    /// <summary>
     /// 調号に合わせた音名を返す（C minor なら A♭ は "Ab"）。
     /// </summary>
     public string GetPitchName(int pitchClass)

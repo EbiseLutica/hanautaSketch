@@ -200,16 +200,9 @@ internal sealed class SmfTrackBuilder(int capacity = 16)
     public void AddTimeSignature(int tick, int numerator, int denominator) =>
         AddMeta(tick, SmfMeta.TimeSignature, [(byte)numerator, (byte)int.Log2(denominator), 24, 8]);
 
-    /// <summary>
-    /// 調号。シャープ・フラットの数は平行調のメジャーキーから五度圏で求める。
-    /// </summary>
-    public void AddKeySignature(int tick, Key key)
-    {
-        var relativeMajor = key.Mode == Mode.Major ? key.Tonic : (key.Tonic + 3) % 12;
-        var sharps = relativeMajor * 7 % 12;
-        var accidentals = key.PrefersFlats ? sharps - 12 : sharps;
-        AddMeta(tick, SmfMeta.KeySignature, [(byte)(sbyte)accidentals, (byte)(key.Mode == Mode.Minor ? 1 : 0)]);
-    }
+    public void AddKeySignature(int tick, Key key) =>
+        AddMeta(tick, SmfMeta.KeySignature,
+            [(byte)(sbyte)key.KeySignatureAccidentals, (byte)(key.Mode == Mode.Minor ? 1 : 0)]);
 
     public void AddChannelMessage(int tick, byte status, int channel, int data1, int data2 = 0)
     {
