@@ -55,12 +55,12 @@ public partial class MainWindowViewModel
 
     /// <summary>
     /// スマートドラムトラックを追加する。ベースのソースは「Bass」という名前のトラック（なければ最後のノートトラック）。
-    /// 曲の長さぶん（最低4小節）のセクションを1つ持った状態で始める。
+    /// ドラムパートはソースにしない。曲の長さぶん（最低4小節）のセクションを1つ持った状態で始める。
     /// </summary>
     [RelayCommand]
     private void AddSmartDrumTrack()
     {
-        var noteTracks = Tracks.OfType<NoteTrack>().ToList();
+        var noteTracks = Tracks.OfType<NoteTrack>().Where(t => !t.IsDrum).ToList();
         var bass = noteTracks.FirstOrDefault(t => t.Name.Contains("Bass", StringComparison.OrdinalIgnoreCase))
                    ?? noteTracks.LastOrDefault();
 

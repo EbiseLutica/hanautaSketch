@@ -30,6 +30,21 @@ public class TranspositionEditingTests
     }
 
     [Fact]
+    public void Transpose_SkipsDrumPart()
+    {
+        var song = CreateSong(new Note(0, 480, 60, 100));
+        var drums = new NoteTrack { Name = "Drums", IsDrumPart = true };
+        drums.Notes.Add(new Note(0, 120, 127, 100));
+        song.Tracks.Add(drums);
+
+        // ドラムの音は音域の判定にも含めない
+        Assert.True(TranspositionEditing.Transpose(song, 3));
+
+        Assert.Equal(63, ((NoteTrack)song.Tracks[0]).Notes[0].Pitch);
+        Assert.Equal(127, drums.Notes[0].Pitch);
+    }
+
+    [Fact]
     public void Transpose_RejectsWhenNoteWouldLeaveRange()
     {
         var song = CreateSong(new Note(0, 480, 125, 100));

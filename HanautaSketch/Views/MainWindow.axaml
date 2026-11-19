@@ -38,6 +38,7 @@
                     <NativeMenuItem Header="{x:Static res:Strings.NativeSave}" Command="{Binding SaveCommand}" Gesture="Meta+S" />
                     <NativeMenuItem Header="{x:Static res:Strings.NativeSaveAs}" Command="{Binding SaveAsCommand}" Gesture="Meta+Shift+S" />
                     <NativeMenuItemSeparator />
+                    <NativeMenuItem Header="{x:Static res:Strings.NativeImportMidi}" Command="{Binding ImportMidiCommand}" />
                     <NativeMenuItem Header="{x:Static res:Strings.NativeExportMidi}" Command="{Binding ExportMidiCommand}" Gesture="Meta+E" />
                     <NativeMenuItem Header="{x:Static res:Strings.NativeExportWav}" Command="{Binding ExportWavCommand}" Gesture="Meta+Shift+E" />
                 </NativeMenu>
@@ -81,6 +82,7 @@
                 <MenuItem Header="{x:Static res:Strings.MenuSave}" Command="{Binding SaveCommand}" InputGesture="Ctrl+S" />
                 <MenuItem Header="{x:Static res:Strings.MenuSaveAs}" Command="{Binding SaveAsCommand}" InputGesture="Ctrl+Shift+S" />
                 <Separator />
+                <MenuItem Header="{x:Static res:Strings.MenuImportMidi}" Command="{Binding ImportMidiCommand}" />
                 <MenuItem Header="{x:Static res:Strings.MenuExportMidi}" Command="{Binding ExportMidiCommand}" InputGesture="Ctrl+E" />
                 <MenuItem Header="{x:Static res:Strings.MenuExportWav}" Command="{Binding ExportWavCommand}" InputGesture="Ctrl+Shift+E" />
             </MenuItem>

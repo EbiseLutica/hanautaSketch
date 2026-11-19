@@ -23,6 +23,7 @@ public static class Strings
     public static string NativeSave => Get(nameof(NativeSave));
     public static string NativeSaveAs => Get(nameof(NativeSaveAs));
     public static string NativeExportMidi => Get(nameof(NativeExportMidi));
+    public static string NativeImportMidi => Get(nameof(NativeImportMidi));
     public static string NativeEdit => Get(nameof(NativeEdit));
     public static string NativeUndo => Get(nameof(NativeUndo));
     public static string NativeRedo => Get(nameof(NativeRedo));
@@ -37,6 +38,7 @@ public static class Strings
     public static string MenuSave => Get(nameof(MenuSave));
     public static string MenuSaveAs => Get(nameof(MenuSaveAs));
     public static string MenuExportMidi => Get(nameof(MenuExportMidi));
+    public static string MenuImportMidi => Get(nameof(MenuImportMidi));
     public static string MenuEdit => Get(nameof(MenuEdit));
     public static string MenuUndo => Get(nameof(MenuUndo));
     public static string MenuRedo => Get(nameof(MenuRedo));
@@ -176,6 +178,7 @@ public static class Strings
     public static string DialogOpenProject => Get(nameof(DialogOpenProject));
     public static string DialogSaveProject => Get(nameof(DialogSaveProject));
     public static string DialogExportMidi => Get(nameof(DialogExportMidi));
+    public static string DialogImportMidi => Get(nameof(DialogImportMidi));
     public static string MidiExportOptionsTitle => Get(nameof(MidiExportOptionsTitle));
     public static string MidiExportOptionsHint => Get(nameof(MidiExportOptionsHint));
     public static string MidiExportProgramChange => Get(nameof(MidiExportProgramChange));
@@ -201,12 +204,15 @@ public static class Strings
     public static string AudioInitFailed => Get(nameof(AudioInitFailed));
     public static string AudioDeviceOpenFailed => Get(nameof(AudioDeviceOpenFailed));
     public static string ErrorInvalidProject => Get(nameof(ErrorInvalidProject));
+    public static string ErrorInvalidMidi => Get(nameof(ErrorInvalidMidi));
     public static string FileOpened => Get(nameof(FileOpened));
     public static string FileOpenFailed => Get(nameof(FileOpenFailed));
     public static string FileSaved => Get(nameof(FileSaved));
     public static string FileSaveFailed => Get(nameof(FileSaveFailed));
     public static string FileExported => Get(nameof(FileExported));
     public static string FileExportFailed => Get(nameof(FileExportFailed));
+    public static string FileImported => Get(nameof(FileImported));
+    public static string FileImportFailed => Get(nameof(FileImportFailed));
     public static string TrackDeleted => Get(nameof(TrackDeleted));
     public static string DataSourceEntry => Get(nameof(DataSourceEntry));
     public static string StopExtraction => Get(nameof(StopExtraction));

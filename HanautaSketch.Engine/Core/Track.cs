@@ -47,6 +47,11 @@ public sealed class NoteTrack : Track, INoteEditable
 {
     public List<Note> Notes { get; } = [];
 
+    /// <summary>GM ドラム（10ch）のパートとして扱うか。MIDI 読み込みでドラムのトラックに付く</summary>
+    public bool IsDrumPart { get; set; }
+
+    public override bool IsDrum => IsDrumPart;
+
     /// <summary>他のトラックを編集中に、このトラックのノーツを薄く重ねて表示するか（オニオンスキン）</summary>
     public bool OnionSkin { get; set; } = true;
 

@@ -9,7 +9,7 @@ using HanautaSketch.Services;
 namespace HanautaSketch.ViewModels;
 
 /// <summary>
-/// プロジェクトの保存・読み込み、MIDI・WAV の書き出し。
+/// プロジェクトの保存・読み込み、MIDI・WAV の書き出し、MIDI の読み込み。
 /// </summary>
 public partial class MainWindowViewModel
 {
@@ -36,10 +36,11 @@ public partial class MainWindowViewModel
     partial void OnIsDirtyChanged(bool value) => OnPropertyChanged(nameof(WindowTitle));
 
     /// <summary>
-    /// 例外の詳細文。プロジェクト形式のエラーは Engine の文（英語）ではなく、表示言語の文にする。
+    /// 例外の詳細文。ファイル形式のエラーは Engine の文（英語）ではなく、表示言語の文にする。
     /// </summary>
-    private static string ErrorDetail(Exception ex) =>
-        ex is InvalidDataException ? Strings.ErrorInvalidProject : ex.Message;
+    /// <param name="invalidDataMessage">形式のエラーのときの文。省略時はプロジェクトファイルの文</param>
+    private static string ErrorDetail(Exception ex, string? invalidDataMessage = null) =>
+        ex is InvalidDataException ? invalidDataMessage ?? Strings.ErrorInvalidProject : ex.Message;
 
     /// <summary>
     /// 曲に変更があったことを記録する。
@@ -167,6 +168,35 @@ public partial class MainWindowViewModel
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             Message = Strings.Format(Strings.FileExportFailed, ErrorDetail(ex));
+        }
+    }
+
+    /// <summary>
+    /// MIDI ファイルを新しい曲として読み込む。保存先は未設定（無題）にし、未保存の変更ありとして扱う。
+    /// </summary>
+    [RelayCommand]
+    private async Task ImportMidiAsync()
+    {
+        if (Dialogs is null || !await ConfirmDiscardChangesAsync()) return;
+
+        var file = await Dialogs.PickMidiImportAsync();
+        if (file is null) return;
+
+        try
+        {
+            Song song;
+            await using (var stream = await file.OpenReadAsync())
+                song = MidiImporter.Import(stream);
+
+            ApplyDocument(new ProjectDocument(song));
+            _currentFile = null;
+            IsDirty = true;
+            OnPropertyChanged(nameof(WindowTitle));
+            Message = Strings.Format(Strings.FileImported, file.Name);
+        }
+        catch (Exception ex) when (ex is InvalidDataException or IOException or UnauthorizedAccessException)
+        {
+            Message = Strings.Format(Strings.FileImportFailed, ErrorDetail(ex, Strings.ErrorInvalidMidi));
         }
     }
 
