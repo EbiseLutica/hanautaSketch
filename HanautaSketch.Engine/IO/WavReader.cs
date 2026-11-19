@@ -20,10 +20,6 @@ public sealed record AudioClip(float[] Samples, int SampleRate)
 /// </summary>
 public static class WavReader
 {
-    private const ushort FormatPcm = 1;
-    private const ushort FormatFloat = 3;
-    private const ushort FormatExtensible = 0xFFFE;
-
     public static AudioClip Read(string path)
     {
         using var stream = File.OpenRead(path);
@@ -69,7 +65,7 @@ public static class WavReader
                     reader.ReadUInt32();
                     blockAlign = reader.ReadUInt16();
                     bitsPerSample = reader.ReadUInt16();
-                    if (format == FormatExtensible && size >= 26)
+                    if (format == WavFormatCodes.Extensible && size >= 26)
                     {
                         reader.ReadUInt16();
                         reader.ReadUInt16();
@@ -94,11 +90,11 @@ public static class WavReader
 
         Func<byte[], int, float> decode = (format, bitsPerSample) switch
         {
-            (FormatPcm, 8) => (b, i) => (b[i] - 128) / 128f,
-            (FormatPcm, 16) => (b, i) => BinaryPrimitives.ReadInt16LittleEndian(b.AsSpan(i)) / 32768f,
-            (FormatPcm, 24) => (b, i) => ((b[i] | (b[i + 1] << 8) | ((sbyte)b[i + 2] << 16))) / 8388608f,
-            (FormatPcm, 32) => (b, i) => BinaryPrimitives.ReadInt32LittleEndian(b.AsSpan(i)) / 2147483648f,
-            (FormatFloat, 32) => (b, i) => BinaryPrimitives.ReadSingleLittleEndian(b.AsSpan(i)),
+            (WavFormatCodes.Pcm, 8) => (b, i) => (b[i] - 128) / 128f,
+            (WavFormatCodes.Pcm, 16) => (b, i) => BinaryPrimitives.ReadInt16LittleEndian(b.AsSpan(i)) / 32768f,
+            (WavFormatCodes.Pcm, 24) => (b, i) => ((b[i] | (b[i + 1] << 8) | ((sbyte)b[i + 2] << 16))) / 8388608f,
+            (WavFormatCodes.Pcm, 32) => (b, i) => BinaryPrimitives.ReadInt32LittleEndian(b.AsSpan(i)) / 2147483648f,
+            (WavFormatCodes.Float, 32) => (b, i) => BinaryPrimitives.ReadSingleLittleEndian(b.AsSpan(i)),
             _ => throw new InvalidDataException($"Unsupported WAV format: format={format}, bits={bitsPerSample}."),
         };
 

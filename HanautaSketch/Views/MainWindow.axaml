@@ -14,6 +14,7 @@
         <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCommand}" />
         <KeyBinding Gesture="Ctrl+Shift+S" Command="{Binding SaveAsCommand}" />
         <KeyBinding Gesture="Ctrl+E" Command="{Binding ExportMidiCommand}" />
+        <KeyBinding Gesture="Ctrl+Shift+E" Command="{Binding ExportWavCommand}" />
         <KeyBinding Gesture="Ctrl+Z" Command="{Binding UndoCommand}" />
         <KeyBinding Gesture="Ctrl+Y" Command="{Binding RedoCommand}" />
         <KeyBinding Gesture="Ctrl+Shift+Z" Command="{Binding RedoCommand}" />
@@ -39,6 +40,7 @@
                     <NativeMenuItemSeparator />
                     <NativeMenuItem Header="{x:Static res:Strings.NativeImportMidi}" Command="{Binding ImportMidiCommand}" />
                     <NativeMenuItem Header="{x:Static res:Strings.NativeExportMidi}" Command="{Binding ExportMidiCommand}" Gesture="Meta+E" />
+                    <NativeMenuItem Header="{x:Static res:Strings.NativeExportWav}" Command="{Binding ExportWavCommand}" Gesture="Meta+Shift+E" />
                 </NativeMenu>
             </NativeMenuItem>
             <NativeMenuItem Header="{x:Static res:Strings.NativeEdit}">
@@ -82,6 +84,7 @@
                 <Separator />
                 <MenuItem Header="{x:Static res:Strings.MenuImportMidi}" Command="{Binding ImportMidiCommand}" />
                 <MenuItem Header="{x:Static res:Strings.MenuExportMidi}" Command="{Binding ExportMidiCommand}" InputGesture="Ctrl+E" />
+                <MenuItem Header="{x:Static res:Strings.MenuExportWav}" Command="{Binding ExportWavCommand}" InputGesture="Ctrl+Shift+E" />
             </MenuItem>
             <MenuItem Header="{x:Static res:Strings.MenuEdit}">
                 <MenuItem Header="{x:Static res:Strings.MenuUndo}" Command="{Binding UndoCommand}" InputGesture="Ctrl+Z" />
@@ -110,6 +113,45 @@
             <ToggleButton Command="{Binding TogglePlaybackCommand}" IsChecked="{Binding IsPlaying, Mode=OneWay}" Width="40" HorizontalContentAlignment="Center" ToolTip.Tip="{x:Static res:Strings.TogglePlayTip}">
                 <ic:FluentIcon Icon="{Binding PlaybackIcon}" IconVariant="Filled" FontSize="16" />
             </ToggleButton>
+            <StackPanel Orientation="Horizontal" Spacing="2">
+                <ToggleButton Classes="record" Command="{Binding ToggleRecordingCommand}" IsChecked="{Binding IsRecording, Mode=OneWay}"
+                              Width="40" HorizontalContentAlignment="Center" ToolTip.Tip="{x:Static res:Strings.RecordTip}">
+                    <ic:FluentIcon Icon="Circle" IconVariant="Filled" FontSize="14" Foreground="{DynamicResource LuDangerBrush}" />
+                </ToggleButton>
+                <Button Width="24" Padding="0" HorizontalContentAlignment="Center" ToolTip.Tip="{x:Static res:Strings.RecordingSettingsTip}">
+                    <ic:FluentIcon Icon="ChevronDown" FontSize="12" />
+                    <Button.Flyout>
+                        <Flyout Placement="BottomEdgeAlignedLeft" Opening="OnRecordingFlyoutOpening">
+                            <StackPanel Spacing="6" Width="240">
+                                <TextBlock Text="{x:Static res:Strings.RecordingDevice}" Classes="caption" />
+                                <ComboBox ItemsSource="{Binding RecordingDevices}" SelectedIndex="{Binding RecordingDeviceIndex}"
+                                          HorizontalAlignment="Stretch" />
+                                <CheckBox Content="{x:Static res:Strings.RecordingAccompaniment}" IsChecked="{Binding RecordingPlayAccompaniment}" />
+                                <CheckBox Content="{x:Static res:Strings.RecordingMetronome}" IsChecked="{Binding RecordingMetronome}" />
+                                <TextBlock Text="{x:Static res:Strings.RecordingGrid}" Classes="caption" />
+                                <ComboBox ItemsSource="{Binding RecordingGridOptions}" SelectedItem="{Binding RecordingGrid}"
+                                          HorizontalAlignment="Stretch">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:RecordingGridOption">
+                                            <TextBlock Text="{Binding Label}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <TextBlock Text="{x:Static res:Strings.RecordingScale}" Classes="caption" />
+                                <ComboBox ItemsSource="{Binding RecordingScaleOptions}" SelectedIndex="{Binding RecordingScaleIndex}"
+                                          HorizontalAlignment="Stretch" />
+                                <CheckBox Content="{x:Static res:Strings.RecordingFitOctave}" IsChecked="{Binding RecordingFitOctave}" />
+                                <TextBlock Text="{x:Static res:Strings.RecordingLatency}" Classes="caption" />
+                                <NumericUpDown Value="{Binding RecordingLatency}" Minimum="0" Maximum="1000" Increment="5"
+                                               FormatString="0" HorizontalAlignment="Stretch" />
+                                <Separator Margin="0,4" />
+                                <Button Content="{x:Static res:Strings.SaveLastRecording}" Command="{Binding SaveLastRecordingCommand}"
+                                        HorizontalAlignment="Stretch" />
+                            </StackPanel>
+                        </Flyout>
+                    </Button.Flyout>
+                </Button>
+            </StackPanel>
             <TextBlock Text="BPM" VerticalAlignment="Center" Margin="8,0,0,0" />
             <NumericUpDown Value="{Binding Bpm}" Minimum="20" Maximum="400" Increment="1" FormatString="0" Width="110" />
             <Button Content="{x:Static res:Strings.TapTempo}" Command="{Binding TapCommand}" ToolTip.Tip="{x:Static res:Strings.TapTempoTip}" />
@@ -125,6 +167,8 @@
         <!-- ステータスバー -->
         <DockPanel DockPanel.Dock="Bottom" Margin="8,4">
             <TextBlock DockPanel.Dock="Right" Text="{Binding AudioStatus}" Classes="dimmed" />
+            <TextBlock DockPanel.Dock="Right" Text="{Binding WavExportStatus}" Classes="dimmed" Margin="0,0,16,0"
+                       IsVisible="{Binding IsWritingWav}" />
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6" Margin="0,0,16,0"
                         IsVisible="{Binding IsExtractingChordData}">
                 <TextBlock Text="{Binding ChordDataStatus}" Classes="dimmed" VerticalAlignment="Center" />
@@ -236,6 +280,8 @@
                                           Classes="small" MinWidth="24" Margin="4,0,0,0" />
                             <ToggleButton DockPanel.Dock="Right" Content="M" IsChecked="{Binding Mute}" ToolTip.Tip="{x:Static res:Strings.TrackMute}"
                                           Classes="small" MinWidth="24" />
+                            <ToggleButton DockPanel.Dock="Right" Content="O" IsChecked="{Binding OnionSkin}" ToolTip.Tip="{x:Static res:Strings.TrackOnionSkin}"
+                                          Classes="small" MinWidth="24" Margin="4,0,0,0" IsVisible="{Binding IsNoteTrack}" />
                             <TextBlock DockPanel.Dock="Right" Text="{x:Static res:Strings.TrackSmartBadge}" Classes="caption"
                                        VerticalAlignment="Center" Margin="0,0,6,0" IsVisible="{Binding IsSmart}" />
                             <Panel VerticalAlignment="Center">
@@ -253,6 +299,7 @@
         <!-- ピアノロール＋スクロールバー -->
         <Grid ColumnDefinitions="*,Auto" RowDefinitions="*,Auto">
             <c:PianoRollControl x:Name="Roll"
+                                IsEnabled="{Binding !IsTranscribing}"
                                 Song="{Binding Song}"
                                 Track="{Binding SelectedTrack}"
                                 ConductorRevision="{Binding ConductorRevision}"
@@ -261,6 +308,9 @@
                                 PlayheadTick="{Binding PlayheadTick}"
                                 PlayStartTick="{Binding PlayStartTick}"
                                 NotesRevision="{Binding NotesRevision}"
+                                OnionRevision="{Binding OnionRevision}"
+                                NotesToSelect="{Binding NotesToSelect}"
+                                RecordingLevels="{Binding RecordingLevelsDisplay}"
                                 NotesEdited="OnNotesEdited"
                                 NotePreview="OnNotePreview"
                                 EditStarted="OnEditStarted"

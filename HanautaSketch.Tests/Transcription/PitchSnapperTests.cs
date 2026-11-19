@@ -49,17 +49,28 @@ public class PitchSnapperTests
     }
 
     [Fact]
+    public void ConsistentDetuneWithSmallNoiseIsCorrected()
+    {
+        // 全体に +30 セント、音ごとに ±15 セントの揺れ。向きは揃っているので補正する
+        var notes = new[] { 60.15, 62.45, 64.30, 65.20, 67.40, 69.30 }
+            .Select((m, i) => new SungNote(i, i + 0.4, m))
+            .ToList();
+        Assert.InRange(PitchSnapper.EstimateTuningOffset(notes), 0.25, 0.35);
+    }
+
+    [Fact]
     public void LongDetunedNoteDoesNotDominateTuning()
     {
-        // C・F#・E は正確、最後の G だけ 3 秒伸ばして +40 セント。全体のずれは小さいままで、F# は F にならない
-        var notes = new List<SungNote>
-        {
-            new(0, 0.4, 60), new(0.5, 0.9, 66), new(1.0, 1.4, 64), new(1.5, 4.5, 67.4),
-        };
+        // 5 音は +10 セント、最後の G だけ 3 秒伸ばして +45 セント。向きは揃っているので補正はかかるが、
+        // 1 音の重みに上限があるので、長く伸ばした G に引っ張られず +14 セント前後に収まる（上限がなければ +33 セント）
+        var notes = new[] { 60.1, 62.1, 64.1, 65.1, 66.1 }
+            .Select((m, i) => new SungNote(i * 0.5, i * 0.5 + 0.4, m))
+            .Append(new SungNote(2.5, 5.5, 67.45))
+            .ToList();
         var tuning = PitchSnapper.EstimateTuningOffset(notes);
 
-        Assert.InRange(tuning, -0.15, 0.15);
-        Assert.Equal(66, PitchSnapper.Snap(66 - tuning, CMajor, PitchSnapMode.Chromatic));
+        Assert.InRange(tuning, 0.08, 0.2);
+        Assert.Equal(66, PitchSnapper.Snap(66.1 - tuning, CMajor, PitchSnapMode.Chromatic));
     }
 
     [Theory]

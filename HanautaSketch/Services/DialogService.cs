@@ -36,6 +36,12 @@ public interface IDialogService
     /// <summary>MIDI 書き出しのオプションを選ぶ。キャンセルなら null</summary>
     Task<MidiExportOptions?> PickMidiExportOptionsAsync(MidiExportOptions initial, string fileName);
 
+    /// <summary>WAV の書き出し先を選ぶ。キャンセルなら null</summary>
+    Task<IStorageFile?> PickWavExportAsync(string suggestedName);
+
+    /// <summary>WAV 書き出しのオプションを選ぶ。キャンセルなら null</summary>
+    Task<WavExportOptions?> PickWavExportOptionsAsync(WavExportOptions initial, string fileName);
+
     /// <summary>未保存の変更をどうするか尋ねる</summary>
     Task<UnsavedChangesChoice> AskUnsavedChangesAsync(string documentName);
 
@@ -44,6 +50,9 @@ public interface IDialogService
 
     /// <summary>SoundFont（.sf2）を選ぶ。ローカルのパスを返す。キャンセルなら null</summary>
     Task<string?> PickSoundFontAsync();
+
+    /// <summary>録音（.wav）の保存先を選ぶ。キャンセルなら null</summary>
+    Task<IStorageFile?> PickRecordingSaveAsync(string suggestedName);
 }
 
 /// <summary>
@@ -61,10 +70,30 @@ public sealed class DialogService(Window owner) : IDialogService
         Patterns = [$"*{MidiExporter.FileExtension}", "*.midi"],
     };
 
+    private static readonly FilePickerFileType WavFileType = new("WAV")
+    {
+        Patterns = [$"*{WavExporter.FileExtension}"],
+    };
+
     private static readonly FilePickerFileType SoundFontFileType = new("SoundFont (.sf2)")
     {
         Patterns = ["*.sf2", "*.SF2"],
     };
+
+    private static readonly FilePickerFileType WaveFileType = new("WAV")
+    {
+        Patterns = ["*.wav"],
+    };
+
+    public Task<IStorageFile?> PickRecordingSaveAsync(string suggestedName) =>
+        owner.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = Strings.DialogSaveRecording,
+            SuggestedFileName = suggestedName,
+            DefaultExtension = "wav",
+            FileTypeChoices = [WaveFileType],
+            ShowOverwritePrompt = true,
+        });
 
     public async Task<IStorageFile?> PickOpenAsync()
     {
@@ -110,6 +139,19 @@ public sealed class DialogService(Window owner) : IDialogService
 
     public Task<MidiExportOptions?> PickMidiExportOptionsAsync(MidiExportOptions initial, string fileName) =>
         new MidiExportOptionsWindow(initial, fileName).ShowDialog<MidiExportOptions?>(owner);
+
+    public Task<IStorageFile?> PickWavExportAsync(string suggestedName) =>
+        owner.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = Strings.DialogExportWav,
+            SuggestedFileName = suggestedName,
+            DefaultExtension = WavExporter.FileExtension.TrimStart('.'),
+            FileTypeChoices = [WavFileType],
+            ShowOverwritePrompt = true,
+        });
+
+    public Task<WavExportOptions?> PickWavExportOptionsAsync(WavExportOptions initial, string fileName) =>
+        new WavExportOptionsWindow(initial, fileName).ShowDialog<WavExportOptions?>(owner);
 
     public async Task<UnsavedChangesChoice> AskUnsavedChangesAsync(string documentName) =>
         await new UnsavedChangesWindow(documentName).ShowDialog<UnsavedChangesChoice?>(owner) ?? UnsavedChangesChoice.Cancel;

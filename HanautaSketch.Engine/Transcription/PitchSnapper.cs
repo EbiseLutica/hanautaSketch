@@ -58,20 +58,30 @@ public static class PitchSnapper
     private const double AmbiguousTuning = 0.35;
 
     /// <summary>
+    /// 端数の向きの揃い具合（0〜1）がこれ未満なら、全体のずれとはみなさず補正しない。
+    /// 音ごとのずれが ±20 セントほどの範囲に収まっていれば超える
+    /// </summary>
+    public const double MinTuningConsistency = 0.5;
+
+    /// <summary>
     /// 歌い手全体のチューニングのずれ（半音、-0.5〜0.5）を、各音の音高の端数から長さで重み付けして推定する。
     /// 端数は円周上の値なので、角度にして平均する。
+    /// 端数の向きがバラけているとき（音ごとに高かったり低かったりする）は、全体のずれではないので 0 を返す。
+    /// 1 つの値で補正すると、かえって外れる音が増えるため。
     /// </summary>
     public static double EstimateTuningOffset(IReadOnlyList<SungNote> notes)
     {
-        double x = 0, y = 0;
+        double x = 0, y = 0, total = 0;
         foreach (var note in notes)
         {
             var angle = 2 * Math.PI * (note.Midi - Math.Round(note.Midi));
             var weight = Math.Min(note.Duration, MaxTuningWeightSeconds);
             x += weight * Math.Cos(angle);
             y += weight * Math.Sin(angle);
+            total += weight;
         }
-        return x == 0 && y == 0 ? 0 : Math.Atan2(y, x) / (2 * Math.PI);
+        if (total <= 0 || Math.Sqrt(x * x + y * y) / total < MinTuningConsistency) return 0;
+        return Math.Atan2(y, x) / (2 * Math.PI);
     }
 
     /// <summary>

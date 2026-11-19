@@ -9,6 +9,9 @@ namespace HanautaSketch.Audio;
 public interface IAudioOutput : IDisposable
 {
     PlaybackEngine Engine { get; }
+
+    /// <summary>エンジンが書き出した音が実際に聞こえるまでの遅れの目安（秒）。キューに積んだバッファの分</summary>
+    double LatencySeconds { get; }
 }
 
 /// <summary>

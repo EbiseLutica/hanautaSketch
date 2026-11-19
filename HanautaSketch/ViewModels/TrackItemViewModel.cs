@@ -40,6 +40,21 @@ public sealed partial class TrackItemViewModel(Track track, MainWindowViewModel 
         }
     }
 
+    /// <summary>ノートトラックか。オニオンスキンはノートトラックだけが持つ</summary>
+    public bool IsNoteTrack => Track is NoteTrack;
+
+    public bool OnionSkin
+    {
+        get => Track is NoteTrack { OnionSkin: true };
+        set
+        {
+            if (Track is not NoteTrack note || note.OnionSkin == value) return;
+            note.OnionSkin = value;
+            OnPropertyChanged();
+            owner.OnOnionSkinChanged();
+        }
+    }
+
     /// <summary>名前をその場で編集中か</summary>
     [ObservableProperty]
     private bool _isEditing;

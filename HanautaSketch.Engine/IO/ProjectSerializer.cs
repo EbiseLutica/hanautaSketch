@@ -115,6 +115,7 @@ public static partial class ProjectSerializer
             case NoteTrack note:
                 dto.Type = TrackType.Note;
                 dto.Drum = note.IsDrumPart ? true : null;
+                dto.OnionSkin = note.OnionSkin ? null : false;
                 dto.Notes = note.Notes.OrderBy(n => n.Tick).ThenBy(n => n.Pitch)
                     .Select(n => new NoteDto { Tick = n.Tick, Length = n.Length, Pitch = n.Pitch, Velocity = n.Velocity })
                     .ToList();
@@ -236,7 +237,7 @@ public static partial class ProjectSerializer
 
     private static NoteTrack CreateNoteTrack(TrackDto dto)
     {
-        var track = new NoteTrack { IsDrumPart = dto.Drum ?? false };
+        var track = new NoteTrack { IsDrumPart = dto.Drum ?? false, OnionSkin = dto.OnionSkin ?? true };
         track.Notes.AddRange(ReadNotes(dto));
         return track;
     }
@@ -388,6 +389,9 @@ public static partial class ProjectSerializer
         // 0.2 の途中で追加した任意項目。古いアプリでは無視されるだけなのでバージョンは上げていない
         public bool? Mute { get; set; }
         public bool? Solo { get; set; }
+
+        // ノートトラックのオニオンスキン。省略時は表示（従来の動作）。false のときだけ書く
+        public bool? OnionSkin { get; set; }
 
         // ノートトラック
         public List<NoteDto>? Notes { get; set; }

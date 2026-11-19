@@ -23,6 +23,39 @@ public class ProjectSerializerTests
     }
 
     [Fact]
+    public async Task RoundTrip_PreservesOnionSkinFlag()
+    {
+        var song = new Song();
+        var hidden = new NoteTrack { Name = "Hidden", OnionSkin = false };
+        var shown = new NoteTrack { Name = "Shown" };
+        song.Tracks.Add(hidden);
+        song.Tracks.Add(shown);
+
+        var loaded = await RoundTrip(new ProjectDocument(song));
+
+        var tracks = loaded.Song.Tracks.OfType<NoteTrack>().ToList();
+        Assert.False(tracks[0].OnionSkin);
+        Assert.True(tracks[1].OnionSkin);
+    }
+
+    [Fact]
+    public async Task Load_TrackWithoutOnionSkinField_ShowsOnion()
+    {
+        const string json = """
+            {
+              "version": "0.6",
+              "song": {
+                "tracks": [ { "type": "note", "name": "Old", "notes": [] } ]
+              }
+            }
+            """;
+
+        var loaded = await LoadJson(json);
+
+        Assert.True(loaded.Song.Tracks.OfType<NoteTrack>().Single().OnionSkin);
+    }
+
+    [Fact]
     public async Task RoundTrip_PreservesNoteTracks()
     {
         var song = new Song();

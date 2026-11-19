@@ -224,6 +224,19 @@ public partial class MainWindowViewModel
         _audio?.Engine.ApplyMixer(Song);
     }
 
+    /// <summary>ピアノロールのオニオンスキンを描き直させる値。変えるたびに増やす</summary>
+    [ObservableProperty]
+    private int _onionRevision;
+
+    /// <summary>
+    /// オニオンスキンの表示対象が変わったときに呼ぶ。ピアノロールを描き直す。
+    /// </summary>
+    public void OnOnionSkinChanged()
+    {
+        MarkDirty();
+        OnionRevision++;
+    }
+
     /// <summary>
     /// トラック名が変わったときに呼ぶ。ソースの選択肢などに名前が出ているので、設定パネルも作り直す。
     /// </summary>

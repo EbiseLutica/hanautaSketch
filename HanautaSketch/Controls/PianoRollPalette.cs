@@ -45,6 +45,7 @@ public sealed class PianoRollPalette
     public required IBrush MeterMarker { get; init; }
     public required IBrush TempoMarker { get; init; }
     public required IBrush KeyMarker { get; init; }
+    public required IBrush RecordingLevel { get; init; }
 
     /// <summary>
     /// テーマ辞書の <c>PianoRoll{名前}Brush</c> から、指定したテーマバリアントの配色を組み立てる。
@@ -98,6 +99,7 @@ public sealed class PianoRollPalette
             MeterMarker = B(nameof(MeterMarker)),
             TempoMarker = B(nameof(TempoMarker)),
             KeyMarker = B(nameof(KeyMarker)),
+            RecordingLevel = B(nameof(RecordingLevel)),
         };
     }
 }
