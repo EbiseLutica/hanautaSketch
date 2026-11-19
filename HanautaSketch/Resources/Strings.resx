@@ -208,6 +208,9 @@
   <data name="TrackMute" xml:space="preserve">
     <value>Mute</value>
   </data>
+  <data name="TrackOnionSkin" xml:space="preserve">
+    <value>Onion skin: show this track's notes faintly while editing other tracks</value>
+  </data>
   <data name="TrackSmartBadge" xml:space="preserve">
     <value>Smart</value>
   </data>

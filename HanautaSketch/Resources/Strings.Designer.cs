@@ -93,6 +93,7 @@ public static class Strings
     public static string TrackRemove => Get(nameof(TrackRemove));
     public static string TrackSolo => Get(nameof(TrackSolo));
     public static string TrackMute => Get(nameof(TrackMute));
+    public static string TrackOnionSkin => Get(nameof(TrackOnionSkin));
     public static string TrackSmartBadge => Get(nameof(TrackSmartBadge));
     public static string SmartChordTitle => Get(nameof(SmartChordTitle));
     public static string SmartChordBass => Get(nameof(SmartChordBass));
