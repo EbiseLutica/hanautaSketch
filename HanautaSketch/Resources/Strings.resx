@@ -477,6 +477,48 @@ Do you agree to the license and download it?</value>
   <data name="MidiExportButton" xml:space="preserve">
     <value>Export</value>
   </data>
+  <data name="NativeExportWav" xml:space="preserve">
+    <value>Export WAV...</value>
+  </data>
+  <data name="MenuExportWav" xml:space="preserve">
+    <value>Export WAV(_W)...</value>
+  </data>
+  <data name="DialogExportWav" xml:space="preserve">
+    <value>Export WAV</value>
+  </data>
+  <data name="WavExportOptionsTitle" xml:space="preserve">
+    <value>WAV Export Options</value>
+  </data>
+  <data name="WavExportSampleRate" xml:space="preserve">
+    <value>Sample rate</value>
+  </data>
+  <data name="WavExportFormat" xml:space="preserve">
+    <value>Bit depth</value>
+  </data>
+  <data name="WavExportReleaseTail" xml:space="preserve">
+    <value>Keep the release tail after the last note</value>
+  </data>
+  <data name="WavExportButton" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="WavExporting" xml:space="preserve">
+    <value>Exporting {0}…</value>
+  </data>
+  <data name="WavExportTooLong" xml:space="preserve">
+    <value>The song is too long for a WAV file (4 GB limit)</value>
+  </data>
+  <data name="CannotQuitDuringWavExport" xml:space="preserve">
+    <value>Can't quit while a WAV file is being written</value>
+  </data>
+  <data name="WavFormatPcm16" xml:space="preserve">
+    <value>16-bit</value>
+  </data>
+  <data name="WavFormatPcm24" xml:space="preserve">
+    <value>24-bit</value>
+  </data>
+  <data name="WavFormatFloat32" xml:space="preserve">
+    <value>32-bit float</value>
+  </data>
   <data name="AudioLoading" xml:space="preserve">
     <value>Loading sound source…</value>
   </data>

@@ -477,6 +477,48 @@ https://huggingface.co/datasets/ailsntua/Chordonomicon
   <data name="MidiExportButton" xml:space="preserve">
     <value>書き出す</value>
   </data>
+  <data name="NativeExportWav" xml:space="preserve">
+    <value>WAV 書き出し...</value>
+  </data>
+  <data name="MenuExportWav" xml:space="preserve">
+    <value>WAV 書き出し(_W)...</value>
+  </data>
+  <data name="DialogExportWav" xml:space="preserve">
+    <value>WAV 書き出し</value>
+  </data>
+  <data name="WavExportOptionsTitle" xml:space="preserve">
+    <value>WAV 書き出しオプション</value>
+  </data>
+  <data name="WavExportSampleRate" xml:space="preserve">
+    <value>サンプルレート</value>
+  </data>
+  <data name="WavExportFormat" xml:space="preserve">
+    <value>ビット深度</value>
+  </data>
+  <data name="WavExportReleaseTail" xml:space="preserve">
+    <value>最後の音のあとに余韻を残す</value>
+  </data>
+  <data name="WavExportButton" xml:space="preserve">
+    <value>書き出す</value>
+  </data>
+  <data name="WavExporting" xml:space="preserve">
+    <value>{0} を書き出し中…</value>
+  </data>
+  <data name="WavExportTooLong" xml:space="preserve">
+    <value>曲が長すぎて WAV に収まらない（上限 4GB）</value>
+  </data>
+  <data name="CannotQuitDuringWavExport" xml:space="preserve">
+    <value>WAV の書き出し中は終了できない</value>
+  </data>
+  <data name="WavFormatPcm16" xml:space="preserve">
+    <value>16 ビット</value>
+  </data>
+  <data name="WavFormatPcm24" xml:space="preserve">
+    <value>24 ビット</value>
+  </data>
+  <data name="WavFormatFloat32" xml:space="preserve">
+    <value>32 ビット浮動小数点</value>
+  </data>
   <data name="AudioLoading" xml:space="preserve">
     <value>音源を読み込み中…</value>
   </data>

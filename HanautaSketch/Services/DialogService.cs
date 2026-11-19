@@ -33,6 +33,12 @@ public interface IDialogService
     /// <summary>MIDI 書き出しのオプションを選ぶ。キャンセルなら null</summary>
     Task<MidiExportOptions?> PickMidiExportOptionsAsync(MidiExportOptions initial, string fileName);
 
+    /// <summary>WAV の書き出し先を選ぶ。キャンセルなら null</summary>
+    Task<IStorageFile?> PickWavExportAsync(string suggestedName);
+
+    /// <summary>WAV 書き出しのオプションを選ぶ。キャンセルなら null</summary>
+    Task<WavExportOptions?> PickWavExportOptionsAsync(WavExportOptions initial, string fileName);
+
     /// <summary>未保存の変更をどうするか尋ねる</summary>
     Task<UnsavedChangesChoice> AskUnsavedChangesAsync(string documentName);
 
@@ -59,6 +65,11 @@ public sealed class DialogService(Window owner) : IDialogService
     private static readonly FilePickerFileType MidiFileType = new("Standard MIDI File")
     {
         Patterns = [$"*{MidiExporter.FileExtension}"],
+    };
+
+    private static readonly FilePickerFileType WavFileType = new("WAV")
+    {
+        Patterns = [$"*{WavExporter.FileExtension}"],
     };
 
     private static readonly FilePickerFileType SoundFontFileType = new("SoundFont (.sf2)")
@@ -114,6 +125,19 @@ public sealed class DialogService(Window owner) : IDialogService
 
     public Task<MidiExportOptions?> PickMidiExportOptionsAsync(MidiExportOptions initial, string fileName) =>
         new MidiExportOptionsWindow(initial, fileName).ShowDialog<MidiExportOptions?>(owner);
+
+    public Task<IStorageFile?> PickWavExportAsync(string suggestedName) =>
+        owner.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = Strings.DialogExportWav,
+            SuggestedFileName = suggestedName,
+            DefaultExtension = WavExporter.FileExtension.TrimStart('.'),
+            FileTypeChoices = [WavFileType],
+            ShowOverwritePrompt = true,
+        });
+
+    public Task<WavExportOptions?> PickWavExportOptionsAsync(WavExportOptions initial, string fileName) =>
+        new WavExportOptionsWindow(initial, fileName).ShowDialog<WavExportOptions?>(owner);
 
     public async Task<UnsavedChangesChoice> AskUnsavedChangesAsync(string documentName) =>
         await new UnsavedChangesWindow(documentName).ShowDialog<UnsavedChangesChoice?>(owner) ?? UnsavedChangesChoice.Cancel;

@@ -9,7 +9,7 @@ using HanautaSketch.Services;
 namespace HanautaSketch.ViewModels;
 
 /// <summary>
-/// プロジェクトの保存・読み込み、MIDI の書き出し。
+/// プロジェクトの保存・読み込み、MIDI・WAV の書き出し。
 /// </summary>
 public partial class MainWindowViewModel
 {
@@ -145,8 +145,7 @@ public partial class MainWindowViewModel
     {
         if (Dialogs is null) return;
 
-        var baseName = _currentFile is null ? UntitledName : Path.GetFileNameWithoutExtension(_currentFile.Name);
-        var file = await Dialogs.PickMidiExportAsync(baseName + MidiExporter.FileExtension);
+        var file = await Dialogs.PickMidiExportAsync(ExportBaseName + MidiExporter.FileExtension);
         if (file is null) return;
 
         var options = await Dialogs.PickMidiExportOptionsAsync(_appSettings.MidiExport, file.Name);
@@ -170,6 +169,89 @@ public partial class MainWindowViewModel
             Message = Strings.Format(Strings.FileExportFailed, ErrorDetail(ex));
         }
     }
+
+    /// <summary>
+    /// 曲を SoundFont で鳴らした音を WAV に書き出す。保存先を選んだあとにオプションを選ぶ。
+    /// 曲のスナップショットはこのスレッドで取り、鳴らして書き込むのは裏で行う（書き出し中も編集できる）。
+    /// 実行中はコマンドが無効になるので、二重には走らない。
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(IsAudioReady))]
+    private async Task ExportWavAsync()
+    {
+        if (Dialogs is null || _audio is null) return;
+        var soundFont = _audio.Engine.SoundFont;
+
+        var file = await Dialogs.PickWavExportAsync(ExportBaseName + WavExporter.FileExtension);
+        if (file is null) return;
+
+        var options = await Dialogs.PickWavExportOptionsAsync(_appSettings.WavExport, file.Name);
+        if (options is null) return;
+
+        _appSettings = _appSettings with { WavExport = options };
+        AppSettingsStore.Save(_appSettings);
+
+        var opened = false;
+        try
+        {
+            RegenerateSmartTracks();
+            var export = WavExporter.Prepare(Song, soundFont, options);
+            if (!export.FitsInWav)
+            {
+                Message = Strings.Format(Strings.FileExportFailed, Strings.WavExportTooLong);
+                return;
+            }
+
+            IsWritingWav = true;
+            WavExportStatus = Strings.Format(Strings.WavExporting, file.Name);
+            await using (var stream = await file.OpenWriteAsync())
+            {
+                opened = true;
+                await Task.Run(() => export.WriteTo(stream));
+                if (stream.CanSeek) stream.SetLength(stream.Position);
+            }
+            Message = Strings.Format(Strings.FileExported, file.Name);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Message = Strings.Format(Strings.FileExportFailed, ErrorDetail(ex));
+
+            // 開けなかったときは何も書いていないので、既存のファイルを消さない
+            if (opened) await DeleteQuietlyAsync(file);
+        }
+        finally
+        {
+            IsWritingWav = false;
+            WavExportStatus = "";
+        }
+    }
+
+    /// <summary>
+    /// WAV をファイルに書き込み中か。書き込み中はアプリを終了しない（書きかけの壊れた WAV が残るため）。
+    /// </summary>
+    [ObservableProperty]
+    private bool _isWritingWav;
+
+    /// <summary>WAV の書き込み中の状態（ステータスバーに出し続ける）</summary>
+    [ObservableProperty]
+    private string _wavExportStatus = "";
+
+    /// <summary>
+    /// 書きかけのファイルを消す（壊れた WAV を残さないため）。消せなくても続ける。
+    /// </summary>
+    private static async Task DeleteQuietlyAsync(IStorageFile file)
+    {
+        try
+        {
+            await file.DeleteAsync();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or NotSupportedException)
+        {
+        }
+    }
+
+    /// <summary>書き出すファイルの既定の名前（拡張子なし）。プロジェクト名にする</summary>
+    private string ExportBaseName =>
+        _currentFile is null ? UntitledName : Path.GetFileNameWithoutExtension(_currentFile.Name);
 
     private void SetCurrentFile(IStorageFile file)
     {

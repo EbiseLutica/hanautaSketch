@@ -23,7 +23,7 @@ public partial class MainWindowViewModel
     private string _audioStatus = Strings.AudioLoading;
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(TogglePlaybackCommand), nameof(ToggleRecordingCommand))]
+    [NotifyCanExecuteChangedFor(nameof(TogglePlaybackCommand), nameof(ToggleRecordingCommand), nameof(ExportWavCommand))]
     private bool _isAudioReady;
 
     [ObservableProperty]
