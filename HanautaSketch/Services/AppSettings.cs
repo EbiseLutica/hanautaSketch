@@ -21,6 +21,8 @@ public sealed record AppSettings
 
     public MidiExportOptions MidiExport { get; init; } = new();
 
+    public WavExportOptions WavExport { get; init; } = new();
+
     public RecordingSettings Recording { get; init; } = new();
 }
 
@@ -101,6 +103,7 @@ public static class AppSettingsStore
         return settings with
         {
             MidiExport = settings.MidiExport ?? new MidiExportOptions(),
+            WavExport = settings.WavExport ?? new WavExportOptions(),
             Recording = recording,
         };
     }
@@ -126,6 +129,6 @@ public static class AppSettingsStore
 /// <summary>
 /// 設定ファイルの JSON シリアライザー（NativeAOT で動くようソース生成する）。
 /// </summary>
-[JsonSourceGenerationOptions(WriteIndented = true, PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
+[JsonSourceGenerationOptions(WriteIndented = true, PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, UseStringEnumConverter = true)]
 [JsonSerializable(typeof(AppSettings))]
 internal sealed partial class AppSettingsJsonContext : JsonSerializerContext;

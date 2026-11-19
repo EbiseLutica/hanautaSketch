@@ -112,11 +112,18 @@ public partial class MainWindow : Window
 
     /// <summary>
     /// 未保存の変更があれば、閉じる前に確認する。確認は非同期なので一度キャンセルし、続行なら改めて閉じる。
+    /// WAV をファイルに書き込み中なら閉じない（書きかけの壊れた WAV が残るため）。
     /// </summary>
     protected override async void OnClosing(WindowClosingEventArgs e)
     {
         base.OnClosing(e);
         if (_closeConfirmed || ViewModel is not { } vm) return;
+        if (vm.IsWritingWav)
+        {
+            e.Cancel = true;
+            vm.Message = Strings.CannotQuitDuringWavExport;
+            return;
+        }
         if (!vm.IsDirty && !vm.IsExtractingChordData) return;
 
         e.Cancel = true;

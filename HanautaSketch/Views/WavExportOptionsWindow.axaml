@@ -1,0 +1,24 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:res="using:HanautaSketch.Resources"
+        x:Class="HanautaSketch.Views.WavExportOptionsWindow"
+        Title="{x:Static res:Strings.WavExportOptionsTitle}"
+        SizeToContent="WidthAndHeight"
+        CanResize="False"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+    <StackPanel Margin="20" Spacing="10" MinWidth="320">
+        <TextBlock x:Name="FileNameText" Classes="dimmed" TextTrimming="CharacterEllipsis" />
+        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="8">
+            <TextBlock Text="{x:Static res:Strings.WavExportSampleRate}" VerticalAlignment="Center" />
+            <ComboBox x:Name="SampleRateCombo" Grid.Column="1" HorizontalAlignment="Stretch" />
+            <TextBlock Grid.Row="1" Text="{x:Static res:Strings.WavExportFormat}" VerticalAlignment="Center" />
+            <ComboBox x:Name="FormatCombo" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" />
+        </Grid>
+        <CheckBox x:Name="ReleaseTailCheck" Content="{x:Static res:Strings.WavExportReleaseTail}" />
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,8,0,0">
+            <Button Content="{x:Static res:Strings.WavExportButton}" Classes="primary" IsDefault="True" Click="OnExportClick" />
+            <Button Content="{x:Static res:Strings.Cancel}" IsCancel="True" Click="OnCancelClick" />
+        </StackPanel>
+    </StackPanel>
+</Window>
