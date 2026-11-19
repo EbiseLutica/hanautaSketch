@@ -34,6 +34,9 @@
   <data name="NativeExportMidi" xml:space="preserve">
     <value>Export MIDI...</value>
   </data>
+  <data name="NativeImportMidi" xml:space="preserve">
+    <value>Import MIDI...</value>
+  </data>
   <data name="NativeEdit" xml:space="preserve">
     <value>Edit</value>
   </data>
@@ -75,6 +78,9 @@
   </data>
   <data name="MenuExportMidi" xml:space="preserve">
     <value>Export MIDI(_E)...</value>
+  </data>
+  <data name="MenuImportMidi" xml:space="preserve">
+    <value>Import MIDI(_I)...</value>
   </data>
   <data name="MenuEdit" xml:space="preserve">
     <value>Edit(_E)</value>
@@ -456,6 +462,9 @@ Do you agree to the license and download it?</value>
   <data name="DialogExportMidi" xml:space="preserve">
     <value>Export MIDI</value>
   </data>
+  <data name="DialogImportMidi" xml:space="preserve">
+    <value>Import MIDI</value>
+  </data>
   <data name="MidiExportOptionsTitle" xml:space="preserve">
     <value>MIDI Export Options</value>
   </data>
@@ -489,6 +498,9 @@ Do you agree to the license and download it?</value>
   <data name="ErrorInvalidProject" xml:space="preserve">
     <value>The project file is invalid or was saved by a newer version</value>
   </data>
+  <data name="ErrorInvalidMidi" xml:space="preserve">
+    <value>The file is not a supported Standard MIDI File</value>
+  </data>
   <data name="FileOpened" xml:space="preserve">
     <value>Opened {0}</value>
   </data>
@@ -506,6 +518,12 @@ Do you agree to the license and download it?</value>
   </data>
   <data name="FileExportFailed" xml:space="preserve">
     <value>Could not export: {0}</value>
+  </data>
+  <data name="FileImported" xml:space="preserve">
+    <value>Imported {0}</value>
+  </data>
+  <data name="FileImportFailed" xml:space="preserve">
+    <value>Could not import: {0}</value>
   </data>
   <data name="TrackDeleted" xml:space="preserve">
     <value>Deleted {0} ({1}+Z to undo)</value>

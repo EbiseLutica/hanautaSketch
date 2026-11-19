@@ -30,6 +30,9 @@ public interface IDialogService
     /// <summary>MIDI の書き出し先を選ぶ。キャンセルなら null</summary>
     Task<IStorageFile?> PickMidiExportAsync(string suggestedName);
 
+    /// <summary>読み込む MIDI ファイルを選ぶ。キャンセルなら null</summary>
+    Task<IStorageFile?> PickMidiImportAsync();
+
     /// <summary>MIDI 書き出しのオプションを選ぶ。キャンセルなら null</summary>
     Task<MidiExportOptions?> PickMidiExportOptionsAsync(MidiExportOptions initial, string fileName);
 
@@ -55,7 +58,7 @@ public sealed class DialogService(Window owner) : IDialogService
 
     private static readonly FilePickerFileType MidiFileType = new("Standard MIDI File")
     {
-        Patterns = [$"*{MidiExporter.FileExtension}"],
+        Patterns = [$"*{MidiExporter.FileExtension}", "*.midi"],
     };
 
     private static readonly FilePickerFileType SoundFontFileType = new("SoundFont (.sf2)")
@@ -93,6 +96,17 @@ public sealed class DialogService(Window owner) : IDialogService
             FileTypeChoices = [MidiFileType],
             ShowOverwritePrompt = true,
         });
+
+    public async Task<IStorageFile?> PickMidiImportAsync()
+    {
+        var files = await owner.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = Strings.DialogImportMidi,
+            AllowMultiple = false,
+            FileTypeFilter = [MidiFileType],
+        });
+        return files.Count > 0 ? files[0] : null;
+    }
 
     public Task<MidiExportOptions?> PickMidiExportOptionsAsync(MidiExportOptions initial, string fileName) =>
         new MidiExportOptionsWindow(initial, fileName).ShowDialog<MidiExportOptions?>(owner);

@@ -34,6 +34,9 @@
   <data name="NativeExportMidi" xml:space="preserve">
     <value>MIDI 書き出し...</value>
   </data>
+  <data name="NativeImportMidi" xml:space="preserve">
+    <value>MIDI 読み込み...</value>
+  </data>
   <data name="NativeEdit" xml:space="preserve">
     <value>編集</value>
   </data>
@@ -75,6 +78,9 @@
   </data>
   <data name="MenuExportMidi" xml:space="preserve">
     <value>MIDI 書き出し(_E)...</value>
+  </data>
+  <data name="MenuImportMidi" xml:space="preserve">
+    <value>MIDI 読み込み(_I)...</value>
   </data>
   <data name="MenuEdit" xml:space="preserve">
     <value>編集(_E)</value>
@@ -456,6 +462,9 @@ https://huggingface.co/datasets/ailsntua/Chordonomicon
   <data name="DialogExportMidi" xml:space="preserve">
     <value>MIDI 書き出し</value>
   </data>
+  <data name="DialogImportMidi" xml:space="preserve">
+    <value>MIDI 読み込み</value>
+  </data>
   <data name="MidiExportOptionsTitle" xml:space="preserve">
     <value>MIDI 書き出しオプション</value>
   </data>
@@ -489,6 +498,9 @@ https://huggingface.co/datasets/ailsntua/Chordonomicon
   <data name="ErrorInvalidProject" xml:space="preserve">
     <value>プロジェクトファイルが不正か、新しいバージョンで保存されています</value>
   </data>
+  <data name="ErrorInvalidMidi" xml:space="preserve">
+    <value>対応している Standard MIDI File ではありません</value>
+  </data>
   <data name="FileOpened" xml:space="preserve">
     <value>{0} を開いた</value>
   </data>
@@ -506,6 +518,12 @@ https://huggingface.co/datasets/ailsntua/Chordonomicon
   </data>
   <data name="FileExportFailed" xml:space="preserve">
     <value>書き出せなかった: {0}</value>
+  </data>
+  <data name="FileImported" xml:space="preserve">
+    <value>{0} を読み込んだ</value>
+  </data>
+  <data name="FileImportFailed" xml:space="preserve">
+    <value>読み込めなかった: {0}</value>
   </data>
   <data name="TrackDeleted" xml:space="preserve">
     <value>{0} を削除した（{1}+Z で元に戻せる）</value>

@@ -37,6 +37,7 @@
                     <NativeMenuItem Header="{x:Static res:Strings.NativeSave}" Command="{Binding SaveCommand}" Gesture="Meta+S" />
                     <NativeMenuItem Header="{x:Static res:Strings.NativeSaveAs}" Command="{Binding SaveAsCommand}" Gesture="Meta+Shift+S" />
                     <NativeMenuItemSeparator />
+                    <NativeMenuItem Header="{x:Static res:Strings.NativeImportMidi}" Command="{Binding ImportMidiCommand}" />
                     <NativeMenuItem Header="{x:Static res:Strings.NativeExportMidi}" Command="{Binding ExportMidiCommand}" Gesture="Meta+E" />
                 </NativeMenu>
             </NativeMenuItem>
@@ -79,6 +80,7 @@
                 <MenuItem Header="{x:Static res:Strings.MenuSave}" Command="{Binding SaveCommand}" InputGesture="Ctrl+S" />
                 <MenuItem Header="{x:Static res:Strings.MenuSaveAs}" Command="{Binding SaveAsCommand}" InputGesture="Ctrl+Shift+S" />
                 <Separator />
+                <MenuItem Header="{x:Static res:Strings.MenuImportMidi}" Command="{Binding ImportMidiCommand}" />
                 <MenuItem Header="{x:Static res:Strings.MenuExportMidi}" Command="{Binding ExportMidiCommand}" InputGesture="Ctrl+E" />
             </MenuItem>
             <MenuItem Header="{x:Static res:Strings.MenuEdit}">
