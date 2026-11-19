@@ -19,6 +19,12 @@ public sealed record PlaybackOptions
     /// <summary>鳴らさないトラック（録音先など）</summary>
     public Track? ExcludedTrack { get; init; }
 
+    /// <summary>
+    /// 鳴らさないトラック（ミュート・ソロを反映）の音を最初から入れないか。チャンネルを共有するトラック（ドラムの 10ch など）でも
+    /// トラック単位でミュートが効くが、再生中のミュート・ソロの切り替えは反映できない（WAV 書き出し用）
+    /// </summary>
+    public bool AudibleTracksOnly { get; init; }
+
     /// <summary>曲の終わりで止めず、<see cref="PlaybackEngine.Stop"/> まで鳴らし続けるか</summary>
     public bool Continuous { get; init; }
 }

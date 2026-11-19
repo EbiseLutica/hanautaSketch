@@ -10,7 +10,7 @@ namespace HanautaSketch.Engine.Audio;
 public sealed class PlaybackEngine
 {
     /// <summary>最後のノートオフ後、余韻のために鳴らし続ける秒数</summary>
-    private const double ReleaseTailSeconds = 1.5;
+    public const double ReleaseTailSeconds = 1.5;
 
     /// <summary>入力プレビュー専用のチャンネル。曲のトラックには割り当てない</summary>
     private const int PreviewChannel = 15;
@@ -37,6 +37,7 @@ public sealed class PlaybackEngine
     private int _nextEvent;
     private long _position;
     private long _endPosition;
+    private long _lastNoteOffPosition;
     private Song? _song;
     private int _startTick;
 
@@ -49,12 +50,37 @@ public sealed class PlaybackEngine
     /// <param name="soundFontPath">SF2 ファイルのパス</param>
     /// <param name="sampleRate">出力サンプルレート</param>
     public PlaybackEngine(string soundFontPath, int sampleRate)
+        : this(new SoundFont(soundFontPath), sampleRate)
+    {
+    }
+
+    /// <summary>
+    /// 読み込み済みの SoundFont を使う。SoundFont は複数のエンジンで共有できる（WAV 書き出しで使う）。
+    /// </summary>
+    /// <param name="soundFont">読み込み済みの SoundFont</param>
+    /// <param name="sampleRate">出力サンプルレート</param>
+    public PlaybackEngine(SoundFont soundFont, int sampleRate)
     {
         SampleRate = sampleRate;
-        _synth = new Synthesizer(soundFontPath, sampleRate);
+        _synth = new Synthesizer(soundFont, sampleRate);
     }
 
     public int SampleRate { get; }
+
+    /// <summary>読み込んだ SoundFont</summary>
+    public SoundFont SoundFont => _synth.SoundFont;
+
+    /// <summary>
+    /// 最後に <see cref="Play"/> した曲のノーツの、最後のノートオフの位置（サンプル）。クリックと余韻は含まない。音がなければ 0。
+    /// <see cref="PlaybackOptions.AudibleTracksOnly"/> で再生したなら、鳴らすトラックだけで数える
+    /// </summary>
+    public long LastNoteOffSample
+    {
+        get
+        {
+            lock (_lock) return _lastNoteOffPosition;
+        }
+    }
 
     /// <summary>
     /// SF2 に入っているバンク0のプリセット名（キーは音色番号 0〜127）。
@@ -145,6 +171,8 @@ public sealed class PlaybackEngine
             _endPosition = options.Continuous
                 ? long.MaxValue
                 : (events.Count > 0 ? events[^1].Sample : 0) + (long)(ReleaseTailSeconds * SampleRate);
+            _lastNoteOffPosition = events.Where(e => e.Command == 0x80 && !e.Force)
+                .Select(e => e.Sample).DefaultIfEmpty(0).Max();
             IsPlaying = true;
         }
     }
@@ -297,6 +325,7 @@ public sealed class PlaybackEngine
         foreach (var (track, channel) in AssignChannels(song))
         {
             if (ReferenceEquals(track, options.ExcludedTrack)) continue;
+            if (options.AudibleTracksOnly && !song.IsAudible(track)) continue;
             // 10ch の Program Change はドラムキットの切り替え（SF2 のバンク128）
             setup.Add(new ScheduledEvent(0, channel, 0xC0, track.Program, 0, 1));
             setup.Add(new ScheduledEvent(0, channel, 0xB0, 7, track.Volume, 1));
