@@ -8,6 +8,9 @@ public static class AudioResampler
     /// <summary>sinc の片側のゼロ交差の数</summary>
     private const int HalfZeroCrossings = 16;
 
+    /// <summary>カーネルの表の細かさ（入力1サンプルあたりの点数）</summary>
+    private const int TableResolution = 256;
+
     public static float[] Resample(float[] input, int fromRate, int toRate)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(fromRate);
@@ -17,6 +20,7 @@ public static class AudioResampler
         var ratio = (double)toRate / fromRate;
         var cutoff = Math.Min(1.0, ratio) * 0.95;
         var halfWidth = HalfZeroCrossings / cutoff;
+        var table = BuildKernel(cutoff, halfWidth);
         var output = new float[(int)Math.Floor(input.Length * ratio)];
 
         for (var n = 0; n < output.Length; n++)
@@ -27,12 +31,28 @@ public static class AudioResampler
             var sum = 0.0;
             for (var k = first; k <= last; k++)
             {
-                var x = center - k;
-                sum += input[k] * cutoff * Sinc(cutoff * x) * Window(x / halfWidth);
+                // 表を線形補間で引く
+                var position = Math.Abs(center - k) * TableResolution;
+                var index = (int)position;
+                if (index + 1 >= table.Length) continue;
+                var fraction = position - index;
+                sum += input[k] * (table[index] + (table[index + 1] - table[index]) * fraction);
             }
             output[n] = (float)sum;
         }
         return output;
+    }
+
+    /// <summary>窓付き sinc の片側（0〜halfWidth）を表にする</summary>
+    private static double[] BuildKernel(double cutoff, double halfWidth)
+    {
+        var table = new double[(int)Math.Ceiling(halfWidth * TableResolution) + 2];
+        for (var i = 0; i < table.Length; i++)
+        {
+            var x = (double)i / TableResolution;
+            table[i] = cutoff * Sinc(cutoff * x) * Window(x / halfWidth);
+        }
+        return table;
     }
 
     private static double Sinc(double x) => x == 0 ? 1 : Math.Sin(Math.PI * x) / (Math.PI * x);

@@ -32,6 +32,51 @@ public class HummingTranscriberTests
         Assert.All(notes, n => Assert.InRange(n.Length, 360, 480));
     }
 
+    [Theory]
+    [InlineData(0.5, 0, 0)]
+    [InlineData(0.7, 0, 0)]
+    [InlineData(0.5, 0, 0.6)]
+    [InlineData(0, 0.3, 0)]
+    [InlineData(0, 0, 1.0)]
+    public void KeepsSingleNoteThroughExpression(double vibrato, double tremolo, double scoop)
+    {
+        // ビブラート・音量の揺れ・歌い出しのしゃくりがあっても、2 秒伸ばした E は 1 つの音
+        const int rate = 44100;
+        var clip = new AudioClip(
+            Render(rate, new Segment(2.0, 64, Vibrato: vibrato, Tremolo: tremolo, Scoop: scoop)),
+            rate);
+
+        var notes = HummingTranscriber.Transcribe(clip, CreateConductor(), new TranscriptionOptions(), 0, 0, 480 * 8);
+
+        var note = Assert.Single(notes);
+        Assert.Equal(64, note.Pitch);
+        Assert.Equal(0, note.Tick);
+        Assert.InRange(note.Length, 1800, 1920);
+    }
+
+    [Fact]
+    public void TranscribesAfterCountIn()
+    {
+        // 1 小節（2 秒）のカウントインのあと、曲頭から C と E を 4 分音符で歌う
+        const int rate = 44100;
+        var clip = new AudioClip(
+            Render(rate, new Segment(2.0, null), new Segment(0.45, 60), new Segment(0.05, null), new Segment(0.45, 64)),
+            rate);
+
+        var notes = HummingTranscriber.Transcribe(clip, CreateConductor(), new TranscriptionOptions(), -2.0, 0, 480 * 8);
+
+        Assert.Equal([60, 64], notes.Select(n => n.Pitch));
+        Assert.Equal([0, 480], notes.Select(n => n.Tick));
+    }
+
+    [Fact]
+    public void SilentRecordingYieldsNoNotes()
+    {
+        var clip = new AudioClip(Render(44100, new Segment(1.0, null)), 44100);
+
+        Assert.Empty(HummingTranscriber.Transcribe(clip, CreateConductor(), new TranscriptionOptions(), 0, 0, 480 * 8));
+    }
+
     [Fact]
     public void AppliesClipStartAndLatency()
     {
@@ -75,12 +120,45 @@ public class HummingTranscriberTests
     [Fact]
     public void KeepsOnlyNotesInsideRange()
     {
-        // 範囲の前に始まる音は捨て、範囲の終わりではみ出す分は切る
-        var sung = new[] { new SungNote(0.0, 0.4, 60), new SungNote(0.5, 1.5, 62) };
+        // 範囲の前で終わる音は捨て、範囲の終わりではみ出す分は切る
+        var sung = new[] { new SungNote(0.0, 0.2, 60), new SungNote(0.5, 1.5, 62) };
 
         var notes = HummingTranscriber.Quantize(sung, CreateConductor(), new TranscriptionOptions(), 0, 240, 960);
 
         Assert.Equal(new Note(480, 480, 62, 100), Assert.Single(notes));
+    }
+
+    [Fact]
+    public void PullsSlightlyEarlyNoteToRangeStart()
+    {
+        // 範囲の先頭（1920 = 2 秒）より 70ms 早く歌い出した音は、先頭に寄せて残す
+        var sung = new[] { new SungNote(1.93, 2.5, 62) };
+
+        var notes = HummingTranscriber.Quantize(sung, CreateConductor(), new TranscriptionOptions(), 0, 1920, 480 * 8);
+
+        Assert.Equal(new Note(1920, 480, 62, 100), Assert.Single(notes));
+    }
+
+    [Fact]
+    public void DropsSliverCutByRangeEnd()
+    {
+        // 範囲の終わり（500）がグリッドに乗っておらず、切ると 20 tick しか残らない音は捨てる
+        var sung = new[] { new SungNote(0.0, 0.4, 60), new SungNote(0.5, 1.0, 62) };
+
+        var notes = HummingTranscriber.Quantize(sung, CreateConductor(), new TranscriptionOptions(), 0, 0, 500);
+
+        Assert.Equal(new Note(0, 360, 60, 100), Assert.Single(notes));
+    }
+
+    [Fact]
+    public void RejectsInvalidArguments()
+    {
+        var sung = new[] { new SungNote(0.0, 0.4, 60) };
+        Assert.Throws<ArgumentException>(() =>
+            HummingTranscriber.Quantize(sung, CreateConductor(), new TranscriptionOptions { GridTicks = 360 }, 0, 0, 960));
+        Assert.Throws<ArgumentException>(() =>
+            HummingTranscriber.Quantize(sung, CreateConductor(), new TranscriptionOptions(), 0, 960, 0));
+        Assert.Throws<ArgumentException>(() => HummingTranscriber.ReplaceRange([], 960, 0, []));
     }
 
     [Fact]
@@ -116,13 +194,14 @@ public class HummingTranscriberTests
 
         HummingTranscriber.ReplaceRange(notes, 480, 960, [new Note(480, 240, 67, 90)]);
 
+        // 範囲外のノーツは元の並びのまま、採譜したノーツは末尾に足す
         Assert.Equal(
             [
                 new Note(0, 480, 60, 100),
                 new Note(240, 240, 62, 100),
-                new Note(480, 240, 67, 90),
                 new Note(960, 240, 62, 100),
                 new Note(1200, 480, 65, 100),
+                new Note(480, 240, 67, 90),
             ],
             notes);
     }

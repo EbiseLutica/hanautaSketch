@@ -20,6 +20,38 @@ public class PitchTrackerTests
         Assert.InRange(NoteSegmenter.Median(voiced.Select(f => f.Midi!.Value).ToList()), midi - 0.1, midi + 0.1);
     }
 
+    [Theory]
+    [InlineData(34.0)]
+    [InlineData(35.0)]
+    public void BelowRangeIsUnvoiced(double midi)
+    {
+        // 検出範囲（65Hz）より低い音は、範囲の端の音高で誤って有声にせず、無声にする
+        var samples = Render(44100, new Segment(0.5, midi));
+        Assert.All(PitchTracker.Track(samples, 44100), f => Assert.False(f.IsVoiced));
+    }
+
+    [Fact]
+    public void AnalyzesUntilEndOfClip()
+    {
+        // 録音の最後まで伸ばした音も、末尾近くまでフレームがある
+        var samples = Render(44100, new Segment(1.0, 64));
+        var last = PitchTracker.Track(samples, 44100).Last(f => f.IsVoiced);
+        Assert.True(last.Time > 0.95, $"last voiced frame at {last.Time}");
+    }
+
+    [Fact]
+    public void LoudBurstDoesNotSilenceQuietVoice()
+    {
+        // 小さめの声の途中に咳のような大きなノイズがあっても、声は無声にならない
+        var samples = Render(
+            44100,
+            new Segment(1.0, 64, Amplitude: 0.008),
+            new Segment(0.1, null, NoiseBurst: 0.9),
+            new Segment(1.0, 64, Amplitude: 0.008));
+        var voiced = PitchTracker.Track(samples, 44100).Count(f => f.IsVoiced);
+        Assert.True(voiced > 150, $"voiced frames: {voiced}");
+    }
+
     [Fact]
     public void SilenceIsUnvoiced()
     {

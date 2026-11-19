@@ -48,14 +48,25 @@ public class NoteSegmenterTests
         Assert.Single(notes);
     }
 
-    [Fact]
-    public void FixesOctaveErrors()
+    [Theory]
+    [InlineData(1, 48)]
+    [InlineData(5, 72)]
+    public void FixesOctaveErrors(int frames, double wrong)
     {
-        // 1 フレームだけオクターブ下に誤検出しても、1 つの音のまま
-        var notes = NoteSegmenter.Segment(Frames((20, 60, 0.2), (1, 48, 0.2), (20, 60, 0.2)));
+        // 5 フレーム（50ms）までのオクターブ誤りは、1 つの音のまま
+        var notes = NoteSegmenter.Segment(Frames((20, 60, 0.2), (frames, wrong, 0.2), (20, 60, 0.2)));
 
         Assert.Single(notes);
         Assert.Equal(60, notes[0].Midi, 1);
+    }
+
+    [Fact]
+    public void ShallowVolumeDipDoesNotSplit()
+    {
+        // 半分程度の音量の揺れでは区切らない（歌い直しの谷はもっと深い）
+        var notes = NoteSegmenter.Segment(Frames((20, 60, 0.2), (3, 60, 0.1), (20, 60, 0.2)));
+
+        Assert.Single(notes);
     }
 
     [Fact]
@@ -70,7 +81,8 @@ public class NoteSegmenterTests
     [Fact]
     public void BridgesShortUnvoicedGap()
     {
-        // 1 フレームの無声（子音など）はつなげる。音量も下がらないので 1 つの音
+        // 音量を保ったまま 1 フレームだけ周期性が乱れて無声になっても、つなげて 1 つの音にする
+        // （音量まで下がる切れ目は歌い直しとして、音量の谷で区切る）
         var notes = NoteSegmenter.Segment(Frames((20, 60, 0.2), (1, null, 0.2), (20, 60, 0.2)));
 
         Assert.Single(notes);

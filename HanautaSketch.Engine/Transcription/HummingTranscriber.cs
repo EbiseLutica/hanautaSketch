@@ -57,9 +57,10 @@ public static class HummingTranscriber
         IReadOnlyList<SungNote> sung, Conductor conductor, TranscriptionOptions options,
         double clipStartSeconds, int rangeStartTick, int rangeEndTick)
     {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(options.GridTicks);
         var grid = options.GridTicks;
-        var tuning = PitchSnapper.EstimateTuningOffset(sung);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(grid);
+        if (conductor.Ppq % grid != 0) throw new ArgumentException($"Grid ({grid}) must divide PPQ ({conductor.Ppq}).", nameof(options));
+        if (rangeEndTick <= rangeStartTick) throw new ArgumentException("Range end must be after range start.", nameof(rangeEndTick));
 
         int ToGrid(double seconds)
         {
@@ -67,14 +68,18 @@ public static class HummingTranscriber
             return (int)Math.Round(tick / grid, MidpointRounding.AwayFromZero) * grid;
         }
 
-        var candidates = sung
+        var placed = sung
             .Select(n =>
             {
                 var start = ToGrid(n.Start);
-                var end = Math.Max(ToGrid(n.End), start + grid);
-                var pitch = PitchSnapper.Snap(n.Midi - tuning, conductor.KeyAt(start), options.SnapMode);
-                return (Start: start, End: end, Pitch: pitch, n.Duration);
+                return (Start: start, End: Math.Max(ToGrid(n.End), start + grid), n.Midi, n.Duration);
             })
+            .ToList();
+        var tuning = PitchSnapper.ResolveTuningOffset(sung, i => conductor.KeyAt(placed[i].Start));
+
+        var candidates = placed
+            // 範囲の先頭より少し早く歌い出した音は、範囲に十分かかっていれば先頭に寄せて残す
+            .Select(n => n.Start < rangeStartTick && n.End - rangeStartTick >= grid ? n with { Start = rangeStartTick } : n)
             .Where(n => n.Start >= rangeStartTick && n.Start < rangeEndTick)
             // 同じ位置に吸着した音は、長く歌った方を残す
             .GroupBy(n => n.Start)
@@ -85,9 +90,15 @@ public static class HummingTranscriber
         var notes = new List<Note>(candidates.Count);
         for (var i = 0; i < candidates.Count; i++)
         {
-            var (start, end, pitch, _) = candidates[i];
+            var (start, end, midi, _) = candidates[i];
             if (i + 1 < candidates.Count) end = Math.Min(end, candidates[i + 1].Start);
-            end = Math.Min(end, rangeEndTick);
+            // 範囲の終わりで切れて、グリッドの半分に満たなくなった音は捨てる
+            if (rangeEndTick < end)
+            {
+                end = rangeEndTick;
+                if (end - start < grid / 2) continue;
+            }
+            var pitch = PitchSnapper.Snap(midi - tuning, conductor.KeyAt(start), options.SnapMode);
             notes.Add(new Note(start, end - start, pitch, Math.Clamp(options.Velocity, 1, 127)));
         }
         return notes;
@@ -95,7 +106,7 @@ public static class HummingTranscriber
 
     /// <summary>
     /// 録音した範囲の既存のノーツを、採譜したノーツで置き換える（パンチイン）。
-    /// 範囲にかかるノーツは、範囲の外の部分だけ残す。
+    /// 範囲にかかるノーツは、範囲の外の部分だけ残す。範囲外のノーツの並びは保ち、採譜したノーツは末尾に足す。
     /// </summary>
     /// <param name="notes">トラックのノーツ。その場で書き換える</param>
     /// <param name="rangeStartTick">範囲の先頭</param>
@@ -103,6 +114,7 @@ public static class HummingTranscriber
     /// <param name="recorded">採譜したノーツ</param>
     public static void ReplaceRange(List<Note> notes, int rangeStartTick, int rangeEndTick, IEnumerable<Note> recorded)
     {
+        if (rangeEndTick < rangeStartTick) throw new ArgumentException("Range end must not be before range start.", nameof(rangeEndTick));
         var result = new List<Note>();
         foreach (var note in notes)
         {
@@ -116,6 +128,6 @@ public static class HummingTranscriber
         }
         result.AddRange(recorded);
         notes.Clear();
-        notes.AddRange(result.OrderBy(n => n.Tick).ThenBy(n => n.Pitch));
+        notes.AddRange(result);
     }
 }

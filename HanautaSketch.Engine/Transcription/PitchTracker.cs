@@ -39,18 +39,25 @@ public static class PitchTracker
     /// <summary>これを超える非周期性のフレームは無声とみなす</summary>
     private const double MaxAperiodicity = 0.35;
 
-    /// <summary>最大音量からこれだけ下回るフレームは無声とみなす（dB）</summary>
+    /// <summary>基準の音量からこれだけ下回るフレームは無声とみなす（dB）</summary>
     private const double SilenceBelowPeakDb = 35;
+
+    /// <summary>基準の音量にする、周期的なフレームの音量の分位点</summary>
+    private const double ReferencePercentile = 0.9;
 
     /// <summary>音量の絶対的な下限（これ未満は録音のノイズとみなす）</summary>
     private const double SilenceFloorRms = 0.003;
 
     public static IReadOnlyList<PitchFrame> Track(float[] samples, int sampleRate)
     {
-        var x = AudioResampler.Resample(samples, sampleRate, AnalysisRate);
         var minTau = (int)Math.Floor(AnalysisRate / MaxFrequency);
         var maxTau = (int)Math.Ceiling(AnalysisRate / MinFrequency);
         var span = WindowSize + maxTau;
+
+        // 末尾まで窓を進められるよう、ずらす分の無音を足す
+        var resampled = AudioResampler.Resample(samples, sampleRate, AnalysisRate);
+        var x = new float[resampled.Length + maxTau];
+        resampled.CopyTo(x, 0);
 
         var raw = new List<(double Time, double? Midi, double Rms, double Aperiodicity)>();
         var diff = new double[maxTau + 1];
@@ -66,9 +73,10 @@ public static class PitchTracker
             raw.Add((time, midi, rms, aperiodicity));
         }
 
-        // 音量と周期性で有声・無声を決める
-        var peak = raw.Count > 0 ? raw.Max(f => f.Rms) : 0;
-        var floor = Math.Max(SilenceFloorRms, peak * Math.Pow(10, -SilenceBelowPeakDb / 20));
+        // 音量と周期性で有声・無声を決める。基準の音量は周期的なフレームの上位の値にし、咳などの一発の大音量に引っ張られないようにする
+        var periodic = raw.Where(f => f.Midi.HasValue && f.Aperiodicity <= MaxAperiodicity).Select(f => f.Rms).Order().ToArray();
+        var reference = periodic.Length > 0 ? periodic[(int)((periodic.Length - 1) * ReferencePercentile)] : 0;
+        var floor = Math.Max(SilenceFloorRms, reference * Math.Pow(10, -SilenceBelowPeakDb / 20));
         return raw.Select(f =>
         {
             var voiced = f.Midi.HasValue && f.Rms >= floor && f.Aperiodicity <= MaxAperiodicity;
@@ -117,22 +125,28 @@ public static class PitchTracker
 
     /// <summary>
     /// しきい値を下回った最初の谷を周期とする。下回らなければ最小値の位置を返す（有声かどうかは非周期性で決める）。
+    /// 谷が探索範囲の端（下限の周波数）に張り付いたときは、範囲外のもっと低い音とみなして周期なし（0）を返す。
     /// </summary>
     private static (int Tau, double Aperiodicity) PickPeriod(double[] cmnd, int minTau, int maxTau)
     {
+        var best = -1;
         for (var tau = minTau; tau <= maxTau; tau++)
         {
             if (cmnd[tau] >= Threshold) continue;
             while (tau + 1 <= maxTau && cmnd[tau + 1] < cmnd[tau]) tau++;
-            return (tau, cmnd[tau]);
+            best = tau;
+            break;
         }
 
-        var best = minTau;
-        for (var tau = minTau + 1; tau <= maxTau; tau++)
+        if (best < 0)
         {
-            if (cmnd[tau] < cmnd[best]) best = tau;
+            best = minTau;
+            for (var tau = minTau + 1; tau <= maxTau; tau++)
+            {
+                if (cmnd[tau] < cmnd[best]) best = tau;
+            }
         }
-        return (best, cmnd[best]);
+        return best >= maxTau ? (0, 1) : (best, cmnd[best]);
     }
 
     /// <summary>放物線補間で周期を小数精度にする</summary>

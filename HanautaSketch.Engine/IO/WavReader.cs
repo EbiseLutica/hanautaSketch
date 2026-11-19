@@ -16,6 +16,7 @@ public sealed record AudioClip(float[] Samples, int SampleRate)
 
 /// <summary>
 /// WAV ファイルを読み込む。PCM 8/16/24/32bit と 32bit float に対応し、複数チャンネルは平均してモノラルにする。
+/// 壊れたファイルは <see cref="InvalidDataException"/> を投げる。
 /// </summary>
 public static class WavReader
 {
@@ -31,12 +32,24 @@ public static class WavReader
 
     public static AudioClip Read(Stream stream)
     {
+        try
+        {
+            return ReadCore(stream);
+        }
+        catch (EndOfStreamException e)
+        {
+            throw new InvalidDataException("Unexpected end of WAV file.", e);
+        }
+    }
+
+    private static AudioClip ReadCore(Stream stream)
+    {
         using var reader = new BinaryReader(stream, Encoding.ASCII, leaveOpen: true);
         if (ReadTag(reader) != "RIFF") throw new InvalidDataException("Not a RIFF file.");
         reader.ReadUInt32();
         if (ReadTag(reader) != "WAVE") throw new InvalidDataException("Not a WAVE file.");
 
-        ushort format = 0, channels = 0, bitsPerSample = 0;
+        ushort format = 0, channels = 0, blockAlign = 0, bitsPerSample = 0;
         var sampleRate = 0;
         byte[]? data = null;
 
@@ -49,11 +62,12 @@ public static class WavReader
             switch (tag)
             {
                 case "fmt ":
+                    if (size < 16) throw new InvalidDataException("fmt chunk is too short.");
                     format = reader.ReadUInt16();
                     channels = reader.ReadUInt16();
                     sampleRate = reader.ReadInt32();
                     reader.ReadUInt32();
-                    reader.ReadUInt16();
+                    blockAlign = reader.ReadUInt16();
                     bitsPerSample = reader.ReadUInt16();
                     if (format == FormatExtensible && size >= 26)
                     {
@@ -65,8 +79,9 @@ public static class WavReader
                     }
                     break;
                 case "data":
-                    var length = (int)Math.Min(size, stream.Length - stream.Position);
-                    data = reader.ReadBytes(length);
+                    var length = Math.Min(size, stream.Length - stream.Position);
+                    if (length > Array.MaxLength) throw new InvalidDataException("WAV data is too large.");
+                    data = reader.ReadBytes((int)length);
                     break;
             }
             if (data != null && format != 0) break;
@@ -87,18 +102,25 @@ public static class WavReader
             _ => throw new InvalidDataException($"Unsupported WAV format: format={format}, bits={bitsPerSample}."),
         };
 
+        // 1フレームの長さは blockAlign に従う（サンプルの後ろに詰め物があるファイルもある）
         var bytesPerSample = bitsPerSample / 8;
-        var frameSize = bytesPerSample * channels;
-        var frames = data.Length / frameSize;
+        if (blockAlign < bytesPerSample * channels) throw new InvalidDataException("Invalid block alignment.");
+        var frames = data.Length / blockAlign;
         var samples = new float[frames];
         for (var f = 0; f < frames; f++)
         {
             var sum = 0f;
-            for (var c = 0; c < channels; c++) sum += decode(data, f * frameSize + c * bytesPerSample);
-            samples[f] = sum / channels;
+            for (var c = 0; c < channels; c++) sum += decode(data, f * blockAlign + c * bytesPerSample);
+            var value = sum / channels;
+            samples[f] = float.IsFinite(value) ? Math.Clamp(value, -1f, 1f) : 0f;
         }
         return new AudioClip(samples, sampleRate);
     }
 
-    private static string ReadTag(BinaryReader reader) => Encoding.ASCII.GetString(reader.ReadBytes(4));
+    private static string ReadTag(BinaryReader reader)
+    {
+        var bytes = reader.ReadBytes(4);
+        if (bytes.Length < 4) throw new EndOfStreamException();
+        return Encoding.ASCII.GetString(bytes);
+    }
 }
