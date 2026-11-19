@@ -239,6 +239,7 @@ public static class Strings
     public static string TranscriptionDone => Get(nameof(TranscriptionDone));
     public static string TranscriptionFailed => Get(nameof(TranscriptionFailed));
     public static string TranscriptionTrackRemoved => Get(nameof(TranscriptionTrackRemoved));
+    public static string TranscriptionNoNotes => Get(nameof(TranscriptionNoNotes));
     public static string RecordingFitOctave => Get(nameof(RecordingFitOctave));
     public static string SaveLastRecording => Get(nameof(SaveLastRecording));
     public static string DialogSaveRecording => Get(nameof(DialogSaveRecording));

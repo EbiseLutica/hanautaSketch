@@ -38,6 +38,12 @@ public sealed record RecordingSettings
     /// <summary>録音中にクリックを鳴らすか（カウントインは常に鳴らす）</summary>
     public bool Metronome { get; init; } = true;
 
+    /// <summary>選べるグリッド（tick）：8分・16分・8分3連・16分3連</summary>
+    public static IReadOnlyList<int> GridTicksChoices { get; } = [240, 120, 160, 80];
+
+    /// <summary>レイテンシ補正の上限（ミリ秒）</summary>
+    public const int MaxLatencyMilliseconds = 1000;
+
     /// <summary>量子化のグリッド（tick）</summary>
     public int GridTicks { get; init; } = 120;
 
@@ -84,8 +90,14 @@ public static class AppSettingsStore
     /// </summary>
     private static AppSettings Normalize(AppSettings settings)
     {
+        // 選択肢にないグリッド（手で書き換えたなど）は採譜で例外になるので既定値に戻し、レイテンシは画面の範囲に収める
         var recording = settings.Recording ?? new RecordingSettings();
-        if (recording.GridTicks <= 0) recording = recording with { GridTicks = new RecordingSettings().GridTicks };
+        if (!RecordingSettings.GridTicksChoices.Contains(recording.GridTicks))
+            recording = recording with { GridTicks = new RecordingSettings().GridTicks };
+        recording = recording with
+        {
+            LatencyMilliseconds = Math.Clamp(recording.LatencyMilliseconds, 0, RecordingSettings.MaxLatencyMilliseconds),
+        };
         return settings with
         {
             MidiExport = settings.MidiExport ?? new MidiExportOptions(),

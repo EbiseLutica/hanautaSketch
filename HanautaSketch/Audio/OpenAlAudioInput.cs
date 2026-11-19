@@ -45,9 +45,9 @@ public sealed unsafe class OpenAlAudioInput : IAudioInput
 
     public static OpenAlAudioInput Start(string? deviceName)
     {
+        var name = deviceName is not null && GetDeviceNames().Contains(deviceName) ? deviceName : null;
         var alc = ALContext.GetApi(soft: true);
         var capture = new Capture(alc.Context);
-        var name = deviceName is not null && GetDeviceNames().Contains(deviceName) ? deviceName : null;
         var device = capture.CaptureOpenDevice(name, Rate, BufferFormat.Mono16, DeviceBufferSamples);
         if (device == null)
         {

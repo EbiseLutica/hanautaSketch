@@ -695,6 +695,9 @@ Choose another file.</value>
   <data name="TranscriptionTrackRemoved" xml:space="preserve">
     <value>The track was removed, so the transcription was discarded.</value>
   </data>
+  <data name="TranscriptionNoNotes" xml:space="preserve">
+    <value>No voice was detected, so the notes were left unchanged.</value>
+  </data>
   <data name="RecordingFitOctave" xml:space="preserve">
     <value>Fit octave to C4–C6</value>
   </data>

@@ -290,6 +290,7 @@
         <!-- ピアノロール＋スクロールバー -->
         <Grid ColumnDefinitions="*,Auto" RowDefinitions="*,Auto">
             <c:PianoRollControl x:Name="Roll"
+                                IsEnabled="{Binding !IsTranscribing}"
                                 Song="{Binding Song}"
                                 Track="{Binding SelectedTrack}"
                                 ConductorRevision="{Binding ConductorRevision}"

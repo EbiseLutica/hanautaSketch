@@ -23,7 +23,7 @@ public partial class MainWindowViewModel
     private string _audioStatus = Strings.AudioLoading;
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(TogglePlaybackCommand))]
+    [NotifyCanExecuteChangedFor(nameof(TogglePlaybackCommand), nameof(ToggleRecordingCommand))]
     private bool _isAudioReady;
 
     [ObservableProperty]
@@ -103,14 +103,14 @@ public partial class MainWindowViewModel
     }
 
     [RelayCommand(CanExecute = nameof(IsAudioReady))]
-    private async Task TogglePlaybackAsync()
+    private void TogglePlayback()
     {
         if (_audio is null) return;
 
         // 録音中は停止だけを受け付ける
         if (IsRecording)
         {
-            await StopRecordingAsync();
+            StopRecording();
             return;
         }
 
@@ -167,8 +167,15 @@ public partial class MainWindowViewModel
             return;
         }
 
-        PlayheadTick = _audio.Engine.PositionTick;
-        if (IsRecording) UpdateRecordingLevels();
+        if (IsRecording)
+        {
+            PlayheadTick = RecordingHeardTick();
+            UpdateRecordingLevels();
+        }
+        else
+        {
+            PlayheadTick = _audio.Engine.PositionTick;
+        }
     }
 
     public void Dispose()

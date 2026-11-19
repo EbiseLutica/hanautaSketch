@@ -99,14 +99,25 @@ public partial class MainWindowViewModel
         {
             names = [];
         }
-        _recordingDeviceNames = names;
-        RecordingDevices =
-        [
-            Strings.RecordingDefaultDevice,
-            .. names.Select(n => n.StartsWith(OpenAlDevicePrefix, StringComparison.Ordinal) ? n[OpenAlDevicePrefix.Length..] : n),
-        ];
+        // 選択肢を差し替えるあいだ、ComboBox が書き戻す選択（0 や -1）で保存したデバイスを消さない
+        _refreshingDevices = true;
+        try
+        {
+            _recordingDeviceNames = names;
+            RecordingDevices =
+            [
+                Strings.RecordingDefaultDevice,
+                .. names.Select(n => n.StartsWith(OpenAlDevicePrefix, StringComparison.Ordinal) ? n[OpenAlDevicePrefix.Length..] : n),
+            ];
+        }
+        finally
+        {
+            _refreshingDevices = false;
+        }
         OnPropertyChanged(nameof(RecordingDeviceIndex));
     }
+
+    private bool _refreshingDevices;
 
     /// <summary>入力デバイスの選択肢での位置。保存したデバイスが見つからなければ既定（0）</summary>
     public int RecordingDeviceIndex
@@ -120,7 +131,7 @@ public partial class MainWindowViewModel
         }
         set
         {
-            if (value < 0 || value >= RecordingDevices.Count || value == RecordingDeviceIndex) return;
+            if (_refreshingDevices || value < 0 || value >= RecordingDevices.Count || value == RecordingDeviceIndex) return;
             UpdateRecordingSettings(RecordingSettings with { DeviceName = value == 0 ? null : _recordingDeviceNames[value - 1] });
             OnPropertyChanged();
         }
@@ -199,7 +210,7 @@ public partial class MainWindowViewModel
         get => RecordingSettings.LatencyMilliseconds;
         set
         {
-            var ms = (int)Math.Clamp(value, 0, 1000);
+            var ms = (int)Math.Clamp(value, 0, RecordingSettings.MaxLatencyMilliseconds);
             if (ms == RecordingSettings.LatencyMilliseconds) return;
             UpdateRecordingSettings(RecordingSettings with { LatencyMilliseconds = ms });
             OnPropertyChanged();
@@ -209,12 +220,15 @@ public partial class MainWindowViewModel
     #endregion
 
     [RelayCommand(CanExecute = nameof(CanToggleRecording))]
-    private async Task ToggleRecordingAsync()
+    private void ToggleRecording()
     {
         if (IsRecording)
-            await StopRecordingAsync();
+            StopRecording();
         else
             StartRecording();
+
+        // 録音を始められなかったとき、ToggleButton が自分で切り替えた見た目を状態に戻す
+        OnPropertyChanged(nameof(IsRecording));
     }
 
     private bool CanToggleRecording() => IsRecording || (IsAudioReady && !IsTranscribing);
@@ -244,21 +258,24 @@ public partial class MainWindowViewModel
         _recordingInput = input;
         _recordingTrack = track;
         _recordingStartTick = PlayStartTick;
+        // 録音中にテンポなどが編集されても、鳴らしている内容と同じ時刻の対応で換算する
+        _recordingConductor = Song.Conductor.Clone();
         _recordingLevels.Clear();
         _levelSamplesConsumed = 0;
         RecordingLevelsDisplay = [];
 
-        // 鳴らし始めた時点で取り込み済みだったサンプル数から、録音の先頭が曲のどの時刻にあたるかを求める
-        var captured = input.CapturedSampleCount;
         _audio.Engine.Play(Song, _recordingStartTick, new PlaybackOptions
         {
-            CountInBeats = Song.Conductor.BeatsPerBarAt(_recordingStartTick),
+            CountInBeats = _recordingConductor.BeatsPerBarAt(_recordingStartTick),
             Metronome = RecordingSettings.Metronome,
             PlaySong = RecordingSettings.PlayAccompaniment,
             ExcludedTrack = track,
             Continuous = true,
         });
-        _recordingClipStartSeconds = _audio.Engine.PlaybackStartSeconds
+        // 鳴らし始めた時点で取り込み済みだったサンプル数から、録音の先頭が曲のどの時刻にあたるかを求める
+        var captured = input.CapturedSampleCount;
+        _recordingPlayStartSeconds = _audio.Engine.PlaybackStartSeconds;
+        _recordingClipStartSeconds = _recordingPlayStartSeconds
             - (double)captured / input.SampleRate
             - _audio.LatencySeconds;
 
@@ -268,14 +285,38 @@ public partial class MainWindowViewModel
         _playheadTimer?.Start();
     }
 
+    /// <summary>録音開始時の conductor（録音中の時刻の換算に使う）</summary>
+    private Conductor _recordingConductor = new();
+
+    /// <summary>録音で鳴らし始めた曲上の時刻（秒。カウントインの分だけ開始位置より前）</summary>
+    private double _recordingPlayStartSeconds;
+
     /// <summary>
-    /// 録音を止めて採譜し、録音範囲のノーツを置き換える。カウントイン中に止めたときは何も変えない。
+    /// 録音中、いま聞こえている曲上の位置（tick）。エンジンが書き出した位置から出力の遅れを引く。
+    /// カウントイン中（開始位置より前）は開始位置のテンポで換算する（エンジンのクリックと同じ）。
     /// </summary>
-    private async Task StopRecordingAsync()
+    private double RecordingHeardTick()
+    {
+        if (_audio is null) return _recordingStartTick;
+        var c = _recordingConductor;
+        var seconds = _recordingPlayStartSeconds + _audio.Engine.ElapsedSeconds - _audio.LatencySeconds;
+        var startSeconds = c.TickToSeconds(_recordingStartTick);
+        return seconds < startSeconds
+            ? _recordingStartTick + (seconds - startSeconds) * c.BpmAt(_recordingStartTick) / 60 * c.Ppq
+            : c.SecondsToTick(seconds);
+    }
+
+    /// <summary>
+    /// 録音を止め、裏で採譜して録音範囲のノーツを置き換える。カウントイン中に止めたときは何も変えない。
+    /// 採譜は待たずに返る（再生ボタンなどを採譜中も使えるように）。
+    /// </summary>
+    private void StopRecording()
     {
         if (_recordingInput is not { } input || _recordingTrack is not { } track) return;
 
-        var stopTick = (int)Math.Round(_audio?.Engine.PositionTick ?? 0);
+        var conductor = _recordingConductor;
+        var grid = RecordingSettings.GridTicks;
+        var stopTick = (int)Math.Round(RecordingHeardTick() / grid, MidpointRounding.AwayFromZero) * grid;
         var startTick = _recordingStartTick;
         var clipStart = _recordingClipStartSeconds;
         EndRecordingSession();
@@ -289,23 +330,29 @@ public partial class MainWindowViewModel
             return;
         }
 
-        IsTranscribing = true;
-        Message = Strings.Transcribing;
         var options = new TranscriptionOptions
         {
-            GridTicks = RecordingSettings.GridTicks,
+            GridTicks = grid,
             SnapMode = RecordingSettings.SnapMode,
             LatencySeconds = RecordingSettings.LatencyMilliseconds / 1000.0,
             FitOctave = !RecordingSettings.KeepSungOctave,
         };
-        var conductor = Song.Conductor.Clone();
         var clip = new AudioClip(samples, input.SampleRate);
         _lastRecording = new RecordingTake(clip, clipStart, startTick, stopTick, options, conductor);
         SaveLastRecordingCommand.NotifyCanExecuteChanged();
+        _ = TranscribeAndApplyAsync(_lastRecording, track);
+    }
+
+    /// <summary>採譜して、録音範囲のノーツを置き換える。採譜中はピアノロールの編集を止める</summary>
+    private async Task TranscribeAndApplyAsync(RecordingTake take, NoteTrack track)
+    {
+        IsTranscribing = true;
+        Message = Strings.Transcribing;
         IReadOnlyList<Note> notes;
         try
         {
-            notes = await Task.Run(() => HummingTranscriber.Transcribe(clip, conductor, options, clipStart, startTick, stopTick));
+            notes = await Task.Run(() => HummingTranscriber.Transcribe(
+                take.Clip, take.Conductor, take.Options, take.ClipStartSeconds, take.StartTick, take.StopTick));
         }
         catch (Exception ex)
         {
@@ -324,6 +371,15 @@ public partial class MainWindowViewModel
             return;
         }
 
+        // 声が取れなかった（マイクが無音など）ときは、元のノーツを残す
+        if (notes.Count == 0)
+        {
+            Message = Strings.TranscriptionNoNotes;
+            return;
+        }
+
+        var startTick = take.StartTick;
+        var stopTick = take.StopTick;
         OnEditStarted();
         HummingTranscriber.ReplaceRange(track.Notes, startTick, stopTick, notes);
         OnEditCompleted();
@@ -357,7 +413,7 @@ public partial class MainWindowViewModel
                 await File.WriteAllTextAsync(Path.ChangeExtension(path, ".txt"), DescribeRecording(last));
             Message = Strings.Format(Strings.RecordingSaved, file.Name);
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        catch (Exception ex)
         {
             Message = Strings.Format(Strings.RecordingSaveFailed, ErrorDetail(ex));
         }
@@ -424,7 +480,7 @@ public partial class MainWindowViewModel
         var blocks = samples.Length / blockSize;
         if (blocks == 0) return;
 
-        var conductor = Song.Conductor;
+        var conductor = _recordingConductor;
         var latency = RecordingSettings.LatencyMilliseconds / 1000.0;
         for (var b = 0; b < blocks; b++)
         {

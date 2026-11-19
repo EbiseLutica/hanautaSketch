@@ -695,6 +695,9 @@ https://huggingface.co/datasets/ailsntua/Chordonomicon
   <data name="TranscriptionTrackRemoved" xml:space="preserve">
     <value>録音先のトラックが削除されたため、採譜結果を捨てました</value>
   </data>
+  <data name="TranscriptionNoNotes" xml:space="preserve">
+    <value>声を検出できなかったため、ノーツは変えていません</value>
+  </data>
   <data name="RecordingFitOctave" xml:space="preserve">
     <value>オクターブを C4〜C6 に合わせる</value>
   </data>
