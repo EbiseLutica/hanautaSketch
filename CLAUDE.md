@@ -25,7 +25,8 @@
 - 再生：MeltySynth（SF2）でシンセを鳴らす。出力は全 OS で Silk.NET.OpenAL（OpenAL Soft を常に使う。Windows では内部で WASAPI）。NAudio は COM interop が NativeAOT で動かないので使わない。MeltySynth とシーケンサーは Engine（`PlaybackEngine`）、出力は App（`IAudioOutput`、`AudioOutput.Create`）に置く
   - 音源（SF2）は同梱しない（GM 互換のものは 100MB を超えて git に置けず、LFS は帯域枠を食うため）。利用者が設定画面で選び、パスを `AppSettings.SoundFontPath` に保存する。変えたらその場で読み込み直す。未設定・見つからないときは起動時に選ぶよう促す
 - 保存形式：独自 JSON（`.hsk`、`ProjectSerializer`）。ファイル上の形式は DTO で固定し、`version` で互換性を管理する（`"version": "0.7"` のメジャー.マイナー表記。正式版で 1.0 にする。0.x の間はマイナーまで含めて新しいファイルを弾く。初期の整数表記 1 / 2 は 0.1 / 0.2 として読む。0.2 でスマートコード、0.3 でスマートドラムのトラック種別を追加、0.4 でコードの N.C. override とドラムのベース追従モード（none / fill / full）、0.5 でテンポ・拍子・キーの途中変更（tempos / meters / keys。0.4 までの曲頭の値 bpm / beatsPerBar / key は読み込みのみ）、0.6 でコードの種類に三和音以外（7th・sus・テンションなど）、0.7 でノートトラックのドラムパート指定（drum）。0.1 の曲全体のスマートコード設定は読み込み時に無視する）。ファイル選択・確認などのダイアログは `IDialogService` 経由で VM から使う。曲に依存しないアプリ設定は `%APPDATA%\hanautaSketch\settings.json`（`AppSettingsStore`）。設定画面（`SettingsWindow`、DataContext はメインの VM）に SoundFont・テーマ・表示言語・コード遷移データをまとめ、変えたらすぐ反映する（表示言語だけ次回起動時）。macOS はアプリ名メニューの「設定…」、Windows はツールメニューから開く
-- 採用予定：MIDI 入出力は DryWetMIDI
+- MIDI の書き出し（`MidiExporter`）・読み込み（`MidiImporter`）は自前の SMF 実装。DryWetMIDI はテストでの検証にだけ使う
+  - 読み込みはおまけ機能で、新しい曲として開く。読むのはトラック名・ノーツ・音量（CC7）・Program Change とテンポ・拍子・調号だけ。トラックはチャンネルごとに分け、10ch のノーツはドラムパート（`NoteTrack.IsDrumPart`）にする。拍子は n/4 に丸める
 
 ### ドメインモデルの約束事
 
@@ -64,7 +65,7 @@ HanautaSketch.Engine/        UI 非依存のロジック。Tests に InternalsVi
   Audio/                     MeltySynth による再生エンジン（PlaybackEngine）
   Core/                      ドメインモデル（Song, Track, Note, Key）
   Editing/                   編集の補助（Undo/Redo 履歴）
-  IO/                        プロジェクトファイルの読み書き（今後 MIDI 書き出しも）
+  IO/                        プロジェクトファイルの読み書き、MIDI の書き出し・読み込み
   Smart/Chords/              スマートコード（トラック、コード判別、遷移スコア、伴奏生成）
   Smart/Drums/               スマートドラム（トラック、セクション、パターン生成、fix）
   Smart/Rhythm/              ベースのリズム解析（コードの区切り判定、ドラムのベース追従）

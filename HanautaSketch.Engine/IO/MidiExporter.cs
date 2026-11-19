@@ -142,7 +142,13 @@ internal static class SmfStatus
     public const byte NoteOn = 0x90;
     public const byte ControlChange = 0xB0;
     public const byte ProgramChange = 0xC0;
+    public const byte ChannelPressure = 0xD0;
+    public const byte SysEx = 0xF0;
+    public const byte SysExEscape = 0xF7;
     public const byte Meta = 0xFF;
+
+    /// <summary>チャンネルメッセージのデータのバイト数。プログラムチェンジ・チャンネルプレッシャーは1バイト</summary>
+    public static int DataLength(byte status) => (status & 0xF0) is ProgramChange or ChannelPressure ? 1 : 2;
 }
 
 /// <summary>
@@ -182,7 +188,7 @@ internal sealed class SmfTrackBuilder(int capacity = 16)
         public bool IsMeta => Status == SmfStatus.Meta;
 
         /// <summary>プログラムチェンジ・チャンネルプレッシャーはデータが1バイト</summary>
-        public int ChannelDataLength => (Status & 0xF0) is 0xC0 or 0xD0 ? 1 : 2;
+        public int ChannelDataLength => SmfStatus.DataLength(Status);
 
         public int MaxEncodedLength => IsMeta ? 2 + MaxVariableLengthBytes + Payload.Length : 1 + ChannelDataLength;
     }
