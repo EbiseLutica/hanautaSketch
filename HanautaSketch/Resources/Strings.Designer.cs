@@ -214,6 +214,36 @@ public static class Strings
     public static string ChordDataStateExtended => Get(nameof(ChordDataStateExtended));
     public static string ChordDataAcquire => Get(nameof(ChordDataAcquire));
     public static string ChordDataRemove => Get(nameof(ChordDataRemove));
+    public static string RecordTip => Get(nameof(RecordTip));
+    public static string RecordingSettingsTip => Get(nameof(RecordingSettingsTip));
+    public static string RecordingDevice => Get(nameof(RecordingDevice));
+    public static string RecordingDefaultDevice => Get(nameof(RecordingDefaultDevice));
+    public static string RecordingAccompaniment => Get(nameof(RecordingAccompaniment));
+    public static string RecordingMetronome => Get(nameof(RecordingMetronome));
+    public static string RecordingGrid => Get(nameof(RecordingGrid));
+    public static string RecordingGrid8th => Get(nameof(RecordingGrid8th));
+    public static string RecordingGrid16th => Get(nameof(RecordingGrid16th));
+    public static string RecordingGrid8thTriplet => Get(nameof(RecordingGrid8thTriplet));
+    public static string RecordingGrid16thTriplet => Get(nameof(RecordingGrid16thTriplet));
+    public static string RecordingScale => Get(nameof(RecordingScale));
+    public static string RecordingScaleOff => Get(nameof(RecordingScaleOff));
+    public static string RecordingScaleLean => Get(nameof(RecordingScaleLean));
+    public static string RecordingScaleSnap => Get(nameof(RecordingScaleSnap));
+    public static string RecordingLatency => Get(nameof(RecordingLatency));
+    public static string RecordingNeedsNoteTrack => Get(nameof(RecordingNeedsNoteTrack));
+    public static string RecordingDeviceOpenFailed => Get(nameof(RecordingDeviceOpenFailed));
+    public static string RecordingStartFailed => Get(nameof(RecordingStartFailed));
+    public static string RecordingInProgress => Get(nameof(RecordingInProgress));
+    public static string RecordingCancelled => Get(nameof(RecordingCancelled));
+    public static string Transcribing => Get(nameof(Transcribing));
+    public static string TranscriptionDone => Get(nameof(TranscriptionDone));
+    public static string TranscriptionFailed => Get(nameof(TranscriptionFailed));
+    public static string TranscriptionTrackRemoved => Get(nameof(TranscriptionTrackRemoved));
+    public static string RecordingFitOctave => Get(nameof(RecordingFitOctave));
+    public static string SaveLastRecording => Get(nameof(SaveLastRecording));
+    public static string DialogSaveRecording => Get(nameof(DialogSaveRecording));
+    public static string RecordingSaved => Get(nameof(RecordingSaved));
+    public static string RecordingSaveFailed => Get(nameof(RecordingSaveFailed));
 
     /// <summary>書式付きの文字列（{0} など）を、現在の文化情報で埋める</summary>
     public static string Format(string format, params object[] args) =>

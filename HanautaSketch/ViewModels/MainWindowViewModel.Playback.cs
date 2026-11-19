@@ -45,7 +45,7 @@ public partial class MainWindowViewModel
     partial void OnPlayStartTickChanged(int value)
     {
         SyncConductorDisplay();
-        if (IsPlaying) StartPlayback();
+        if (IsPlaying && !IsRecording) StartPlayback();
     }
 
     private void InitializePlayback()
@@ -103,9 +103,16 @@ public partial class MainWindowViewModel
     }
 
     [RelayCommand(CanExecute = nameof(IsAudioReady))]
-    private void TogglePlayback()
+    private async Task TogglePlaybackAsync()
     {
         if (_audio is null) return;
+
+        // 録音中は停止だけを受け付ける
+        if (IsRecording)
+        {
+            await StopRecordingAsync();
+            return;
+        }
 
         if (_audio.Engine.IsPlaying)
         {
@@ -136,8 +143,14 @@ public partial class MainWindowViewModel
             _audio.Engine.PreviewNoteOff();
     }
 
+    /// <summary>再生を止める。録音中なら録音を取りやめる</summary>
     private void StopPlayback()
     {
+        if (IsRecording)
+        {
+            CancelRecording();
+            return;
+        }
         _audio?.Engine.Stop();
         IsPlaying = false;
         PlayheadTick = -1;
@@ -155,11 +168,13 @@ public partial class MainWindowViewModel
         }
 
         PlayheadTick = _audio.Engine.PositionTick;
+        if (IsRecording) UpdateRecordingLevels();
     }
 
     public void Dispose()
     {
         _playheadTimer?.Stop();
+        _recordingInput?.Dispose();
         _audioLoadVersion++;
         _audio?.Dispose();
     }

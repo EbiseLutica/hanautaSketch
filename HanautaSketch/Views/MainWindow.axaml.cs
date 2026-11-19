@@ -156,19 +156,30 @@ public partial class MainWindow : Window
         public void Redo() => textBox.Redo();
     }
 
-    /// <summary>テキスト入力中は無効。Space は再生の切り替え、T はタップテンポ</summary>
+    /// <summary>テキスト入力中は無効。Space は再生の切り替え（録音中は録音の停止）、R は録音の切り替え、T はタップテンポ</summary>
     private void OnPreviewKeyDown(object? sender, KeyEventArgs e)
     {
         if (e.KeyModifiers != KeyModifiers.None) return;
-        if (e.Key is not (Key.Space or Key.T)) return;
+        if (e.Key is not (Key.Space or Key.R or Key.T)) return;
         if (FocusManager?.GetFocusedElement() is TextBox) return;
 
-        if (e.Key == Key.Space)
-            ViewModel?.TogglePlaybackCommand.Execute(null);
-        else
-            ViewModel?.TapCommand.Execute(null);
+        switch (e.Key)
+        {
+            case Key.Space:
+                ViewModel?.TogglePlaybackCommand.Execute(null);
+                break;
+            case Key.R:
+                ViewModel?.ToggleRecordingCommand.Execute(null);
+                break;
+            default:
+                ViewModel?.TapCommand.Execute(null);
+                break;
+        }
         e.Handled = true;
     }
+
+    /// <summary>録音の設定を開くたびに、入力デバイスの一覧を取り直す（マイクの抜き差しに追従する）</summary>
+    private void OnRecordingFlyoutOpening(object? sender, EventArgs e) => ViewModel?.RefreshRecordingDevices();
 
     #region ピアノロール
 

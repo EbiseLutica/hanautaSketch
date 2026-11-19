@@ -108,6 +108,45 @@
             <ToggleButton Command="{Binding TogglePlaybackCommand}" IsChecked="{Binding IsPlaying, Mode=OneWay}" Width="40" HorizontalContentAlignment="Center" ToolTip.Tip="{x:Static res:Strings.TogglePlayTip}">
                 <ic:FluentIcon Icon="{Binding PlaybackIcon}" IconVariant="Filled" FontSize="16" />
             </ToggleButton>
+            <StackPanel Orientation="Horizontal" Spacing="2">
+                <ToggleButton Classes="record" Command="{Binding ToggleRecordingCommand}" IsChecked="{Binding IsRecording, Mode=OneWay}"
+                              Width="40" HorizontalContentAlignment="Center" ToolTip.Tip="{x:Static res:Strings.RecordTip}">
+                    <ic:FluentIcon Icon="Circle" IconVariant="Filled" FontSize="14" Foreground="{DynamicResource LuDangerBrush}" />
+                </ToggleButton>
+                <Button Width="24" Padding="0" HorizontalContentAlignment="Center" ToolTip.Tip="{x:Static res:Strings.RecordingSettingsTip}">
+                    <ic:FluentIcon Icon="ChevronDown" FontSize="12" />
+                    <Button.Flyout>
+                        <Flyout Placement="BottomEdgeAlignedLeft" Opening="OnRecordingFlyoutOpening">
+                            <StackPanel Spacing="6" Width="240">
+                                <TextBlock Text="{x:Static res:Strings.RecordingDevice}" Classes="caption" />
+                                <ComboBox ItemsSource="{Binding RecordingDevices}" SelectedIndex="{Binding RecordingDeviceIndex}"
+                                          HorizontalAlignment="Stretch" />
+                                <CheckBox Content="{x:Static res:Strings.RecordingAccompaniment}" IsChecked="{Binding RecordingPlayAccompaniment}" />
+                                <CheckBox Content="{x:Static res:Strings.RecordingMetronome}" IsChecked="{Binding RecordingMetronome}" />
+                                <TextBlock Text="{x:Static res:Strings.RecordingGrid}" Classes="caption" />
+                                <ComboBox ItemsSource="{Binding RecordingGridOptions}" SelectedItem="{Binding RecordingGrid}"
+                                          HorizontalAlignment="Stretch">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:RecordingGridOption">
+                                            <TextBlock Text="{Binding Label}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <TextBlock Text="{x:Static res:Strings.RecordingScale}" Classes="caption" />
+                                <ComboBox ItemsSource="{Binding RecordingScaleOptions}" SelectedIndex="{Binding RecordingScaleIndex}"
+                                          HorizontalAlignment="Stretch" />
+                                <CheckBox Content="{x:Static res:Strings.RecordingFitOctave}" IsChecked="{Binding RecordingFitOctave}" />
+                                <TextBlock Text="{x:Static res:Strings.RecordingLatency}" Classes="caption" />
+                                <NumericUpDown Value="{Binding RecordingLatency}" Minimum="0" Maximum="1000" Increment="5"
+                                               FormatString="0" HorizontalAlignment="Stretch" />
+                                <Separator Margin="0,4" />
+                                <Button Content="{x:Static res:Strings.SaveLastRecording}" Command="{Binding SaveLastRecordingCommand}"
+                                        HorizontalAlignment="Stretch" />
+                            </StackPanel>
+                        </Flyout>
+                    </Button.Flyout>
+                </Button>
+            </StackPanel>
             <TextBlock Text="BPM" VerticalAlignment="Center" Margin="8,0,0,0" />
             <NumericUpDown Value="{Binding Bpm}" Minimum="20" Maximum="400" Increment="1" FormatString="0" Width="110" />
             <Button Content="{x:Static res:Strings.TapTempo}" Command="{Binding TapCommand}" ToolTip.Tip="{x:Static res:Strings.TapTempoTip}" />
@@ -259,6 +298,8 @@
                                 PlayheadTick="{Binding PlayheadTick}"
                                 PlayStartTick="{Binding PlayStartTick}"
                                 NotesRevision="{Binding NotesRevision}"
+                                NotesToSelect="{Binding NotesToSelect}"
+                                RecordingLevels="{Binding RecordingLevelsDisplay}"
                                 NotesEdited="OnNotesEdited"
                                 NotePreview="OnNotePreview"
                                 EditStarted="OnEditStarted"

@@ -8702,6 +8702,8 @@ SOFTWARE.
 @@TEXT	MIT License	17
 @@PACKAGE	Silk.NET.OpenAL	2.23.0	MIT
 @@TEXT	MIT License	17
+@@PACKAGE	Silk.NET.OpenAL.Extensions.EXT	2.23.0	MIT
+@@TEXT	MIT License	17
 @@PACKAGE	Silk.NET.OpenAL.Soft.Native	1.23.1	LGPL-2.0-or-later
 @@TEXT	LGPL-2.0	18
 @@PACKAGE	SkiaSharp	3.119.4	MIT

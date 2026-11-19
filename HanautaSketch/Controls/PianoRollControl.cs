@@ -94,7 +94,7 @@ public sealed partial class PianoRollControl : Control
     static PianoRollControl()
     {
         AffectsRender<PianoRollControl>(SongProperty, TrackProperty, ConductorRevisionProperty, SnapTicksProperty, ChordsProperty,
-            PlayheadTickProperty, PlayStartTickProperty, NotesRevisionProperty, HorizontalOffsetProperty,
+            PlayheadTickProperty, PlayStartTickProperty, NotesRevisionProperty, RecordingLevelsProperty, HorizontalOffsetProperty,
             VerticalOffsetProperty, DrumSectionsProperty, SelectedDrumSectionProperty);
         FocusableProperty.OverrideDefaultValue<PianoRollControl>(true);
         ClipToBoundsProperty.OverrideDefaultValue<PianoRollControl>(true);
@@ -328,6 +328,7 @@ public sealed partial class PianoRollControl : Control
             RenderGridLines(context, area);
             RenderGhostNotes(context);
             RenderNotes(context);
+            RenderRecordingLevels(context, area);
             RenderSelectionBox(context);
 
             var startX = Math.Round(TickToX(PlayStartTick)) + 0.5;

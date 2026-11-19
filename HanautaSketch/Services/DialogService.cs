@@ -41,6 +41,9 @@ public interface IDialogService
 
     /// <summary>SoundFont（.sf2）を選ぶ。ローカルのパスを返す。キャンセルなら null</summary>
     Task<string?> PickSoundFontAsync();
+
+    /// <summary>録音（.wav）の保存先を選ぶ。キャンセルなら null</summary>
+    Task<IStorageFile?> PickRecordingSaveAsync(string suggestedName);
 }
 
 /// <summary>
@@ -62,6 +65,21 @@ public sealed class DialogService(Window owner) : IDialogService
     {
         Patterns = ["*.sf2", "*.SF2"],
     };
+
+    private static readonly FilePickerFileType WaveFileType = new("WAV")
+    {
+        Patterns = ["*.wav"],
+    };
+
+    public Task<IStorageFile?> PickRecordingSaveAsync(string suggestedName) =>
+        owner.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = Strings.DialogSaveRecording,
+            SuggestedFileName = suggestedName,
+            DefaultExtension = "wav",
+            FileTypeChoices = [WaveFileType],
+            ShowOverwritePrompt = true,
+        });
 
     public async Task<IStorageFile?> PickOpenAsync()
     {

@@ -37,6 +37,9 @@ public sealed unsafe class OpenAlAudioOutput : IAudioOutput
 
     public PlaybackEngine Engine { get; }
 
+    /// <summary>再生を始めた時点で、キューには平均してバッファ数から半分を引いた分が残っている</summary>
+    public double LatencySeconds => (BufferCount - 0.5) * FramesPerBuffer / (double)SampleRate;
+
     /// <summary>
     /// 既定の出力デバイスを開き、エンジンを作って出力を開始する。SF2 の読み込みは重いので別スレッドで呼ぶ。
     /// </summary>

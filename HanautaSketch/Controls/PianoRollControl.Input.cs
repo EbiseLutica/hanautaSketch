@@ -71,6 +71,7 @@ public sealed partial class PianoRollControl
         if (change.Property == TrackProperty || change.Property == NotesRevisionProperty)
         {
             _selection.Clear();
+            if (change.Property == NotesRevisionProperty) SelectRequestedNotes();
             UpdateScrollExtents();
         }
         else if (change.Property == SongProperty)
