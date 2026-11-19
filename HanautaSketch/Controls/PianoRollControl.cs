@@ -32,6 +32,9 @@ public sealed partial class PianoRollControl : Control
     public static readonly StyledProperty<NewNoteDragBehavior> NewNoteDragProperty =
         AvaloniaProperty.Register<PianoRollControl, NewNoteDragBehavior>(nameof(NewNoteDrag));
 
+    public static readonly StyledProperty<bool> IsScaleLockedProperty =
+        AvaloniaProperty.Register<PianoRollControl, bool>(nameof(IsScaleLocked));
+
     public static readonly StyledProperty<IReadOnlyList<ChordSegment>?> ChordsProperty =
         AvaloniaProperty.Register<PianoRollControl, IReadOnlyList<ChordSegment>?>(nameof(Chords));
 
@@ -172,6 +175,19 @@ public sealed partial class PianoRollControl : Control
         set => SetValue(NewNoteDragProperty, value);
     }
 
+    /// <summary>
+    /// スケールロック。有効なら、ノートトラックで新しく置く・上下に動かす・貼り付けるノーツをその位置のキーのスケール音に寄せる。
+    /// ドラムは音高が楽器を表すので対象外
+    /// </summary>
+    public bool IsScaleLocked
+    {
+        get => GetValue(IsScaleLockedProperty);
+        set => SetValue(IsScaleLockedProperty, value);
+    }
+
+    /// <summary>今のトラックでスケールロックが効くか</summary>
+    private bool ScaleLockActive => IsScaleLocked && Track is NoteTrack;
+
     /// <summary>コードレーンに表示する判別結果</summary>
     public IReadOnlyList<ChordSegment>? Chords
     {
@@ -298,6 +314,9 @@ public sealed partial class PianoRollControl : Control
     private double PitchToY(int pitch) => HeaderHeight + (PitchCount - 1 - pitch) * _noteHeight - VerticalOffset;
 
     private int YToPitch(double y) => PitchCount - 1 - (int)Math.Floor((y - HeaderHeight + VerticalOffset) / _noteHeight);
+
+    /// <summary>行の中の位置まで含めた音高。行の中央が整数になり、上端に近いほど大きい</summary>
+    private double YToPitchExact(double y) => PitchCount - 0.5 - (y - HeaderHeight + VerticalOffset) / _noteHeight;
 
     private Rect NoteRect(Note note) =>
         new(TickToX(note.Tick), PitchToY(note.Pitch), Math.Max(2, note.Length * PixelsPerTick), _noteHeight);
