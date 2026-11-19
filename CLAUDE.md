@@ -38,6 +38,7 @@
   - ソース参照は保存時にトラックの並び順（インデックス）で書き出す
 - MIDI チャンネルは `MidiChannels.Assign` で決める（ドラムは 10ch、それ以外はトラック順。再生と書き出しで共通）
 - ピアノロールで編集するのは `INoteEditable`（ノートトラック、ドラムの fix 区間）。スマートトラックの生成ノーツは読み取り専用
+- 鼻歌の採譜は、曲のテンポ（クリック・伴奏）に合わせて歌ってもらう前提で、テンポは推定しない。録音の秒は `Conductor.SecondsToTick` で tick にし、グリッドに吸着する。録音した範囲の既存ノーツは置き換える（`HummingTranscriber.ReplaceRange`）
 - コードの種類（`ChordQuality`）は構成音と表記を `ChordQualities` の表で持つ。自動判別は三和音だけを使い、それ以外は override と候補のランキングで使う
   - override の候補は、実際の曲から集計した「前のコード → 次のコード」の表（`ChordTransitionTable`、`Smart/Chords/Data/chord-transitions.json` を埋め込み）で並べる。判別の遷移スコア（`ChordTransitions`）とは別物
   - 集計処理はエンジン（`Smart/Chords/Corpus`）にある。同梱の表は McGill Billboard（CC0）だけから `tools/ChordStats` で作る
@@ -67,6 +68,7 @@ HanautaSketch.Engine/        UI 非依存のロジック。Tests に InternalsVi
   Smart/Chords/              スマートコード（トラック、コード判別、遷移スコア、伴奏生成）
   Smart/Drums/               スマートドラム（トラック、セクション、パターン生成、fix）
   Smart/Rhythm/              ベースのリズム解析（コードの区切り判定、ドラムのベース追従）
+  Transcription/             鼻歌の採譜（YIN によるピッチ検出、音の切り出し、スケール寄せ、グリッド吸着）
 HanautaSketch.Tests/         Engine のテスト
 tools/
   ChordStats/                同梱のコード遷移の表（Billboard のみ）を作るツール（ファイルベースの C#）。元データは .cache/ に取得（git 管理外）
