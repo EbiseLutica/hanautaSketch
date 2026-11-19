@@ -51,6 +51,23 @@ public class ProjectSerializerTests
     }
 
     [Fact]
+    public async Task RoundTrip_PreservesDrumPartFlag()
+    {
+        var song = new Song();
+        var drums = new NoteTrack { Name = "Drums", IsDrumPart = true, Program = 8 };
+        drums.Notes.Add(new Note(0, 120, 36, 100));
+        song.Tracks.Add(drums);
+        song.Tracks.Add(new NoteTrack { Name = "Bass" });
+
+        var loaded = await RoundTrip(new ProjectDocument(song));
+
+        var tracks = loaded.Song.Tracks.OfType<NoteTrack>().ToList();
+        Assert.True(tracks[0].IsDrum);
+        Assert.Equal(8, tracks[0].Program);
+        Assert.False(tracks[1].IsDrum);
+    }
+
+    [Fact]
     public async Task RoundTrip_PreservesSmartChordTrack()
     {
         var song = new Song();
@@ -140,7 +157,7 @@ public class ProjectSerializerTests
         await ProjectSerializer.SaveAsync(new ProjectDocument(new Song()), stream);
         var json = Encoding.UTF8.GetString(stream.ToArray());
 
-        Assert.Contains("\"version\": \"0.6\"", json);
+        Assert.Contains("\"version\": \"0.7\"", json);
     }
 
     [Theory]
@@ -152,6 +169,7 @@ public class ProjectSerializerTests
     [InlineData("\"0.4\"")]
     [InlineData("\"0.5\"")]
     [InlineData("\"0.6\"")]
+    [InlineData("\"0.7\"")]
     public async Task Load_AcceptsCurrentAndOlderVersions(string version)
     {
         var loaded = await LoadJson($$"""{ "version": {{version}}, "song": { "tracks": [] } }""");
@@ -159,7 +177,7 @@ public class ProjectSerializerTests
     }
 
     [Theory]
-    [InlineData("\"0.7\"")]
+    [InlineData("\"0.8\"")]
     [InlineData("\"1.0\"")]
     [InlineData("999")]
     public async Task Load_RejectsNewerVersion(string version)

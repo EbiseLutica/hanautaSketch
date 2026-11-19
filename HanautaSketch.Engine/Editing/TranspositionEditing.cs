@@ -18,7 +18,7 @@ public static class TranspositionEditing
     /// <summary>移調してもすべてのノーツが音域（0〜127）に収まるか</summary>
     public static bool CanTranspose(Song song, int semitones) =>
         Math.Abs(semitones) <= MaxSemitones
-        && song.Tracks.OfType<NoteTrack>().All(t => t.Notes.All(n => n.Pitch + semitones is >= MinPitch and <= MaxPitch));
+        && PitchedTracks(song).All(t => t.Notes.All(n => n.Pitch + semitones is >= MinPitch and <= MaxPitch));
 
     /// <summary>
     /// 曲を移調する。音域に収まらないときや 0 半音のときは何もせず false を返す。
@@ -27,7 +27,7 @@ public static class TranspositionEditing
     {
         if (semitones == 0 || !CanTranspose(song, semitones)) return false;
 
-        foreach (var track in song.Tracks.OfType<NoteTrack>())
+        foreach (var track in PitchedTracks(song))
             for (var i = 0; i < track.Notes.Count; i++)
                 track.Notes[i] = track.Notes[i] with { Pitch = track.Notes[i].Pitch + semitones };
 
@@ -50,4 +50,7 @@ public static class TranspositionEditing
     };
 
     private static int Mod12(int value) => ((value % 12) + 12) % 12;
+
+    /// <summary>移調するノートトラック（ドラムパートは音程を持たないので除く）</summary>
+    private static IEnumerable<NoteTrack> PitchedTracks(Song song) => song.Tracks.OfType<NoteTrack>().Where(t => !t.IsDrum);
 }

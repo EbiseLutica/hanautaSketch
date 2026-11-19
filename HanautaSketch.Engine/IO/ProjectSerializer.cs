@@ -29,9 +29,10 @@ public static partial class ProjectSerializer
     /// 0.4: コードの N.C. override（noChord）。ドラム区間のベース追従を真偽値 followBass から bassFollow（none / fill / full）へ
     /// 0.5: テンポ・拍子・キーの途中変更（tempos / meters / keys）。曲頭の値だけの bpm / beatsPerBar / key は書き出さない
     /// 0.6: override のコードの種類に、三和音以外（7th・sus・テンションなど）を追加
+    /// 0.7: ノートトラックのドラムパート指定（drum）
     /// 初期のファイルは整数（1 / 2）で書かれているので、それぞれ 0.1 / 0.2 として読む。
     /// </summary>
-    public static Version CurrentVersion { get; } = new(0, 6);
+    public static Version CurrentVersion { get; } = new(0, 7);
 
     private static readonly JsonSerializerOptions Options = new()
     {
@@ -113,6 +114,7 @@ public static partial class ProjectSerializer
         {
             case NoteTrack note:
                 dto.Type = TrackType.Note;
+                dto.Drum = note.IsDrumPart ? true : null;
                 dto.Notes = note.Notes.OrderBy(n => n.Tick).ThenBy(n => n.Pitch)
                     .Select(n => new NoteDto { Tick = n.Tick, Length = n.Length, Pitch = n.Pitch, Velocity = n.Velocity })
                     .ToList();
@@ -234,7 +236,7 @@ public static partial class ProjectSerializer
 
     private static NoteTrack CreateNoteTrack(TrackDto dto)
     {
-        var track = new NoteTrack();
+        var track = new NoteTrack { IsDrumPart = dto.Drum ?? false };
         track.Notes.AddRange(ReadNotes(dto));
         return track;
     }
@@ -389,6 +391,9 @@ public static partial class ProjectSerializer
 
         // ノートトラック
         public List<NoteDto>? Notes { get; set; }
+
+        /// <summary>ドラムパート（0.7〜）。false のときは書き出さない</summary>
+        public bool? Drum { get; set; }
 
         // スマートコードトラック
         public int? BassSource { get; set; }

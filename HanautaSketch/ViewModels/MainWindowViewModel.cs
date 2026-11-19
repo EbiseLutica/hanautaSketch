@@ -150,11 +150,12 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
 
     /// <summary>
     /// スマートコードトラックを追加する。ソースは「ベース」の名前のトラック（なければ最後のノートトラック）。
+    /// ドラムパートはソースにしない。
     /// </summary>
     [RelayCommand]
     private void AddSmartChordTrack()
     {
-        var noteTracks = Tracks.OfType<NoteTrack>().ToList();
+        var noteTracks = Tracks.OfType<NoteTrack>().Where(t => !t.IsDrum).ToList();
         var bass = noteTracks.FirstOrDefault(t => IsBassName(t.Name))
                    ?? noteTracks.LastOrDefault();
         var melody = noteTracks.FirstOrDefault(t => t != bass);
