@@ -278,6 +278,8 @@
                                           Classes="small" MinWidth="24" Margin="4,0,0,0" />
                             <ToggleButton DockPanel.Dock="Right" Content="M" IsChecked="{Binding Mute}" ToolTip.Tip="{x:Static res:Strings.TrackMute}"
                                           Classes="small" MinWidth="24" />
+                            <ToggleButton DockPanel.Dock="Right" Content="O" IsChecked="{Binding OnionSkin}" ToolTip.Tip="{x:Static res:Strings.TrackOnionSkin}"
+                                          Classes="small" MinWidth="24" Margin="4,0,0,0" IsVisible="{Binding IsNoteTrack}" />
                             <TextBlock DockPanel.Dock="Right" Text="{x:Static res:Strings.TrackSmartBadge}" Classes="caption"
                                        VerticalAlignment="Center" Margin="0,0,6,0" IsVisible="{Binding IsSmart}" />
                             <Panel VerticalAlignment="Center">
@@ -304,6 +306,7 @@
                                 PlayheadTick="{Binding PlayheadTick}"
                                 PlayStartTick="{Binding PlayStartTick}"
                                 NotesRevision="{Binding NotesRevision}"
+                                OnionRevision="{Binding OnionRevision}"
                                 NotesToSelect="{Binding NotesToSelect}"
                                 RecordingLevels="{Binding RecordingLevelsDisplay}"
                                 NotesEdited="OnNotesEdited"

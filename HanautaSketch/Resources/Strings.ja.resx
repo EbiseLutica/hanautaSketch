@@ -208,6 +208,9 @@
   <data name="TrackMute" xml:space="preserve">
     <value>ミュート</value>
   </data>
+  <data name="TrackOnionSkin" xml:space="preserve">
+    <value>オニオンスキン：他のトラック編集中にこのトラックのノーツを薄く表示</value>
+  </data>
   <data name="TrackSmartBadge" xml:space="preserve">
     <value>スマート</value>
   </data>
