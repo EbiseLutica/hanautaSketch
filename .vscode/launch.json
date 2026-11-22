@@ -1,0 +1,11 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Avalonia: HanautaSketch",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}/HanautaSketch/HanautaSketch.csproj"
+        }
+    ]
+}
