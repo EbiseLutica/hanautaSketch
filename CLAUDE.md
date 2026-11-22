@@ -16,7 +16,7 @@
   - Avalonia API は推測で書かず、Avalonia MCP（`lookup_avalonia_api` / `search_avalonia_docs`）で確認する
 - ピアノロールは `Control.Render(DrawingContext)` で自前描画する。配色は `LuticaTheme.axaml` のテーマ辞書に `PianoRoll*Brush` として置き（DS と同じ色は `Lu*` を `StaticResource` で参照）、`PianoRollPalette.Load` がテーマごとに読んでペンに組み立てる。コントロールはテーマ・リソースが変わるまで使い回す
   - 色・影・角丸は `LuticaTheme.axaml` の `Lu*` リソース（`LuPanelBrush`、`LuShadowControl` など）を `DynamicResource` で参照し、値を直書きしない。ボタンの修飾は `Classes`（`primary` / `danger` / `ghost` / `small` など）、補助テキストは `TextBlock.dimmed` / `.caption`
-  - フォントはシステムフォント（Fluent の既定に任せる）。書体は同梱しない。Lutica の Koruri は使わない
+  - フォントは OS の書体を使う（書体は同梱しない。Lutica の Koruri は使わない）。OS ごとの候補は `Services/UiFonts.cs` に置き、先頭を既定の書体、残りを字が無いときのフォールバックにする（Windows: Meiryo UI, Verdana / macOS: Hiragino Sans, San Francisco / Linux: Noto Sans CJK JP, Noto Sans）。`Program.cs` で `FontManagerOptions` に渡し、`App` で Fluent の `ContentControlThemeFontFamily` を先頭の書体に差し替える
   - 表示文字列は `HanautaSketch/Resources/Strings.resx`（英語・既定）と `Strings.ja.resx` に置き、`Strings.Designer.cs` のプロパティ経由で使う（XAML は `{x:Static res:Strings.X}`、書式付きは `Strings.Format`）。キーを足すときは両方の resx とプロパティを足す。言語は OS に従い、設定（`AppSettings.Language`）で上書きできる（反映は次回起動時）
   - Engine の例外メッセージは英語。UI に出る文言は App 側で訳す（プロジェクト形式の例外は `ErrorDetail` で表示文に置き換える）
 - テスト：xUnit

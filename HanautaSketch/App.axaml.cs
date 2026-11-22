@@ -13,7 +13,12 @@ namespace HanautaSketch;
 
 public partial class App : Application
 {
-    public override void Initialize() => AvaloniaXamlLoader.Load(this);
+    public override void Initialize()
+    {
+        AvaloniaXamlLoader.Load(this);
+        // Fluent の既定の書体（Inter）を OS の書体に差し替える。日本語の字は UiFonts のフォールバックが拾う
+        Resources["ContentControlThemeFontFamily"] = new Avalonia.Media.FontFamily(UiFonts.Families()[0]);
+    }
 
     public override void OnFrameworkInitializationCompleted()
     {
