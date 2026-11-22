@@ -60,6 +60,7 @@
             </c:XMenuItem>
             <c:XMenuItem Header="{x:Static res:Strings.MenuHelp}">
                 <c:XMenuItem Header="{x:Static res:Strings.MenuLicenses}" Click="OnShowLicensesMenuItem" />
+                <c:XMenuItem Header="Fluent Icon Browser(_I)…" Click="OnShowIconBrowserMenuItem" />
                 <!-- macOS の「このアプリについて」はアプリ名メニュー（App.axaml）にある -->
                 <c:XMenuSeparator Platform="Others" />
                 <c:XMenuItem Header="{x:Static res:Strings.AboutApp}" Click="OnShowAboutMenuItem" Platform="Others" />

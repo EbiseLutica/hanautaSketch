@@ -322,6 +322,9 @@ public partial class MainWindow : Window
 
     private void OnShowLicensesMenuItem(object? sender, EventArgs e) => ShowLicenses();
 
+    /// <summary>開発用の Fluent アイコン一覧を開く（ヘルプメニュー）。手前に出したまま使えるように閉じるまで待たない</summary>
+    private void OnShowIconBrowserMenuItem(object? sender, EventArgs e) => new IconBrowserWindow().Show(this);
+
     /// <summary>
     /// 本体（MIT）、コード候補に使ったデータの出典、配布物に含む依存パッケージ（.NET SDK を含む）のライセンスを開く。
     /// </summary>

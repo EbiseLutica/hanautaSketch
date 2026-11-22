@@ -1,0 +1,48 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:v="using:HanautaSketch.Views"
+        xmlns:ic="using:FluentIcons.Avalonia"
+        x:Class="HanautaSketch.Views.IconBrowserWindow"
+        Title="Fluent Icon Browser"
+        Width="760" Height="560"
+        WindowStartupLocation="CenterOwner">
+    <!-- 開発用（ローカライズしない）。アイコンを名前で絞り込んで一覧する。名前にカーソルを載せると名前が出る -->
+    <Grid RowDefinitions="Auto,*,Auto" Margin="16" RowSpacing="12">
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <TextBox x:Name="FilterBox" PlaceholderText="Filter by name (e.g. play, arrow)" TextChanged="OnFilterChanged" />
+            <ComboBox x:Name="VariantBox" Grid.Column="1" MinWidth="120" SelectionChanged="OnVariantChanged" />
+        </Grid>
+
+        <!-- 1行に並べるアイコンの数だけ区切った「行」を、縦の VirtualizingStackPanel で仮想化する -->
+        <ScrollViewer x:Name="IconScroller" Grid.Row="1" SizeChanged="OnScrollerSizeChanged">
+            <ItemsControl x:Name="IconGrid">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <VirtualizingStackPanel />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="v:IconRow">
+                        <ItemsControl ItemsSource="{Binding Icons}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="v:IconEntry">
+                                    <StackPanel Width="104" Spacing="6" Margin="2" ToolTip.Tip="{Binding Name}">
+                                        <ic:FluentIcon Icon="{Binding Icon}" IconVariant="{Binding Variant}" FontSize="24" HorizontalAlignment="Center" />
+                                        <TextBlock Text="{Binding Name}" FontSize="11" TextAlignment="Center" TextTrimming="CharacterEllipsis" Classes="dimmed" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <TextBlock x:Name="CountText" Grid.Row="2" Classes="dimmed" TextAlignment="Right" FontSize="11" Opacity="0.5" />
+    </Grid>
+</Window>
