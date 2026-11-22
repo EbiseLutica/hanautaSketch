@@ -27,17 +27,18 @@ public static class PlatformKeys
 
         foreach (var binding in window.KeyBindings)
         {
-            if (binding.Gesture is { } g) binding.Gesture = Swap(g);
+            if (binding.Gesture is { } g) binding.Gesture = ToPlatform(g);
         }
 
         foreach (var item in window.GetLogicalDescendants().OfType<MenuItem>())
         {
-            if (item.InputGesture is { } g) item.InputGesture = Swap(g);
+            if (item.InputGesture is { } g) item.InputGesture = ToPlatform(g);
         }
     }
 
-    private static KeyGesture Swap(KeyGesture g) =>
-        g.KeyModifiers.HasFlag(KeyModifiers.Control)
+    /// <summary>Ctrl で書いたショートカットを、macOS では ⌘ に置き換える</summary>
+    public static KeyGesture ToPlatform(KeyGesture g) =>
+        OperatingSystem.IsMacOS() && g.KeyModifiers.HasFlag(KeyModifiers.Control)
             ? new KeyGesture(g.Key, (g.KeyModifiers & ~KeyModifiers.Control) | KeyModifiers.Meta)
             : g;
 }

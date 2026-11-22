@@ -18,22 +18,16 @@ public static class Strings
     public static string AboutApp => Get(nameof(AboutApp));
     public static string AboutTagline => Get(nameof(AboutTagline));
     public static string AboutLicensesLink => Get(nameof(AboutLicensesLink));
-    public static string NativeFile => Get(nameof(NativeFile));
-    public static string NativeNew => Get(nameof(NativeNew));
-    public static string NativeOpen => Get(nameof(NativeOpen));
-    public static string NativeClose => Get(nameof(NativeClose));
-    public static string NativeSave => Get(nameof(NativeSave));
-    public static string NativeSaveAs => Get(nameof(NativeSaveAs));
-    public static string NativeExportMidi => Get(nameof(NativeExportMidi));
-    public static string NativeImportMidi => Get(nameof(NativeImportMidi));
-    public static string NativeEdit => Get(nameof(NativeEdit));
-    public static string NativeUndo => Get(nameof(NativeUndo));
-    public static string NativeRedo => Get(nameof(NativeRedo));
-    public static string NativeWindow => Get(nameof(NativeWindow));
-    public static string NativeMinimize => Get(nameof(NativeMinimize));
-    public static string NativeZoom => Get(nameof(NativeZoom));
-    public static string NativeHelp => Get(nameof(NativeHelp));
-    public static string NativeLicenses => Get(nameof(NativeLicenses));
+    // メニューの表記は Windows の形（アクセスキー付き）で持つ。macOS ではアクセスキーを外して使う（XMenu）。
+    // 慣例で言い回しが違う項目だけ、macOS 用（*Mac）を言い回しが違う言語の resx にだけ置く。ない言語は Windows の表記を使う
+    public static string MenuNewMac => GetOr(nameof(MenuNewMac), MenuNew);
+    public static string MenuSaveMac => GetOr(nameof(MenuSaveMac), MenuSave);
+    public static string MenuSaveAsMac => GetOr(nameof(MenuSaveAsMac), MenuSaveAs);
+    public static string MenuUndoMac => GetOr(nameof(MenuUndoMac), MenuUndo);
+    public static string MenuRedoMac => GetOr(nameof(MenuRedoMac), MenuRedo);
+    public static string MenuWindow => Get(nameof(MenuWindow));
+    public static string MenuMinimize => Get(nameof(MenuMinimize));
+    public static string MenuZoom => Get(nameof(MenuZoom));
     public static string MenuFile => Get(nameof(MenuFile));
     public static string MenuNew => Get(nameof(MenuNew));
     public static string MenuOpen => Get(nameof(MenuOpen));
@@ -50,11 +44,6 @@ public static class Strings
     public static string MenuTransposeDown => Get(nameof(MenuTransposeDown));
     public static string MenuTransposeOctaveUp => Get(nameof(MenuTransposeOctaveUp));
     public static string MenuTransposeOctaveDown => Get(nameof(MenuTransposeOctaveDown));
-    public static string NativeTranspose => Get(nameof(NativeTranspose));
-    public static string NativeTransposeUp => Get(nameof(NativeTransposeUp));
-    public static string NativeTransposeDown => Get(nameof(NativeTransposeDown));
-    public static string NativeTransposeOctaveUp => Get(nameof(NativeTransposeOctaveUp));
-    public static string NativeTransposeOctaveDown => Get(nameof(NativeTransposeOctaveDown));
     public static string MenuTools => Get(nameof(MenuTools));
     public static string MenuHelp => Get(nameof(MenuHelp));
     public static string MenuLicenses => Get(nameof(MenuLicenses));
@@ -186,7 +175,6 @@ public static class Strings
     public static string MidiExportChordMarkers => Get(nameof(MidiExportChordMarkers));
     public static string MidiExportKeySignature => Get(nameof(MidiExportKeySignature));
     public static string MidiExportButton => Get(nameof(MidiExportButton));
-    public static string NativeExportWav => Get(nameof(NativeExportWav));
     public static string MenuExportWav => Get(nameof(MenuExportWav));
     public static string DialogExportWav => Get(nameof(DialogExportWav));
     public static string WavExportOptionsTitle => Get(nameof(WavExportOptionsTitle));
@@ -214,7 +202,6 @@ public static class Strings
     public static string TrackDeleted => Get(nameof(TrackDeleted));
     public static string DataSourceEntry => Get(nameof(DataSourceEntry));
     public static string StopExtraction => Get(nameof(StopExtraction));
-    public static string NativeSettings => Get(nameof(NativeSettings));
     public static string MenuSettings => Get(nameof(MenuSettings));
     public static string SettingsTitle => Get(nameof(SettingsTitle));
     public static string SettingsSound => Get(nameof(SettingsSound));
@@ -272,4 +259,7 @@ public static class Strings
         string.Format(CultureInfo.CurrentCulture, format, args);
 
     private static string Get(string name) => ResourceManager.GetString(name, CultureInfo.CurrentUICulture) ?? name;
+
+    /// <summary>一部の言語にだけあるキー。ないときは <paramref name="fallback"/></summary>
+    private static string GetOr(string name, string fallback) => ResourceManager.GetString(name, CultureInfo.CurrentUICulture) ?? fallback;
 }

@@ -11,55 +11,16 @@
     <value>Quickly sketch melodies and basslines</value>
   </data>
   <data name="AboutLicensesLink" xml:space="preserve">
-    <value>Open Source Licenses...</value>
+    <value>Open Source Licenses…</value>
   </data>
-  <data name="NativeFile" xml:space="preserve">
-    <value>File</value>
-  </data>
-  <data name="NativeNew" xml:space="preserve">
-    <value>New</value>
-  </data>
-  <data name="NativeOpen" xml:space="preserve">
-    <value>Open...</value>
-  </data>
-  <data name="NativeClose" xml:space="preserve">
-    <value>Close</value>
-  </data>
-  <data name="NativeSave" xml:space="preserve">
-    <value>Save</value>
-  </data>
-  <data name="NativeSaveAs" xml:space="preserve">
-    <value>Save As...</value>
-  </data>
-  <data name="NativeExportMidi" xml:space="preserve">
-    <value>Export MIDI...</value>
-  </data>
-  <data name="NativeImportMidi" xml:space="preserve">
-    <value>Import MIDI...</value>
-  </data>
-  <data name="NativeEdit" xml:space="preserve">
-    <value>Edit</value>
-  </data>
-  <data name="NativeUndo" xml:space="preserve">
-    <value>Undo</value>
-  </data>
-  <data name="NativeRedo" xml:space="preserve">
-    <value>Redo</value>
-  </data>
-  <data name="NativeWindow" xml:space="preserve">
+  <data name="MenuWindow" xml:space="preserve">
     <value>Window</value>
   </data>
-  <data name="NativeMinimize" xml:space="preserve">
+  <data name="MenuMinimize" xml:space="preserve">
     <value>Minimize</value>
   </data>
-  <data name="NativeZoom" xml:space="preserve">
+  <data name="MenuZoom" xml:space="preserve">
     <value>Zoom</value>
-  </data>
-  <data name="NativeHelp" xml:space="preserve">
-    <value>Help</value>
-  </data>
-  <data name="NativeLicenses" xml:space="preserve">
-    <value>Open Source Licenses...</value>
   </data>
   <data name="MenuFile" xml:space="preserve">
     <value>File(_F)</value>
@@ -68,19 +29,19 @@
     <value>New(_N)</value>
   </data>
   <data name="MenuOpen" xml:space="preserve">
-    <value>Open(_O)...</value>
+    <value>Open(_O)…</value>
   </data>
   <data name="MenuSave" xml:space="preserve">
     <value>Save(_S)</value>
   </data>
   <data name="MenuSaveAs" xml:space="preserve">
-    <value>Save As(_A)...</value>
+    <value>Save As(_A)…</value>
   </data>
   <data name="MenuExportMidi" xml:space="preserve">
-    <value>Export MIDI(_E)...</value>
+    <value>Export MIDI(_E)…</value>
   </data>
   <data name="MenuImportMidi" xml:space="preserve">
-    <value>Import MIDI(_I)...</value>
+    <value>Import MIDI(_I)…</value>
   </data>
   <data name="MenuEdit" xml:space="preserve">
     <value>Edit(_E)</value>
@@ -98,7 +59,7 @@
     <value>Help(_H)</value>
   </data>
   <data name="MenuLicenses" xml:space="preserve">
-    <value>Open Source Licenses(_L)...</value>
+    <value>Open Source Licenses(_L)…</value>
   </data>
   <data name="MacServices" xml:space="preserve">
     <value>Services</value>
@@ -359,7 +320,7 @@
     <value>Other</value>
   </data>
   <data name="ChordImprove" xml:space="preserve">
-    <value>Improve Suggestions...</value>
+    <value>Improve Suggestions…</value>
   </data>
   <data name="ChordResetAuto" xml:space="preserve">
     <value>Reset to Auto-Detect</value>
@@ -492,11 +453,8 @@ Do you agree to the license and download it?</value>
   <data name="MidiExportButton" xml:space="preserve">
     <value>Export</value>
   </data>
-  <data name="NativeExportWav" xml:space="preserve">
-    <value>Export WAV...</value>
-  </data>
   <data name="MenuExportWav" xml:space="preserve">
-    <value>Export WAV(_W)...</value>
+    <value>Export WAV(_W)…</value>
   </data>
   <data name="DialogExportWav" xml:space="preserve">
     <value>Export WAV</value>
@@ -576,11 +534,8 @@ Do you agree to the license and download it?</value>
   <data name="StopExtraction" xml:space="preserve">
     <value>Stop</value>
   </data>
-  <data name="NativeSettings" xml:space="preserve">
-    <value>Settings…</value>
-  </data>
   <data name="MenuSettings" xml:space="preserve">
-    <value>Settings(_S)...</value>
+    <value>Settings(_S)…</value>
   </data>
   <data name="SettingsTitle" xml:space="preserve">
     <value>Settings</value>
@@ -660,21 +615,6 @@ Choose another file.</value>
     <value>+1 Octave</value>
   </data>
   <data name="MenuTransposeOctaveDown" xml:space="preserve">
-    <value>-1 Octave</value>
-  </data>
-  <data name="NativeTranspose" xml:space="preserve">
-    <value>Transpose</value>
-  </data>
-  <data name="NativeTransposeUp" xml:space="preserve">
-    <value>+1 Semitone</value>
-  </data>
-  <data name="NativeTransposeDown" xml:space="preserve">
-    <value>-1 Semitone</value>
-  </data>
-  <data name="NativeTransposeOctaveUp" xml:space="preserve">
-    <value>+1 Octave</value>
-  </data>
-  <data name="NativeTransposeOctaveDown" xml:space="preserve">
     <value>-1 Octave</value>
   </data>
   <data name="RecordTip" xml:space="preserve">

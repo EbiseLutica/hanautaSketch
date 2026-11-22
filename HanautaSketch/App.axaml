@@ -4,12 +4,13 @@
              x:Class="HanautaSketch.App"
              Name="hanautaSketch"
              RequestedThemeVariant="Default">
-    <!-- macOS のアプリ名メニュー。サービス・非表示・終了などは Avalonia がこの後ろに足す（App.axaml.cs で訳語に置き換える） -->
+    <!-- macOS のアプリ名メニュー。サービス・非表示・終了などは Avalonia がこの後ろに足す（App.axaml.cs で訳語に置き換える）。
+         表記は Windows の形の文字列を使い、App.axaml.cs で macOS の形（アクセスキーなし）に直す -->
     <NativeMenu.Menu>
         <NativeMenu>
             <NativeMenuItem Header="{x:Static res:Strings.AboutApp}" Click="OnAbout" />
             <NativeMenuItemSeparator />
-            <NativeMenuItem Header="{x:Static res:Strings.NativeSettings}" Click="OnSettings" Gesture="Meta+OemComma" />
+            <NativeMenuItem Header="{x:Static res:Strings.MenuSettings}" Click="OnSettings" Gesture="Meta+OemComma" />
         </NativeMenu>
     </NativeMenu.Menu>
     <Application.Styles>

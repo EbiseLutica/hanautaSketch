@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using HanautaSketch.Controls;
 using HanautaSketch.Resources;
 using HanautaSketch.Services;
 using HanautaSketch.ViewModels;
@@ -51,7 +52,8 @@ public partial class App : Application
         {
             foreach (var item in menu.Items.OfType<NativeMenuItem>())
             {
-                if (item.Header is { } header && headers.TryGetValue(header, out var ja)) item.Header = ja;
+                if (item.Header is not { } header) continue;
+                item.Header = headers.TryGetValue(header, out var localized) ? localized : XMenu.ToMacHeader(header);
             }
         }
 

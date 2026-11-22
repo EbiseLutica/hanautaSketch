@@ -29,10 +29,9 @@ public partial class MainWindow : Window
         InitializeComponent();
         PlatformKeys.Adapt(this);
 
-        // macOS は画面上端のメニューバー（NativeMenu）を使う。ショートカットもそちらが持つので、二重に効かないよう KeyBinding は外す
+        // macOS は画面上端のメニューバー（XMenu が NativeMenu にする）がショートカットも持つので、二重に効かないよう KeyBinding は外す
         if (OperatingSystem.IsMacOS())
         {
-            WindowMenu.IsVisible = false;
             KeyBindings.Clear();
         }
         else
@@ -90,7 +89,7 @@ public partial class MainWindow : Window
 
     #region 設定
 
-    private void OnShowSettingsMenuItem(object? sender, RoutedEventArgs e) => ShowSettings();
+    private void OnShowSettingsMenuItem(object? sender, EventArgs e) => ShowSettings();
 
     /// <summary>
     /// 設定画面をモーダルで開く（macOS のアプリ名メニュー、Windows のツールメニューから）。
@@ -321,15 +320,7 @@ public partial class MainWindow : Window
 
     #region ヘルプ
 
-    /// <summary>
-    /// Windows のヘルプメニューから、オープンソースライセンスを開く。
-    /// </summary>
-    private void OnShowLicensesMenuItem(object? sender, RoutedEventArgs e) => ShowLicenses();
-
-    /// <summary>
-    /// macOS のヘルプメニューから、オープンソースライセンスを開く。
-    /// </summary>
-    private void OnShowLicenses(object? sender, EventArgs e) => ShowLicenses();
+    private void OnShowLicensesMenuItem(object? sender, EventArgs e) => ShowLicenses();
 
     /// <summary>
     /// 本体（MIT）、コード候補に使ったデータの出典、配布物に含む依存パッケージ（.NET SDK を含む）のライセンスを開く。
@@ -365,7 +356,7 @@ public partial class MainWindow : Window
     /// <summary>
     /// Windows のヘルプメニューから「について」を開く。
     /// </summary>
-    private void OnShowAboutMenuItem(object? sender, RoutedEventArgs e) => ShowAbout();
+    private void OnShowAboutMenuItem(object? sender, EventArgs e) => ShowAbout();
 
     /// <summary>
     /// アプリの紹介を表示する（macOS のアプリ名メニュー、Windows のヘルプメニューから）。

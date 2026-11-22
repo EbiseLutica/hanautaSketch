@@ -98,7 +98,7 @@ public static partial class ChordCorpusParser
     #region Chordonomicon
 
     /// <summary>
-    /// Chordonomicon の CSV の1行（id,chords,...）からコード列を読む。セクション見出し（&lt;verse_1&gt;）は飛ばす。
+    /// Chordonomicon の CSV の1行（id,chords,…）からコード列を読む。セクション見出し（&lt;verse_1&gt;）は飛ばす。
     /// </summary>
     public static List<Chord> ParseChordonomiconLine(string line, IDictionary<string, int>? unknown = null)
     {

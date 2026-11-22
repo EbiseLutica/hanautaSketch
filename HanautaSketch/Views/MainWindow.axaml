@@ -23,86 +23,48 @@
         <KeyBinding Gesture="Ctrl+Shift+Up" Command="{Binding TransposeOctaveUpCommand}" />
         <KeyBinding Gesture="Ctrl+Shift+Down" Command="{Binding TransposeOctaveDownCommand}" />
     </Window.KeyBindings>
-    <NativeMenu.Menu>
-        <NativeMenu>
-            <NativeMenuItem Header="{x:Static res:Strings.NativeFile}">
-                <NativeMenu>
-                    <NativeMenuItem Header="{x:Static res:Strings.NativeNew}" Command="{Binding NewCommand}" Gesture="Meta+N" />
-                    <NativeMenuItem Header="{x:Static res:Strings.NativeOpen}" Command="{Binding OpenCommand}" Gesture="Meta+O" />
-                    <NativeMenuItemSeparator />
-                    <NativeMenuItem Header="{x:Static res:Strings.NativeClose}" Click="OnCloseWindow" Gesture="Meta+W" />
-                    <NativeMenuItem Header="{x:Static res:Strings.NativeSave}" Command="{Binding SaveCommand}" Gesture="Meta+S" />
-                    <NativeMenuItem Header="{x:Static res:Strings.NativeSaveAs}" Command="{Binding SaveAsCommand}" Gesture="Meta+Shift+S" />
-                    <NativeMenuItemSeparator />
-                    <NativeMenuItem Header="{x:Static res:Strings.NativeImportMidi}" Command="{Binding ImportMidiCommand}" />
-                    <NativeMenuItem Header="{x:Static res:Strings.NativeExportMidi}" Command="{Binding ExportMidiCommand}" Gesture="Meta+E" />
-                    <NativeMenuItem Header="{x:Static res:Strings.NativeExportWav}" Command="{Binding ExportWavCommand}" Gesture="Meta+Shift+E" />
-                </NativeMenu>
-            </NativeMenuItem>
-            <NativeMenuItem Header="{x:Static res:Strings.NativeEdit}">
-                <NativeMenu>
-                    <NativeMenuItem Header="{x:Static res:Strings.NativeUndo}" Command="{Binding UndoCommand}" Gesture="Meta+Z" />
-                    <NativeMenuItem Header="{x:Static res:Strings.NativeRedo}" Command="{Binding RedoCommand}" Gesture="Meta+Shift+Z" />
-                    <NativeMenuItemSeparator />
-                    <NativeMenuItem Header="{x:Static res:Strings.NativeTranspose}">
-                        <NativeMenu>
-                            <NativeMenuItem Header="{x:Static res:Strings.NativeTransposeUp}" Command="{Binding TransposeUpCommand}" Gesture="Meta+Up" />
-                            <NativeMenuItem Header="{x:Static res:Strings.NativeTransposeDown}" Command="{Binding TransposeDownCommand}" Gesture="Meta+Down" />
-                            <NativeMenuItemSeparator />
-                            <NativeMenuItem Header="{x:Static res:Strings.NativeTransposeOctaveUp}" Command="{Binding TransposeOctaveUpCommand}" Gesture="Meta+Shift+Up" />
-                            <NativeMenuItem Header="{x:Static res:Strings.NativeTransposeOctaveDown}" Command="{Binding TransposeOctaveDownCommand}" Gesture="Meta+Shift+Down" />
-                        </NativeMenu>
-                    </NativeMenuItem>
-                </NativeMenu>
-            </NativeMenuItem>
-            <NativeMenuItem Header="{x:Static res:Strings.NativeWindow}">
-                <NativeMenu>
-                    <NativeMenuItem Header="{x:Static res:Strings.NativeMinimize}" Click="OnMinimizeWindow" Gesture="Meta+M" />
-                    <NativeMenuItem Header="{x:Static res:Strings.NativeZoom}" Click="OnZoomWindow" />
-                </NativeMenu>
-            </NativeMenuItem>
-            <NativeMenuItem Header="{x:Static res:Strings.NativeHelp}">
-                <NativeMenu>
-                    <NativeMenuItem Header="{x:Static res:Strings.NativeLicenses}" Click="OnShowLicenses" />
-                </NativeMenu>
-            </NativeMenuItem>
-        </NativeMenu>
-    </NativeMenu.Menu>
     <DockPanel>
-        <!-- メニューバー（Windows 用。macOS では隠して上の NativeMenu を使う） -->
-        <Menu x:Name="WindowMenu" DockPanel.Dock="Top">
-            <MenuItem Header="{x:Static res:Strings.MenuFile}">
-                <MenuItem Header="{x:Static res:Strings.MenuNew}" Command="{Binding NewCommand}" InputGesture="Ctrl+N" />
-                <MenuItem Header="{x:Static res:Strings.MenuOpen}" Command="{Binding OpenCommand}" InputGesture="Ctrl+O" />
-                <Separator />
-                <MenuItem Header="{x:Static res:Strings.MenuSave}" Command="{Binding SaveCommand}" InputGesture="Ctrl+S" />
-                <MenuItem Header="{x:Static res:Strings.MenuSaveAs}" Command="{Binding SaveAsCommand}" InputGesture="Ctrl+Shift+S" />
-                <Separator />
-                <MenuItem Header="{x:Static res:Strings.MenuImportMidi}" Command="{Binding ImportMidiCommand}" />
-                <MenuItem Header="{x:Static res:Strings.MenuExportMidi}" Command="{Binding ExportMidiCommand}" InputGesture="Ctrl+E" />
-                <MenuItem Header="{x:Static res:Strings.MenuExportWav}" Command="{Binding ExportWavCommand}" InputGesture="Ctrl+Shift+E" />
-            </MenuItem>
-            <MenuItem Header="{x:Static res:Strings.MenuEdit}">
-                <MenuItem Header="{x:Static res:Strings.MenuUndo}" Command="{Binding UndoCommand}" InputGesture="Ctrl+Z" />
-                <MenuItem Header="{x:Static res:Strings.MenuRedo}" Command="{Binding RedoCommand}" InputGesture="Ctrl+Y" />
-                <Separator />
-                <MenuItem Header="{x:Static res:Strings.MenuTranspose}">
-                    <MenuItem Header="{x:Static res:Strings.MenuTransposeUp}" Command="{Binding TransposeUpCommand}" InputGesture="Ctrl+Up" />
-                    <MenuItem Header="{x:Static res:Strings.MenuTransposeDown}" Command="{Binding TransposeDownCommand}" InputGesture="Ctrl+Down" />
-                    <Separator />
-                    <MenuItem Header="{x:Static res:Strings.MenuTransposeOctaveUp}" Command="{Binding TransposeOctaveUpCommand}" InputGesture="Ctrl+Shift+Up" />
-                    <MenuItem Header="{x:Static res:Strings.MenuTransposeOctaveDown}" Command="{Binding TransposeOctaveDownCommand}" InputGesture="Ctrl+Shift+Down" />
-                </MenuItem>
-            </MenuItem>
-            <MenuItem Header="{x:Static res:Strings.MenuTools}">
-                <MenuItem Header="{x:Static res:Strings.MenuSettings}" Click="OnShowSettingsMenuItem" InputGesture="Ctrl+OemComma" />
-            </MenuItem>
-            <MenuItem Header="{x:Static res:Strings.MenuHelp}">
-                <MenuItem Header="{x:Static res:Strings.MenuLicenses}" Click="OnShowLicensesMenuItem" />
-                <Separator />
-                <MenuItem Header="{x:Static res:Strings.AboutApp}" Click="OnShowAboutMenuItem" />
-            </MenuItem>
-        </Menu>
+        <!-- メニューバー（macOS は画面上端、それ以外はここに出る。表記とショートカットは Windows の形で書く） -->
+        <c:XMenu DockPanel.Dock="Top">
+            <c:XMenuItem Header="{x:Static res:Strings.MenuFile}">
+                <c:XMenuItem Header="{x:Static res:Strings.MenuNew}" MacHeader="{x:Static res:Strings.MenuNewMac}" Command="{Binding NewCommand}" Gesture="Ctrl+N" />
+                <c:XMenuItem Header="{x:Static res:Strings.MenuOpen}" Command="{Binding OpenCommand}" Gesture="Ctrl+O" />
+                <c:XMenuSeparator />
+                <c:XMenuItem Header="{x:Static res:Strings.Close}" Click="OnCloseWindow" Gesture="Ctrl+W" Platform="MacOS" />
+                <c:XMenuItem Header="{x:Static res:Strings.MenuSave}" MacHeader="{x:Static res:Strings.MenuSaveMac}" Command="{Binding SaveCommand}" Gesture="Ctrl+S" />
+                <c:XMenuItem Header="{x:Static res:Strings.MenuSaveAs}" MacHeader="{x:Static res:Strings.MenuSaveAsMac}" Command="{Binding SaveAsCommand}" Gesture="Ctrl+Shift+S" />
+                <c:XMenuSeparator />
+                <c:XMenuItem Header="{x:Static res:Strings.MenuImportMidi}" Command="{Binding ImportMidiCommand}" />
+                <c:XMenuItem Header="{x:Static res:Strings.MenuExportMidi}" Command="{Binding ExportMidiCommand}" Gesture="Ctrl+E" />
+                <c:XMenuItem Header="{x:Static res:Strings.MenuExportWav}" Command="{Binding ExportWavCommand}" Gesture="Ctrl+Shift+E" />
+            </c:XMenuItem>
+            <c:XMenuItem Header="{x:Static res:Strings.MenuEdit}">
+                <c:XMenuItem Header="{x:Static res:Strings.MenuUndo}" MacHeader="{x:Static res:Strings.MenuUndoMac}" Command="{Binding UndoCommand}" Gesture="Ctrl+Z" />
+                <c:XMenuItem Header="{x:Static res:Strings.MenuRedo}" MacHeader="{x:Static res:Strings.MenuRedoMac}" Command="{Binding RedoCommand}" Gesture="Ctrl+Y" MacGesture="Ctrl+Shift+Z" />
+                <c:XMenuSeparator />
+                <c:XMenuItem Header="{x:Static res:Strings.MenuTranspose}">
+                    <c:XMenuItem Header="{x:Static res:Strings.MenuTransposeUp}" Command="{Binding TransposeUpCommand}" Gesture="Ctrl+Up" />
+                    <c:XMenuItem Header="{x:Static res:Strings.MenuTransposeDown}" Command="{Binding TransposeDownCommand}" Gesture="Ctrl+Down" />
+                    <c:XMenuSeparator />
+                    <c:XMenuItem Header="{x:Static res:Strings.MenuTransposeOctaveUp}" Command="{Binding TransposeOctaveUpCommand}" Gesture="Ctrl+Shift+Up" />
+                    <c:XMenuItem Header="{x:Static res:Strings.MenuTransposeOctaveDown}" Command="{Binding TransposeOctaveDownCommand}" Gesture="Ctrl+Shift+Down" />
+                </c:XMenuItem>
+            </c:XMenuItem>
+            <!-- macOS の設定はアプリ名メニュー（App.axaml）にある -->
+            <c:XMenuItem Header="{x:Static res:Strings.MenuTools}" Platform="Others">
+                <c:XMenuItem Header="{x:Static res:Strings.MenuSettings}" Click="OnShowSettingsMenuItem" Gesture="Ctrl+OemComma" />
+            </c:XMenuItem>
+            <c:XMenuItem Header="{x:Static res:Strings.MenuWindow}" Platform="MacOS">
+                <c:XMenuItem Header="{x:Static res:Strings.MenuMinimize}" Click="OnMinimizeWindow" Gesture="Ctrl+M" />
+                <c:XMenuItem Header="{x:Static res:Strings.MenuZoom}" Click="OnZoomWindow" />
+            </c:XMenuItem>
+            <c:XMenuItem Header="{x:Static res:Strings.MenuHelp}">
+                <c:XMenuItem Header="{x:Static res:Strings.MenuLicenses}" Click="OnShowLicensesMenuItem" />
+                <!-- macOS の「このアプリについて」はアプリ名メニュー（App.axaml）にある -->
+                <c:XMenuSeparator Platform="Others" />
+                <c:XMenuItem Header="{x:Static res:Strings.AboutApp}" Click="OnShowAboutMenuItem" Platform="Others" />
+            </c:XMenuItem>
+        </c:XMenu>
 
         <!-- ツールバー -->
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="8">
