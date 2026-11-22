@@ -39,6 +39,5 @@ public partial class MainWindowViewModel
 
         NotesRevision++;
         OnConductorChanged();
-        ShowToast(Strings.Format(Strings.Transposed, semitones.ToString("+0;-0"), PlatformKeys.CommandName));
     }
 }

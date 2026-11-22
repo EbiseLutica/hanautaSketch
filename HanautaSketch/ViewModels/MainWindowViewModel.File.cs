@@ -87,7 +87,6 @@ public partial class MainWindowViewModel
             var document = await ProjectSerializer.LoadAsync(stream);
             ApplyDocument(document);
             SetCurrentFile(file);
-            ShowToast(Strings.Format(Strings.FileOpened, file.Name), ToastKind.Success);
         }
         catch (Exception ex) when (ex is InvalidDataException or IOException or UnauthorizedAccessException)
         {
@@ -195,7 +194,6 @@ public partial class MainWindowViewModel
             _currentFile = null;
             IsDirty = true;
             OnPropertyChanged(nameof(WindowTitle));
-            ShowToast(Strings.Format(Strings.FileImported, file.Name), ToastKind.Success);
         }
         catch (Exception ex) when (ex is InvalidDataException or IOException or UnauthorizedAccessException)
         {

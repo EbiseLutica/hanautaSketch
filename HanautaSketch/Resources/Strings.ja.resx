@@ -184,9 +184,6 @@
   <data name="Untitled" xml:space="preserve">
     <value>無題</value>
   </data>
-  <data name="NewSong" xml:space="preserve">
-    <value>新しい曲</value>
-  </data>
   <data name="TrackInstrument" xml:space="preserve">
     <value>音色</value>
   </data>
@@ -552,9 +549,6 @@ https://huggingface.co/datasets/ailsntua/Chordonomicon
   <data name="ErrorInvalidMidi" xml:space="preserve">
     <value>対応している Standard MIDI File ではありません。</value>
   </data>
-  <data name="FileOpened" xml:space="preserve">
-    <value>{0} を開きました。</value>
-  </data>
   <data name="FileOpenFailed" xml:space="preserve">
     <value>ファイルを開けませんでした。（{0}）</value>
   </data>
@@ -569,9 +563,6 @@ https://huggingface.co/datasets/ailsntua/Chordonomicon
   </data>
   <data name="FileExportFailed" xml:space="preserve">
     <value>ファイルを書き出せませんでした。（{0}）</value>
-  </data>
-  <data name="FileImported" xml:space="preserve">
-    <value>{0} を読み込みました。</value>
   </data>
   <data name="FileImportFailed" xml:space="preserve">
     <value>ファイルを読み込めませんでした。（{0}）</value>
@@ -652,9 +643,6 @@ https://huggingface.co/datasets/ailsntua/Chordonomicon
   </data>
   <data name="ChordDataRemove" xml:space="preserve">
     <value>削除</value>
-  </data>
-  <data name="Transposed" xml:space="preserve">
-    <value>{0} トランスポーズしました。（{1}+Z で元に戻せます）</value>
   </data>
   <data name="TransposeOutOfRange" xml:space="preserve">
     <value>その方向にトランスポーズすると、一部のノートが音域（0〜127）を超えます！</value>

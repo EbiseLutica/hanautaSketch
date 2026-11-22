@@ -42,7 +42,6 @@ public static class Strings
     public static string MenuEdit => Get(nameof(MenuEdit));
     public static string MenuUndo => Get(nameof(MenuUndo));
     public static string MenuRedo => Get(nameof(MenuRedo));
-    public static string Transposed => Get(nameof(Transposed));
     public static string TransposeOutOfRange => Get(nameof(TransposeOutOfRange));
     public static string MenuTranspose => Get(nameof(MenuTranspose));
     public static string MenuTransposeUp => Get(nameof(MenuTransposeUp));
@@ -85,7 +84,6 @@ public static class Strings
     public static string DefaultTrackChord => Get(nameof(DefaultTrackChord));
     public static string DefaultTrackDrums => Get(nameof(DefaultTrackDrums));
     public static string Untitled => Get(nameof(Untitled));
-    public static string NewSong => Get(nameof(NewSong));
     public static string TrackInstrument => Get(nameof(TrackInstrument));
     public static string TrackDrumKit => Get(nameof(TrackDrumKit));
     public static string TrackVolume => Get(nameof(TrackVolume));
@@ -205,13 +203,11 @@ public static class Strings
     public static string AudioDeviceOpenFailed => Get(nameof(AudioDeviceOpenFailed));
     public static string ErrorInvalidProject => Get(nameof(ErrorInvalidProject));
     public static string ErrorInvalidMidi => Get(nameof(ErrorInvalidMidi));
-    public static string FileOpened => Get(nameof(FileOpened));
     public static string FileOpenFailed => Get(nameof(FileOpenFailed));
     public static string FileSaved => Get(nameof(FileSaved));
     public static string FileSaveFailed => Get(nameof(FileSaveFailed));
     public static string FileExported => Get(nameof(FileExported));
     public static string FileExportFailed => Get(nameof(FileExportFailed));
-    public static string FileImported => Get(nameof(FileImported));
     public static string FileImportFailed => Get(nameof(FileImportFailed));
     public static string TrackDeleted => Get(nameof(TrackDeleted));
     public static string DataSourceEntry => Get(nameof(DataSourceEntry));
@@ -270,7 +266,7 @@ public static class Strings
     public static string RecordingSaveFailed => Get(nameof(RecordingSaveFailed));
 
     /// <summary>書式付きの文字列（{0} など）を、現在の文化情報で埋める</summary>
-    public static string Format(string format, params object[] args) =>
+    public static string Format(string format, params ReadOnlySpan<object?> args) =>
         string.Format(CultureInfo.CurrentCulture, format, args);
 
     private static string Get(string name) => ResourceManager.GetString(name, CultureInfo.CurrentUICulture) ?? name;

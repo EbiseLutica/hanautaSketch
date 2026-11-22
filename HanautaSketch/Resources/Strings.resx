@@ -184,9 +184,6 @@
   <data name="Untitled" xml:space="preserve">
     <value>Untitled</value>
   </data>
-  <data name="NewSong" xml:space="preserve">
-    <value>New song</value>
-  </data>
   <data name="TrackInstrument" xml:space="preserve">
     <value>Instrument</value>
   </data>
@@ -552,9 +549,6 @@ Do you agree to the license and download it?</value>
   <data name="ErrorInvalidMidi" xml:space="preserve">
     <value>The file is not a supported Standard MIDI File.</value>
   </data>
-  <data name="FileOpened" xml:space="preserve">
-    <value>Opened {0}.</value>
-  </data>
   <data name="FileOpenFailed" xml:space="preserve">
     <value>Could not open the file. ({0})</value>
   </data>
@@ -569,9 +563,6 @@ Do you agree to the license and download it?</value>
   </data>
   <data name="FileExportFailed" xml:space="preserve">
     <value>Could not export the file. ({0})</value>
-  </data>
-  <data name="FileImported" xml:space="preserve">
-    <value>Imported {0}.</value>
   </data>
   <data name="FileImportFailed" xml:space="preserve">
     <value>Could not import the file. ({0})</value>
@@ -652,9 +643,6 @@ Choose another file.</value>
   </data>
   <data name="ChordDataRemove" xml:space="preserve">
     <value>Delete</value>
-  </data>
-  <data name="Transposed" xml:space="preserve">
-    <value>Transposed by {0}. ({1}+Z to undo)</value>
   </data>
   <data name="TransposeOutOfRange" xml:space="preserve">
     <value>Transposing in that direction would push some notes outside the range (0–127)!</value>

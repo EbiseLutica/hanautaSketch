@@ -223,6 +223,5 @@ public partial class MainWindowViewModel
         ClearHistory();
         NotesRevision++;
         RegenerateSmartTracks();
-        ShowToast(Strings.NewSong);
     }
 }
