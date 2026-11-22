@@ -50,6 +50,8 @@
   - Chordonomicon（CC BY-NC 4.0）は同梱しない。利用者が設定画面からライセンスに同意したときだけ、アプリが裏で取得（リビジョン固定）・集計し、表だけを `%APPDATA%\hanautaSketch\chord-transitions-extended.json` に保存する（`ChordDataStore`）。元の CSV は保存しない
   - 出典はヘルプメニューと THIRD_PARTIES.md に書いている（リポジトリ自体は MIT、フィクスチャはパブリックドメイン）。依存パッケージを足したら THIRD_PARTIES.md にも追記する
 - 判別アルゴリズムの回帰テストは `HanautaSketch.Tests/Fixtures/*.hsk` と MML 風の期待値（`ChordFixtureTests`）で行う
+  - 期待値は区切りと自信のあるコードだけ固定し、どちらとも取れる区間は `?` にする。改善で望む答えが出たら書き換えて締める
+  - 調整に関係なく成り立つ約束事（曲を隙間なく覆う・override がそのまま出る・区間の最大長で覆えない状況がない）は、全フィクスチャに対して `ChordInvariantFixtureTests` で確かめる。こちらが落ちたらバグ
 - テンポ・拍子・キーの変化は `Song.Conductor` が持つ（SMF のコンダクタートラック相当）。テンポとキーは tick、拍子は小節番号で変更点を持ち、どれも曲頭に必ず1つある。拍子は n/4 のみ
   - 小節と tick の変換（`BarAt` / `BarToTick` / `PositionInBar` など）、tick と秒の変換（`TickToSeconds` / `SecondsToTick`）は `Conductor` 経由で行い、小節長を固定値で計算しない
   - コード判別はキーの区間（`KeyRegions`）ごとに、その区間のキーで行う

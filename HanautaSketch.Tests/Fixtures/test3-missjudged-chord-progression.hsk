@@ -1,0 +1,344 @@
+{
+  "version": "0.7",
+  "song": {
+    "ppq": 480,
+    "tempos": [
+      {
+        "tick": 0,
+        "bpm": 120
+      }
+    ],
+    "meters": [
+      {
+        "bar": 0,
+        "beatsPerBar": 1
+      },
+      {
+        "bar": 1,
+        "beatsPerBar": 4
+      }
+    ],
+    "keys": [
+      {
+        "tick": 0,
+        "tonic": 9,
+        "mode": "major"
+      }
+    ],
+    "tracks": [
+      {
+        "type": "note",
+        "name": "\u30E1\u30ED\u30C7\u30A3",
+        "program": 0,
+        "volume": 100,
+        "notes": [
+          {
+            "tick": 0,
+            "length": 240,
+            "pitch": 69,
+            "velocity": 100
+          },
+          {
+            "tick": 240,
+            "length": 240,
+            "pitch": 71,
+            "velocity": 100
+          },
+          {
+            "tick": 480,
+            "length": 240,
+            "pitch": 73,
+            "velocity": 100
+          },
+          {
+            "tick": 960,
+            "length": 240,
+            "pitch": 73,
+            "velocity": 100
+          },
+          {
+            "tick": 1200,
+            "length": 240,
+            "pitch": 74,
+            "velocity": 100
+          },
+          {
+            "tick": 1440,
+            "length": 240,
+            "pitch": 76,
+            "velocity": 100
+          },
+          {
+            "tick": 1920,
+            "length": 240,
+            "pitch": 78,
+            "velocity": 100
+          },
+          {
+            "tick": 2160,
+            "length": 240,
+            "pitch": 80,
+            "velocity": 100
+          },
+          {
+            "tick": 2400,
+            "length": 240,
+            "pitch": 81,
+            "velocity": 100
+          },
+          {
+            "tick": 2640,
+            "length": 240,
+            "pitch": 80,
+            "velocity": 100
+          },
+          {
+            "tick": 2880,
+            "length": 240,
+            "pitch": 76,
+            "velocity": 100
+          },
+          {
+            "tick": 3120,
+            "length": 240,
+            "pitch": 78,
+            "velocity": 100
+          },
+          {
+            "tick": 3360,
+            "length": 240,
+            "pitch": 73,
+            "velocity": 100
+          },
+          {
+            "tick": 3840,
+            "length": 240,
+            "pitch": 74,
+            "velocity": 100
+          },
+          {
+            "tick": 4080,
+            "length": 240,
+            "pitch": 76,
+            "velocity": 100
+          },
+          {
+            "tick": 4320,
+            "length": 240,
+            "pitch": 78,
+            "velocity": 100
+          },
+          {
+            "tick": 4800,
+            "length": 240,
+            "pitch": 78,
+            "velocity": 100
+          },
+          {
+            "tick": 5040,
+            "length": 240,
+            "pitch": 80,
+            "velocity": 100
+          },
+          {
+            "tick": 5280,
+            "length": 240,
+            "pitch": 76,
+            "velocity": 100
+          },
+          {
+            "tick": 5760,
+            "length": 240,
+            "pitch": 69,
+            "velocity": 100
+          },
+          {
+            "tick": 6000,
+            "length": 240,
+            "pitch": 74,
+            "velocity": 100
+          },
+          {
+            "tick": 6240,
+            "length": 240,
+            "pitch": 73,
+            "velocity": 100
+          },
+          {
+            "tick": 6480,
+            "length": 240,
+            "pitch": 71,
+            "velocity": 100
+          },
+          {
+            "tick": 6720,
+            "length": 240,
+            "pitch": 71,
+            "velocity": 100
+          },
+          {
+            "tick": 6960,
+            "length": 240,
+            "pitch": 69,
+            "velocity": 100
+          },
+          {
+            "tick": 7200,
+            "length": 240,
+            "pitch": 71,
+            "velocity": 100
+          },
+          {
+            "tick": 7680,
+            "length": 240,
+            "pitch": 73,
+            "velocity": 100
+          },
+          {
+            "tick": 7920,
+            "length": 240,
+            "pitch": 74,
+            "velocity": 100
+          },
+          {
+            "tick": 8160,
+            "length": 240,
+            "pitch": 69,
+            "velocity": 100
+          }
+        ]
+      },
+      {
+        "type": "note",
+        "name": "\u30D9\u30FC\u30B9",
+        "program": 33,
+        "volume": 100,
+        "notes": [
+          {
+            "tick": 480,
+            "length": 240,
+            "pitch": 45,
+            "velocity": 100
+          },
+          {
+            "tick": 960,
+            "length": 240,
+            "pitch": 45,
+            "velocity": 100
+          },
+          {
+            "tick": 1440,
+            "length": 240,
+            "pitch": 44,
+            "velocity": 100
+          },
+          {
+            "tick": 1920,
+            "length": 240,
+            "pitch": 44,
+            "velocity": 100
+          },
+          {
+            "tick": 2400,
+            "length": 240,
+            "pitch": 42,
+            "velocity": 100
+          },
+          {
+            "tick": 2880,
+            "length": 240,
+            "pitch": 42,
+            "velocity": 100
+          },
+          {
+            "tick": 3360,
+            "length": 240,
+            "pitch": 40,
+            "velocity": 100
+          },
+          {
+            "tick": 3840,
+            "length": 240,
+            "pitch": 40,
+            "velocity": 100
+          },
+          {
+            "tick": 4320,
+            "length": 240,
+            "pitch": 38,
+            "velocity": 100
+          },
+          {
+            "tick": 4800,
+            "length": 240,
+            "pitch": 38,
+            "velocity": 100
+          },
+          {
+            "tick": 5280,
+            "length": 240,
+            "pitch": 37,
+            "velocity": 100
+          },
+          {
+            "tick": 5760,
+            "length": 240,
+            "pitch": 37,
+            "velocity": 100
+          },
+          {
+            "tick": 6240,
+            "length": 240,
+            "pitch": 35,
+            "velocity": 100
+          },
+          {
+            "tick": 6720,
+            "length": 240,
+            "pitch": 35,
+            "velocity": 100
+          },
+          {
+            "tick": 7200,
+            "length": 240,
+            "pitch": 40,
+            "velocity": 100
+          },
+          {
+            "tick": 7680,
+            "length": 240,
+            "pitch": 40,
+            "velocity": 100
+          },
+          {
+            "tick": 8160,
+            "length": 240,
+            "pitch": 33,
+            "velocity": 100
+          }
+        ]
+      },
+      {
+        "type": "smartChord",
+        "name": "\u30B3\u30FC\u30C9 1",
+        "program": 0,
+        "volume": 100,
+        "bassSource": 1,
+        "melodySource": 0,
+        "minorDominant": "minor",
+        "pattern": "sustain",
+        "divisionTicks": 0,
+        "velocity": 80,
+        "overrides": [
+          {
+            "start": 0,
+            "length": 480,
+            "noChord": true,
+            "root": 0,
+            "quality": "major"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -91,7 +91,21 @@ public static class ChordDetector
         int endTick,
         ChordDetectionContext context,
         SmartChordSettings settings,
-        IReadOnlyList<ChordOverride> overrides)
+        IReadOnlyList<ChordOverride> overrides) =>
+        Detect(bass, melody, endTick, context, settings, overrides, strict: false);
+
+    /// <summary>
+    /// <paramref name="strict"/> が false なら、区間の最大長の制限で曲を覆えないとき制限を外して解き直す。
+    /// true なら例外にする（テストで、制限で覆えない状況を見落とさないため）。
+    /// </summary>
+    internal static IReadOnlyList<ChordSegment> Detect(
+        IReadOnlyList<Note> bass,
+        IReadOnlyList<Note> melody,
+        int endTick,
+        ChordDetectionContext context,
+        SmartChordSettings settings,
+        IReadOnlyList<ChordOverride> overrides,
+        bool strict)
     {
         if (endTick <= 0) return [];
 
@@ -107,7 +121,15 @@ public static class ChordDetector
                 .Select(o => o with { Start = Math.Max(o.Start, start), Length = Math.Min(o.End, end) - Math.Max(o.Start, start) })
                 .ToList();
             var problem = new Problem(bass, melody, start, end, key, context.Conductor, settings, regionOverrides);
-            result.AddRange(BuildResult(problem.Solve(), bass, context.Conductor));
+            var path = problem.Solve(limitLength: true);
+            if (path is null)
+            {
+                if (strict)
+                    throw new InvalidOperationException($"No chord path covers [{start}, {end}) within the maximum segment length.");
+                path = problem.Solve(limitLength: false)
+                    ?? throw new InvalidOperationException($"No chord path covers [{start}, {end}).");
+            }
+            result.AddRange(BuildResult(path, bass, context.Conductor));
         }
         return result;
     }
@@ -174,7 +196,10 @@ public static class ChordDetector
 
             var unit = settings.BoundaryUnitTicks > 0 ? settings.BoundaryUnitTicks : _ppq;
             _minLength = settings.MinSegmentTicks > 0 ? settings.MinSegmentTicks : _ppq / 2;
-            _maxLength = settings.MaxSegmentTicks > 0 ? settings.MaxSegmentTicks : conductor.TicksPerBarAt(startTick) * 2;
+            // 既定は2小節。区間内で一番長い小節で測る（曲頭のアウフタクトなど、短い小節を基準にすると曲を覆えなくなる）
+            _maxLength = settings.MaxSegmentTicks > 0
+                ? settings.MaxSegmentTicks
+                : conductor.BarStarts(startTick, endTick).Append(startTick).Max(conductor.TicksPerBarAt) * 2;
 
             // 区切り候補位置: 小節頭＋リズム的に区切れやすい位置（グリッド・ベースの発音位置から選ぶ）＋オーバーライド境界。
             // オーバーライド内部は除く
@@ -196,7 +221,11 @@ public static class ChordDetector
             _positions = positions.Where(p => !overrides.Any(o => o.Start < p && p < o.End)).ToArray();
         }
 
-        public List<PathSegment> Solve()
+        /// <summary>
+        /// 最良の経路を返す。曲を覆う経路がなければ null。
+        /// </summary>
+        /// <param name="limitLength">区間の最大長の制限をかけるか</param>
+        public List<PathSegment>? Solve(bool limitLength)
         {
             var p = _positions.Length;
             var c = _chords.Count;
@@ -218,7 +247,7 @@ public static class ChordDetector
                     {
                         // オーバーライドをまたぐ区間は不可。i を戻すほど長くなるので打ち切る
                         if (_overrides.Any(o => o.Start < end && start < o.End)) break;
-                        if (end - start > _maxLength) break;
+                        if (limitLength && end - start > _maxLength) break;
                         if (end - start < _minLength && !AllowsShortSegment(i, j)) continue;
                     }
 
@@ -290,7 +319,7 @@ public static class ChordDetector
         private double TransitionScore(Chord? from, Chord? to) =>
             to is { } next ? ChordTransitions.Score(_key, from, next) : 0;
 
-        private List<PathSegment> Backtrack(double[,] dp, (int Pos, int Chord)[,] back)
+        private List<PathSegment>? Backtrack(double[,] dp, (int Pos, int Chord)[,] back)
         {
             var last = _positions.Length - 1;
             var bestChord = 0;
@@ -298,6 +327,7 @@ public static class ChordDetector
             {
                 if (dp[last, k] > dp[last, bestChord]) bestChord = k;
             }
+            if (double.IsNegativeInfinity(dp[last, bestChord])) return null;
 
             var path = new List<PathSegment>();
             var (j, chord) = (last, bestChord);

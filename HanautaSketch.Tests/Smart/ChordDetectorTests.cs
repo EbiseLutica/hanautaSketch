@@ -251,6 +251,63 @@ public class ChordDetectorTests
         Assert.Equal(["C/E"], Names(Detect(bass, CMajor)));
     }
 
+    /// <summary>
+    /// 区切り候補が小節頭しかないベース（各小節の頭に4分音符を1つ）を、firstBar 小節目から並べる。
+    /// </summary>
+    private static List<Note> BarHeadQuarterBass(Conductor conductor, int firstBar, params int[] pitches) =>
+        pitches.Select((p, i) => new Note(conductor.BarToTick(firstBar + i), Ppq, p, 100)).ToList();
+
+    [Fact]
+    public void PickupBar_DoesNotLimitSegmentLengthOfFollowingBars()
+    {
+        // 1拍のアウフタクト（N.C.）のあと 4/4。小節の途中に区切り候補がなく、1小節の区間が要る
+        var conductor = new Conductor(Ppq);
+        conductor.SetMeter(0, 1);
+        conductor.SetMeter(1, 4);
+        var context = new ChordDetectionContext(conductor);
+        var bass = BarHeadQuarterBass(conductor, 1, 48, 53, 55, 48);
+        var endTick = conductor.BarToTick(5);
+        List<ChordOverride> overrides = [new(0, Ppq, null)];
+
+        var result = ChordDetector.Detect(bass, [], endTick, context, new SmartChordSettings(), overrides, strict: true);
+
+        ChordInvariants.AssertValid(result, endTick, overrides);
+        Assert.Equal(["N.C.", "C", "F", "G", "C"], Names(result, context));
+    }
+
+    [Fact]
+    public void KeyRegion_StartingAtShortBar_CoversFollowingBars()
+    {
+        // 4/4 の C major のあと、1拍の小節から G major の 4/4
+        var conductor = new Conductor(Ppq);
+        conductor.SetMeter(1, 1);
+        conductor.SetMeter(2, 4);
+        conductor.SetKey(conductor.BarToTick(1), new Key(7, Mode.Major));
+        var context = new ChordDetectionContext(conductor);
+        var bass = BarHeadQuarterBass(conductor, 0, 48, 55, 48, 50);
+        var endTick = conductor.BarToTick(4);
+
+        var result = ChordDetector.Detect(bass, [], endTick, context, new SmartChordSettings(), [], strict: true);
+
+        ChordInvariants.AssertValid(result, endTick, []);
+        Assert.Equal(["C", "G", "C", "D"], Names(result, context));
+    }
+
+    [Fact]
+    public void SegmentLimitThatCannotCoverSong_FallsBackOutsideStrictMode()
+    {
+        // 最大長の設定で覆えない曲でも、通常の判別は制限を外して結果を返す
+        var bass = WholeNoteBass(48, 53);
+        var settings = new SmartChordSettings { MaxSegmentTicks = Ppq };
+
+        var result = Detect(bass, CMajor, settings);
+
+        ChordInvariants.AssertValid(result, Bar * 2, []);
+        Assert.Equal(["C", "F"], Names(result));
+        Assert.Throws<InvalidOperationException>(() =>
+            ChordDetector.Detect(bass, [], Bar * 2, CMajor, settings, [], strict: true));
+    }
+
     [Theory]
     [InlineData(0, Mode.Minor, 8, "Ab")]
     [InlineData(0, Mode.Major, 8, "G#")]
