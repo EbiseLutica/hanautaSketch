@@ -5,7 +5,8 @@
   App.axaml からこのファイルだけを StyleInclude する（FluentTheme はここで読み込む）。
 -->
 <Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ic="using:FluentIcons.Avalonia">
 
     <!-- Fluent の基本パレットを Lutica の面と文字に差し替える -->
     <FluentTheme>
@@ -503,6 +504,102 @@
                 <Style Selector="^:checked /template/ Button:pressed"><Setter Property="Background" Value="{DynamicResource LuPrimaryBgPressedBrush}" /></Style>
                 <Style Selector="^.record:checked /template/ Button:pointerover"><Setter Property="Background" Value="{DynamicResource LuDangerBgHoverBrush}" /></Style>
                 <Style Selector="^.record:checked /template/ Button:pressed"><Setter Property="Background" Value="{DynamicResource LuDangerBgPressedBrush}" /></Style>
+            </ControlTheme>
+
+            <!--
+              トースト（WindowNotificationManager のカード）：panel-raised の面に種類のアイコンと文を並べる。
+              出るときは右から滑り込み、閉じるときはフェードアウトしてから高さを畳む。
+              中身は文字列（ToastService が渡す）。
+            -->
+            <ControlTheme x:Key="{x:Type NotificationCard}" TargetType="NotificationCard">
+                <Setter Property="UseLayoutRounding" Value="True" />
+                <Setter Property="Width" Value="320" />
+                <Setter Property="Foreground" Value="{DynamicResource LuForegroundBrush}" />
+                <Setter Property="Background" Value="{DynamicResource LuPanelRaisedBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource LuDividerBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="{DynamicResource LuRadiusMd}" />
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="Template">
+                    <ControlTemplate>
+                        <LayoutTransformControl Name="PART_LayoutTransformControl" UseRenderTransform="True"
+                                                RenderTransformOrigin="50%,0%">
+                            <Border Name="PART_Root" Margin="0,6,0,0"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="{TemplateBinding CornerRadius}"
+                                    BoxShadow="{DynamicResource LuShadowMd}"
+                                    Padding="12,10">
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                    <ic:FluentIcon Name="PART_Icon" Icon="Info" IconVariant="Filled" FontSize="20"
+                                                   VerticalAlignment="Top" Foreground="{DynamicResource LuDimmedBrush}" />
+                                    <ContentPresenter Grid.Column="1" Content="{TemplateBinding Content}"
+                                                      VerticalAlignment="Center">
+                                        <ContentPresenter.ContentTemplate>
+                                            <DataTemplate x:DataType="x:String">
+                                                <TextBlock Text="{Binding}" TextWrapping="Wrap" MaxHeight="120"
+                                                           TextTrimming="CharacterEllipsis" />
+                                            </DataTemplate>
+                                        </ContentPresenter.ContentTemplate>
+                                    </ContentPresenter>
+                                </Grid>
+                            </Border>
+                        </LayoutTransformControl>
+                    </ControlTemplate>
+                </Setter>
+
+                <ControlTheme.Animations>
+                    <Animation Duration="0:0:0.3" Easing="CubicEaseOut" FillMode="Forward">
+                        <KeyFrame Cue="0%">
+                            <Setter Property="Opacity" Value="0" />
+                            <Setter Property="TranslateTransform.X" Value="340" />
+                        </KeyFrame>
+                        <KeyFrame Cue="100%">
+                            <Setter Property="Opacity" Value="1" />
+                            <Setter Property="TranslateTransform.X" Value="0" />
+                        </KeyFrame>
+                    </Animation>
+                </ControlTheme.Animations>
+
+                <!-- 閉じる：フェードアウトしてから高さを畳み、残りのトーストを詰める。終わったら IsClosed で取り除かれる -->
+                <Style Selector="^[IsClosing=true] /template/ Border#PART_Root">
+                    <Style.Animations>
+                        <Animation Duration="0:0:0.4" Easing="QuadraticEaseOut" FillMode="Forward">
+                            <KeyFrame Cue="0%"><Setter Property="Opacity" Value="1" /></KeyFrame>
+                            <KeyFrame Cue="100%"><Setter Property="Opacity" Value="0" /></KeyFrame>
+                        </Animation>
+                    </Style.Animations>
+                </Style>
+                <Style Selector="^[IsClosing=true] /template/ LayoutTransformControl#PART_LayoutTransformControl">
+                    <Style.Animations>
+                        <Animation Duration="0:0:0.6" Easing="QuadraticEaseOut" FillMode="Forward">
+                            <KeyFrame Cue="0%"><Setter Property="ScaleTransform.ScaleY" Value="1" /></KeyFrame>
+                            <KeyFrame Cue="67%"><Setter Property="ScaleTransform.ScaleY" Value="1" /></KeyFrame>
+                            <KeyFrame Cue="100%"><Setter Property="ScaleTransform.ScaleY" Value="0" /></KeyFrame>
+                        </Animation>
+                    </Style.Animations>
+                </Style>
+                <Style Selector="^[IsClosing=true]">
+                    <Style.Animations>
+                        <Animation Duration="0:0:0.6" FillMode="Forward">
+                            <KeyFrame Cue="100%"><Setter Property="IsClosed" Value="True" /></KeyFrame>
+                        </Animation>
+                    </Style.Animations>
+                </Style>
+
+                <Style Selector="^:success /template/ ic|FluentIcon#PART_Icon">
+                    <Setter Property="Icon" Value="CheckmarkCircle" />
+                    <Setter Property="Foreground" Value="{DynamicResource LuSuccessBrush}" />
+                </Style>
+                <Style Selector="^:warning /template/ ic|FluentIcon#PART_Icon">
+                    <Setter Property="Icon" Value="Warning" />
+                    <Setter Property="Foreground" Value="{DynamicResource LuWarningBrush}" />
+                </Style>
+                <Style Selector="^:error /template/ ic|FluentIcon#PART_Icon">
+                    <Setter Property="Icon" Value="ErrorCircle" />
+                    <Setter Property="Foreground" Value="{DynamicResource LuDangerBrush}" />
+                </Style>
             </ControlTheme>
         </ResourceDictionary>
     </Styles.Resources>

@@ -28,8 +28,11 @@ public partial class MainWindowViewModel
     [ObservableProperty]
     private bool _isDirty;
 
-    [ObservableProperty]
-    private string _message = "";
+    /// <summary>View 側から設定するトースト</summary>
+    public IToastService? Toasts { get; set; }
+
+    /// <summary>操作の結果やエラーをトーストで知らせる</summary>
+    public void ShowToast(string message, ToastKind kind = ToastKind.Info) => Toasts?.Show(message, kind);
 
     public string WindowTitle => $"{(IsDirty ? "*" : "")}{_currentFile?.Name ?? UntitledName} - {AppName}";
 
@@ -84,11 +87,11 @@ public partial class MainWindowViewModel
             var document = await ProjectSerializer.LoadAsync(stream);
             ApplyDocument(document);
             SetCurrentFile(file);
-            Message = Strings.Format(Strings.FileOpened, file.Name);
+            ShowToast(Strings.Format(Strings.FileOpened, file.Name), ToastKind.Success);
         }
         catch (Exception ex) when (ex is InvalidDataException or IOException or UnauthorizedAccessException)
         {
-            Message = Strings.Format(Strings.FileOpenFailed, ErrorDetail(ex));
+            ShowToast(Strings.Format(Strings.FileOpenFailed, ErrorDetail(ex)), ToastKind.Error);
         }
     }
 
@@ -129,11 +132,11 @@ public partial class MainWindowViewModel
             }
 
             SetCurrentFile(file);
-            Message = Strings.Format(Strings.FileSaved, file.Name);
+            ShowToast(Strings.Format(Strings.FileSaved, file.Name), ToastKind.Success);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            Message = Strings.Format(Strings.FileSaveFailed, ErrorDetail(ex));
+            ShowToast(Strings.Format(Strings.FileSaveFailed, ErrorDetail(ex)), ToastKind.Error);
         }
     }
 
@@ -163,11 +166,11 @@ public partial class MainWindowViewModel
                 MidiExporter.Export(Song, stream, options);
                 if (stream.CanSeek) stream.SetLength(stream.Position);
             }
-            Message = Strings.Format(Strings.FileExported, file.Name);
+            ShowToast(Strings.Format(Strings.FileExported, file.Name), ToastKind.Success);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            Message = Strings.Format(Strings.FileExportFailed, ErrorDetail(ex));
+            ShowToast(Strings.Format(Strings.FileExportFailed, ErrorDetail(ex)), ToastKind.Error);
         }
     }
 
@@ -192,11 +195,11 @@ public partial class MainWindowViewModel
             _currentFile = null;
             IsDirty = true;
             OnPropertyChanged(nameof(WindowTitle));
-            Message = Strings.Format(Strings.FileImported, file.Name);
+            ShowToast(Strings.Format(Strings.FileImported, file.Name), ToastKind.Success);
         }
         catch (Exception ex) when (ex is InvalidDataException or IOException or UnauthorizedAccessException)
         {
-            Message = Strings.Format(Strings.FileImportFailed, ErrorDetail(ex, Strings.ErrorInvalidMidi));
+            ShowToast(Strings.Format(Strings.FileImportFailed, ErrorDetail(ex, Strings.ErrorInvalidMidi)), ToastKind.Error);
         }
     }
 
@@ -227,7 +230,7 @@ public partial class MainWindowViewModel
             var export = WavExporter.Prepare(Song, soundFont, options);
             if (!export.FitsInWav)
             {
-                Message = Strings.Format(Strings.FileExportFailed, Strings.WavExportTooLong);
+                ShowToast(Strings.Format(Strings.FileExportFailed, Strings.WavExportTooLong), ToastKind.Error);
                 return;
             }
 
@@ -239,11 +242,11 @@ public partial class MainWindowViewModel
                 await Task.Run(() => export.WriteTo(stream));
                 if (stream.CanSeek) stream.SetLength(stream.Position);
             }
-            Message = Strings.Format(Strings.FileExported, file.Name);
+            ShowToast(Strings.Format(Strings.FileExported, file.Name), ToastKind.Success);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            Message = Strings.Format(Strings.FileExportFailed, ErrorDetail(ex));
+            ShowToast(Strings.Format(Strings.FileExportFailed, ErrorDetail(ex)), ToastKind.Error);
 
             // 開けなかったときは何も書いていないので、既存のファイルを消さない
             if (opened) await DeleteQuietlyAsync(file);

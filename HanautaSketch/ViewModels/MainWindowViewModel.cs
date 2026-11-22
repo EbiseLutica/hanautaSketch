@@ -227,7 +227,7 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         OnEditCompleted();
 
         SelectedTrack = Tracks.Count > 0 ? Tracks[Math.Clamp(index - 1, 0, Tracks.Count - 1)] : null;
-        Message = Strings.Format(Strings.TrackDeleted, track.Name, PlatformKeys.CommandName);
+        ShowToast(Strings.Format(Strings.TrackDeleted, track.Name, PlatformKeys.CommandName));
         MarkDirty();
         RegenerateSmartTracks();
     }

@@ -223,6 +223,6 @@ public partial class MainWindowViewModel
         ClearHistory();
         NotesRevision++;
         RegenerateSmartTracks();
-        Message = Strings.NewSong;
+        ShowToast(Strings.NewSong);
     }
 }

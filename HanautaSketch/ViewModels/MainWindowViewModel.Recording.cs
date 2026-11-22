@@ -239,7 +239,7 @@ public partial class MainWindowViewModel
         if (_audio is null || IsTranscribing) return;
         if (SelectedTrack is not NoteTrack track)
         {
-            Message = Strings.RecordingNeedsNoteTrack;
+            ShowToast(Strings.RecordingNeedsNoteTrack, ToastKind.Warning);
             return;
         }
 
@@ -251,7 +251,7 @@ public partial class MainWindowViewModel
         }
         catch (Exception ex)
         {
-            Message = Strings.Format(Strings.RecordingStartFailed, ErrorDetail(ex));
+            ShowToast(Strings.Format(Strings.RecordingStartFailed, ErrorDetail(ex)), ToastKind.Error);
             return;
         }
 
@@ -281,7 +281,6 @@ public partial class MainWindowViewModel
 
         IsRecording = true;
         IsPlaying = true;
-        Message = Strings.RecordingInProgress;
         _playheadTimer?.Start();
     }
 
@@ -326,7 +325,7 @@ public partial class MainWindowViewModel
         if (stopTick <= startTick)
         {
             RecordingLevelsDisplay = null;
-            Message = Strings.RecordingCancelled;
+            ShowToast(Strings.RecordingCancelled);
             return;
         }
 
@@ -347,7 +346,6 @@ public partial class MainWindowViewModel
     private async Task TranscribeAndApplyAsync(RecordingTake take, NoteTrack track)
     {
         IsTranscribing = true;
-        Message = Strings.Transcribing;
         IReadOnlyList<Note> notes;
         try
         {
@@ -356,7 +354,7 @@ public partial class MainWindowViewModel
         }
         catch (Exception ex)
         {
-            Message = Strings.Format(Strings.TranscriptionFailed, ErrorDetail(ex));
+            ShowToast(Strings.Format(Strings.TranscriptionFailed, ErrorDetail(ex)), ToastKind.Error);
             return;
         }
         finally
@@ -367,14 +365,14 @@ public partial class MainWindowViewModel
 
         if (!Song.Tracks.Contains(track))
         {
-            Message = Strings.TranscriptionTrackRemoved;
+            ShowToast(Strings.TranscriptionTrackRemoved, ToastKind.Warning);
             return;
         }
 
         // 声が取れなかった（マイクが無音など）ときは、元のノーツを残す
         if (notes.Count == 0)
         {
-            Message = Strings.TranscriptionNoNotes;
+            ShowToast(Strings.TranscriptionNoNotes, ToastKind.Warning);
             return;
         }
 
@@ -389,7 +387,7 @@ public partial class MainWindowViewModel
         NotesRevision++;
         NotesToSelect = null;
         OnNotesEdited();
-        Message = Strings.Format(Strings.TranscriptionDone, notes.Count);
+        ShowToast(Strings.Format(Strings.TranscriptionDone, notes.Count), ToastKind.Success);
     }
 
     /// <summary>
@@ -411,11 +409,11 @@ public partial class MainWindowViewModel
             }
             if (file.TryGetLocalPath() is { } path)
                 await File.WriteAllTextAsync(Path.ChangeExtension(path, ".txt"), DescribeRecording(last));
-            Message = Strings.Format(Strings.RecordingSaved, file.Name);
+            ShowToast(Strings.Format(Strings.RecordingSaved, file.Name), ToastKind.Success);
         }
         catch (Exception ex)
         {
-            Message = Strings.Format(Strings.RecordingSaveFailed, ErrorDetail(ex));
+            ShowToast(Strings.Format(Strings.RecordingSaveFailed, ErrorDetail(ex)), ToastKind.Error);
         }
     }
 
@@ -454,7 +452,7 @@ public partial class MainWindowViewModel
         EndRecordingSession();
         input.Dispose();
         RecordingLevelsDisplay = null;
-        Message = Strings.RecordingCancelled;
+        ShowToast(Strings.RecordingCancelled);
     }
 
     /// <summary>再生と録音の状態を止める（入力デバイスはまだ閉じない）</summary>

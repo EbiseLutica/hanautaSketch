@@ -60,15 +60,15 @@ public partial class MainWindowViewModel
         {
             ChordTable = await ChordDataStore.BuildExtendedAsync(progress, _chordDataCancellation.Token);
             HasExtendedChordData = true;
-            Message = Strings.ChordDataDone;
+            ShowToast(Strings.ChordDataDone, ToastKind.Success);
         }
         catch (OperationCanceledException)
         {
-            Message = Strings.ChordDataCancelled;
+            ShowToast(Strings.ChordDataCancelled);
         }
         catch (Exception ex) when (ex is HttpRequestException or IOException or UnauthorizedAccessException)
         {
-            Message = Strings.Format(Strings.ChordDataFailed, ex.Message);
+            ShowToast(Strings.Format(Strings.ChordDataFailed, ex.Message), ToastKind.Error);
         }
         finally
         {
@@ -89,7 +89,7 @@ public partial class MainWindowViewModel
         ChordDataStore.DeleteExtended();
         ChordTable = ChordTransitionTable.Default;
         HasExtendedChordData = false;
-        Message = Strings.ChordDataRemoved;
+        ShowToast(Strings.ChordDataRemoved);
     }
 
     private bool CanRemoveChordData() => HasExtendedChordData && !IsExtractingChordData;

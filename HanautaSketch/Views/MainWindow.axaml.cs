@@ -70,8 +70,13 @@ public partial class MainWindow : Window
     {
         base.OnDataContextChanged(e);
         if (ViewModel is { } vm)
+        {
             vm.Dialogs = new DialogService(this);
+            vm.Toasts = _toasts ??= new ToastService(this);
+        }
     }
+
+    private ToastService? _toasts;
 
     /// <summary>
     /// 開いたら、SoundFont が未設定・見つからない場合に選ぶよう促す。
@@ -89,22 +94,25 @@ public partial class MainWindow : Window
 
     /// <summary>
     /// 設定画面をモーダルで開く（macOS のアプリ名メニュー、Windows のツールメニューから）。
-    /// 開いている間は、確認やファイル選択のダイアログを設定画面の上に出す。
+    /// 開いている間は、確認やファイル選択のダイアログとトーストを設定画面の上に出す。
     /// </summary>
     public async void ShowSettings()
     {
         if (ViewModel is not { } vm || OwnedWindows.OfType<SettingsWindow>().Any()) return;
 
         var window = new SettingsWindow { DataContext = vm };
-        var previous = vm.Dialogs;
+        var previousDialogs = vm.Dialogs;
+        var previousToasts = vm.Toasts;
         vm.Dialogs = new DialogService(window);
+        vm.Toasts = new ToastService(window);
         try
         {
             await window.ShowDialog(this);
         }
         finally
         {
-            vm.Dialogs = previous;
+            vm.Dialogs = previousDialogs;
+            vm.Toasts = previousToasts;
         }
     }
 
@@ -121,7 +129,7 @@ public partial class MainWindow : Window
         if (vm.IsWritingWav)
         {
             e.Cancel = true;
-            vm.Message = Strings.CannotQuitDuringWavExport;
+            vm.ShowToast(Strings.CannotQuitDuringWavExport, ToastKind.Warning);
             return;
         }
         if (!vm.IsDirty && !vm.IsExtractingChordData) return;

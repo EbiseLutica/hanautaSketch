@@ -29,7 +29,7 @@ public partial class MainWindowViewModel
     {
         if (!TranspositionEditing.CanTranspose(Song, semitones))
         {
-            Message = Strings.TransposeOutOfRange;
+            ShowToast(Strings.TransposeOutOfRange, ToastKind.Warning);
             return;
         }
 
@@ -39,6 +39,6 @@ public partial class MainWindowViewModel
 
         NotesRevision++;
         OnConductorChanged();
-        Message = Strings.Format(Strings.Transposed, semitones.ToString("+0;-0"), PlatformKeys.CommandName);
+        ShowToast(Strings.Format(Strings.Transposed, semitones.ToString("+0;-0"), PlatformKeys.CommandName));
     }
 }

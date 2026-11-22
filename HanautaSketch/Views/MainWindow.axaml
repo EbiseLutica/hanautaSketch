@@ -168,7 +168,11 @@
                 <TextBlock Text="{Binding ChordDataStatus}" Classes="dimmed" VerticalAlignment="Center" />
                 <Button Content="{x:Static res:Strings.StopExtraction}" Command="{Binding CancelChordDataCommand}" Classes="small" />
             </StackPanel>
-            <TextBlock Text="{Binding Message}" Classes="dimmed" />
+            <!-- 続いている状態だけをここに出す。操作の結果やエラーはトースト（ToastService）で出す -->
+            <StackPanel Orientation="Horizontal" Spacing="16">
+                <TextBlock Text="{x:Static res:Strings.RecordingInProgress}" Classes="dimmed" IsVisible="{Binding IsRecording}" />
+                <TextBlock Text="{x:Static res:Strings.Transcribing}" Classes="dimmed" IsVisible="{Binding IsTranscribing}" />
+            </StackPanel>
         </DockPanel>
 
         <!-- トラックメニュー：一覧、追加・削除、選択中トラックの設定 -->
