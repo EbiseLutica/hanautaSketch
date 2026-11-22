@@ -8,7 +8,7 @@
     <value>hanautaSketchについて</value>
   </data>
   <data name="AboutTagline" xml:space="preserve">
-    <value>メロディとベースラインをスケッチする作曲支援ツール</value>
+    <value>メロディとベースラインをさっとスケッチ</value>
   </data>
   <data name="AboutLicensesLink" xml:space="preserve">
     <value>オープンソースライセンス...</value>
@@ -146,7 +146,7 @@
     <value>タップ</value>
   </data>
   <data name="TapTempoTip" xml:space="preserve">
-    <value>拍に合わせて叩く（Tキー）。直近8回の平均で BPM を求める</value>
+    <value>拍に合わせて叩いたリズムで、BPMを自動設定します（Tキー）</value>
   </data>
   <data name="ApplyTap" xml:space="preserve">
     <value>確定</value>
@@ -155,7 +155,7 @@
     <value>スケールロック</value>
   </data>
   <data name="ScaleLockTip" xml:space="preserve">
-    <value>置く・上下に動かす・貼り付けるノーツを、その位置のキーのスケール音に寄せる（ドラムは対象外）</value>
+    <value>ノートの配置・移動時に、現在のスケールに合うようスナップします</value>
   </data>
   <data name="ApplyTapTip" xml:space="preserve">
     <value>候補 BPM を再生開始位置に反映</value>
@@ -203,13 +203,13 @@
     <value>＋ コード</value>
   </data>
   <data name="TrackAddChordTip" xml:space="preserve">
-    <value>スマートコードトラックを追加</value>
+    <value>スマートコードトラックを追加します</value>
   </data>
   <data name="TrackAddDrums" xml:space="preserve">
     <value>＋ ドラム</value>
   </data>
   <data name="TrackAddDrumsTip" xml:space="preserve">
-    <value>スマートドラムトラックを追加</value>
+    <value>スマートドラムトラックを追加します</value>
   </data>
   <data name="TrackRemove" xml:space="preserve">
     <value>削除</value>
@@ -221,7 +221,7 @@
     <value>ミュート</value>
   </data>
   <data name="TrackOnionSkin" xml:space="preserve">
-    <value>オニオンスキン：他のトラック編集中にこのトラックのノーツを薄く表示</value>
+    <value>オニオンスキン：他のトラック編集中にこのトラックのノートを薄く表示します</value>
   </data>
   <data name="TrackSmartBadge" xml:space="preserve">
     <value>スマート</value>
@@ -290,7 +290,7 @@
     <value>fix を解除（生成に戻す）</value>
   </data>
   <data name="SmartDrumFixLock" xml:space="preserve">
-    <value>fix（ノーツを編集できるようにする）</value>
+    <value>fix（ノートを編集できるようにする）</value>
   </data>
   <data name="SmartDrumNoSource" xml:space="preserve">
     <value>（なし）</value>
@@ -398,10 +398,10 @@
     <value>ライブラリ（アプリに同梱）</value>
   </data>
   <data name="DataSourcesIntro" xml:space="preserve">
-    <value>コード候補の並び（前のコードからの来やすさ）は、次のデータセットから集計した表を使っています。</value>
+    <value>コード候補のランク付けには、次のデータセットから集計した表を使用しています。</value>
   </data>
   <data name="DataSourcesBundled" xml:space="preserve">
-    <value>同梱しているのは McGill Billboard（CC0）だけから集計した表です。Chordonomicon（CC BY-NC 4.0）は、設定画面からライセンスに同意して取得した場合だけ使い、そのデータは非営利の目的でのみ利用できます。</value>
+    <value>同梱しているのは McGill Billboard（CC0）だけから集計した表です。Chordonomicon（CC BY-NC 4.0）は、設定画面からライセンスに同意して取得した場合だけ使用します。</value>
   </data>
   <data name="UnsavedMessage" xml:space="preserve">
     <value>「{0}」への変更を保存しますか？</value>
@@ -422,11 +422,11 @@
     <value>同意して取得</value>
   </data>
   <data name="ChordDataLicense" xml:space="preserve">
-    <value>コード候補の並びを、より多くの曲（約66万曲）から集計したデータで精度よくします。
+    <value>コード遷移データの精度を、より多くの曲（約66万曲）から集計したデータを用い向上させます。
 
-データセット「Chordonomicon」（S. Kantarelis et al., 2024）を Hugging Face から取得し（約260MB）、この PC 上でコードの遷移の回数だけを集計して保存します。取得した元のデータは保存しません。
+データセット「Chordonomicon」（S. Kantarelis et al., 2024）を Hugging Face から取得し、この PC 上でコードの遷移回数を算出し保存します。取得した元のデータは保存しません。
 
-このデータセットは CC BY-NC 4.0（表示 - 非営利）ライセンスで提供されています。集計したデータも同じライセンスに従い、非営利の目的でのみ利用できます。
+このデータセットは CC BY-NC 4.0（表示 - 非営利）ライセンスで提供されています。
 https://creativecommons.org/licenses/by-nc/4.0/deed.ja
 https://huggingface.co/datasets/ailsntua/Chordonomicon
 
@@ -442,7 +442,7 @@ https://huggingface.co/datasets/ailsntua/Chordonomicon
     <value>コード情報を抽出中…（{0:N0} 曲）</value>
   </data>
   <data name="ChordDataDone" xml:space="preserve">
-    <value>コード候補の並びを、追加のデータで精度よくしました</value>
+    <value>追加のコード遷移データを生成、適用しました</value>
   </data>
   <data name="ChordDataCancelled" xml:space="preserve">
     <value>コード情報の抽出を中止しました</value>
@@ -478,7 +478,7 @@ https://huggingface.co/datasets/ailsntua/Chordonomicon
     <value>MIDI 書き出しオプション</value>
   </data>
   <data name="MidiExportOptionsHint" xml:space="preserve">
-    <value>書き出す項目（テンポ・拍子・トラック名・ノーツは常に書き出す）</value>
+    <value>追加で書き出す情報を選択してください。</value>
   </data>
   <data name="MidiExportProgramChange" xml:space="preserve">
     <value>Program Change（音色）</value>
@@ -514,7 +514,7 @@ https://huggingface.co/datasets/ailsntua/Chordonomicon
     <value>ビット深度</value>
   </data>
   <data name="WavExportReleaseTail" xml:space="preserve">
-    <value>最後の音のあとに余韻を残す</value>
+    <value>音声の末尾に余韻を残す</value>
   </data>
   <data name="WavExportButton" xml:space="preserve">
     <value>書き出す</value>
@@ -523,10 +523,10 @@ https://huggingface.co/datasets/ailsntua/Chordonomicon
     <value>{0} を書き出し中…</value>
   </data>
   <data name="WavExportTooLong" xml:space="preserve">
-    <value>曲が長すぎて WAV に収まらない（上限 4GB）</value>
+    <value>出力データが 4GB を超えたため、出力できませんでした。</value>
   </data>
   <data name="CannotQuitDuringWavExport" xml:space="preserve">
-    <value>WAV の書き出し中は終了できない</value>
+    <value>WAV の書き出し中は終了できません。</value>
   </data>
   <data name="WavFormatPcm16" xml:space="preserve">
     <value>16 ビット</value>
@@ -541,43 +541,43 @@ https://huggingface.co/datasets/ailsntua/Chordonomicon
     <value>音源を読み込み中…</value>
   </data>
   <data name="AudioInitFailed" xml:space="preserve">
-    <value>音源の初期化に失敗: {0}</value>
+    <value>音源の初期化に失敗しました。（{0}）</value>
   </data>
   <data name="AudioDeviceOpenFailed" xml:space="preserve">
-    <value>出力デバイスを開けない</value>
+    <value>出力デバイスを開けませんでした。</value>
   </data>
   <data name="ErrorInvalidProject" xml:space="preserve">
-    <value>プロジェクトファイルが不正か、新しいバージョンで保存されています</value>
+    <value>プロジェクトファイルが不正か、新しいバージョンで保存されています。</value>
   </data>
   <data name="ErrorInvalidMidi" xml:space="preserve">
-    <value>対応している Standard MIDI File ではありません</value>
+    <value>対応している Standard MIDI File ではありません。</value>
   </data>
   <data name="FileOpened" xml:space="preserve">
-    <value>{0} を開いた</value>
+    <value>{0} を開きました。</value>
   </data>
   <data name="FileOpenFailed" xml:space="preserve">
-    <value>開けなかった: {0}</value>
+    <value>ファイルを開けませんでした。（{0}）</value>
   </data>
   <data name="FileSaved" xml:space="preserve">
-    <value>{0} に保存した</value>
+    <value>{0} に保存しました。</value>
   </data>
   <data name="FileSaveFailed" xml:space="preserve">
-    <value>保存できなかった: {0}</value>
+    <value>ファイルを保存できませんでした。（{0}）</value>
   </data>
   <data name="FileExported" xml:space="preserve">
-    <value>{0} に書き出した</value>
+    <value>{0} に書き出しました。</value>
   </data>
   <data name="FileExportFailed" xml:space="preserve">
-    <value>書き出せなかった: {0}</value>
+    <value>ファイルを書き出せませんでした。（{0}）</value>
   </data>
   <data name="FileImported" xml:space="preserve">
-    <value>{0} を読み込んだ</value>
+    <value>{0} を読み込みました。</value>
   </data>
   <data name="FileImportFailed" xml:space="preserve">
-    <value>読み込めなかった: {0}</value>
+    <value>ファイルを読み込めませんでした。（{0}）</value>
   </data>
   <data name="TrackDeleted" xml:space="preserve">
-    <value>{0} を削除した（{1}+Z で元に戻せる）</value>
+    <value>{0} を削除しました。（{1}+Z で元に戻す）</value>
   </data>
   <data name="DataSourceEntry" xml:space="preserve">
     <value>・{0}（{1}、{2:N0} 曲）</value>
@@ -613,7 +613,7 @@ https://huggingface.co/datasets/ailsntua/Chordonomicon
     <value>未設定</value>
   </data>
   <data name="SoundFontSetupPrompt" xml:space="preserve">
-    <value>音を鳴らすには SoundFont（.sf2）が必要です。GM 互換の SF2 ファイルを選んでください。
+    <value>音を鳴らすには SoundFont（.sf2 形式）が必要です。GM 互換の SF2 ファイルを選んでください。
 
 あとで設定画面から選ぶこともできます。</value>
   </data>
@@ -639,13 +639,13 @@ https://huggingface.co/datasets/ailsntua/Chordonomicon
     <value>SoundFont が見つからない: {0}</value>
   </data>
   <data name="ChordDataSettingsHint" xml:space="preserve">
-    <value>コード候補の並び順に使うデータです。Chordonomicon（約66万曲、CC BY-NC 4.0）を取得して足すと、並び順の精度が上がります。</value>
+    <value>コード候補ランキングに使用するデータです。Chordonomicon（約66万曲、CC BY-NC 4.0）を取得することで、より高い精度のランキングを利用できます。</value>
   </data>
   <data name="ChordDataStateBundled" xml:space="preserve">
-    <value>使用中: 同梱のデータ（McGill Billboard）</value>
+    <value>現在、同梱データのみを使用中</value>
   </data>
   <data name="ChordDataStateExtended" xml:space="preserve">
-    <value>使用中: 同梱のデータ＋Chordonomicon</value>
+    <value>現在、同梱データに加え Chordonomicon から抽出したデータを使用中</value>
   </data>
   <data name="ChordDataAcquire" xml:space="preserve">
     <value>取得…</value>
@@ -654,40 +654,40 @@ https://huggingface.co/datasets/ailsntua/Chordonomicon
     <value>削除</value>
   </data>
   <data name="Transposed" xml:space="preserve">
-    <value>{0} 半音移調した（{1}+Z で元に戻せる）</value>
+    <value>{0} トランスポーズしました。（{1}+Z で元に戻せます）</value>
   </data>
   <data name="TransposeOutOfRange" xml:space="preserve">
-    <value>音域（0〜127）を超えるノーツがあるため移調できない</value>
+    <value>その方向にトランスポーズすると、一部のノートが音域（0〜127）を超えます！</value>
   </data>
   <data name="MenuTranspose" xml:space="preserve">
-    <value>移調</value>
+    <value>トランスポーズ</value>
   </data>
   <data name="MenuTransposeUp" xml:space="preserve">
-    <value>半音上げ</value>
+    <value>+1 半音</value>
   </data>
   <data name="MenuTransposeDown" xml:space="preserve">
-    <value>半音下げ</value>
+    <value>-1 半音</value>
   </data>
   <data name="MenuTransposeOctaveUp" xml:space="preserve">
-    <value>1オクターブ上げ</value>
+    <value>+1 オクターブ</value>
   </data>
   <data name="MenuTransposeOctaveDown" xml:space="preserve">
-    <value>1オクターブ下げ</value>
+    <value>-1 オクターブ</value>
   </data>
   <data name="NativeTranspose" xml:space="preserve">
-    <value>移調</value>
+    <value>トランスポーズ</value>
   </data>
   <data name="NativeTransposeUp" xml:space="preserve">
-    <value>半音上げ</value>
+    <value>+1 半音</value>
   </data>
   <data name="NativeTransposeDown" xml:space="preserve">
-    <value>半音下げ</value>
+    <value>-1 半音</value>
   </data>
   <data name="NativeTransposeOctaveUp" xml:space="preserve">
-    <value>1オクターブ上げ</value>
+    <value>+1 オクターブ</value>
   </data>
   <data name="NativeTransposeOctaveDown" xml:space="preserve">
-    <value>1オクターブ下げ</value>
+    <value>-1 オクターブ</value>
   </data>
   <data name="RecordTip" xml:space="preserve">
     <value>鼻歌を録音（R）</value>
@@ -729,34 +729,34 @@ https://huggingface.co/datasets/ailsntua/Chordonomicon
     <value>オフ</value>
   </data>
   <data name="RecordingScaleLean" xml:space="preserve">
-    <value>寄せ</value>
+    <value>ある程度スナップする</value>
   </data>
   <data name="RecordingScaleSnap" xml:space="preserve">
-    <value>吸着</value>
+    <value>完全にスナップする</value>
   </data>
   <data name="RecordingLatency" xml:space="preserve">
     <value>レイテンシ補正（ms）</value>
   </data>
   <data name="RecordingNeedsNoteTrack" xml:space="preserve">
-    <value>録音先のノートトラックを選んでください</value>
+    <value>録音先のノートトラックを選んでください。</value>
   </data>
   <data name="RecordingDeviceOpenFailed" xml:space="preserve">
-    <value>入力デバイスを開けませんでした</value>
+    <value>入力デバイスを開けませんでした。</value>
   </data>
   <data name="RecordingStartFailed" xml:space="preserve">
-    <value>録音を始められませんでした：{0}</value>
+    <value>録音を始められませんでした。（{0}）</value>
   </data>
   <data name="RecordingInProgress" xml:space="preserve">
-    <value>録音中…（R か Space で停止）</value>
+    <value>録音中…（R / Space で停止）</value>
   </data>
   <data name="RecordingCancelled" xml:space="preserve">
-    <value>録音を取りやめました</value>
+    <value>録音をキャンセルしました</value>
   </data>
   <data name="Transcribing" xml:space="preserve">
     <value>採譜中…</value>
   </data>
   <data name="TranscriptionDone" xml:space="preserve">
-    <value>{0} 個のノーツを起こしました</value>
+    <value>{0} 個のノートを生成しました</value>
   </data>
   <data name="TranscriptionFailed" xml:space="preserve">
     <value>採譜できませんでした：{0}</value>
@@ -765,7 +765,7 @@ https://huggingface.co/datasets/ailsntua/Chordonomicon
     <value>録音先のトラックが削除されたため、採譜結果を捨てました</value>
   </data>
   <data name="TranscriptionNoNotes" xml:space="preserve">
-    <value>声を検出できなかったため、ノーツは変えていません</value>
+    <value>録音から声を検出できませんでした。</value>
   </data>
   <data name="RecordingFitOctave" xml:space="preserve">
     <value>オクターブを C4〜C6 に合わせる</value>
@@ -777,9 +777,9 @@ https://huggingface.co/datasets/ailsntua/Chordonomicon
     <value>録音を保存</value>
   </data>
   <data name="RecordingSaved" xml:space="preserve">
-    <value>録音を保存しました：{0}</value>
+    <value>{0} に録音を保存しました</value>
   </data>
   <data name="RecordingSaveFailed" xml:space="preserve">
-    <value>録音を保存できませんでした：{0}</value>
+    <value>録音を保存できませんでした。（{0}）</value>
   </data>
 </root>

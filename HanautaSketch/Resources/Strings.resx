@@ -8,7 +8,7 @@
     <value>About hanautaSketch</value>
   </data>
   <data name="AboutTagline" xml:space="preserve">
-    <value>A composition tool for sketching melodies and basslines</value>
+    <value>Quickly sketch melodies and basslines</value>
   </data>
   <data name="AboutLicensesLink" xml:space="preserve">
     <value>Open Source Licenses...</value>
@@ -146,7 +146,7 @@
     <value>Tap</value>
   </data>
   <data name="TapTempoTip" xml:space="preserve">
-    <value>Tap along to the beat (T key). BPM is the average of the last 8 taps</value>
+    <value>Sets the BPM automatically from the rhythm you tap along to the beat (T key)</value>
   </data>
   <data name="ApplyTap" xml:space="preserve">
     <value>Apply</value>
@@ -155,7 +155,7 @@
     <value>Scale lock</value>
   </data>
   <data name="ScaleLockTip" xml:space="preserve">
-    <value>Snap notes you place, move up/down, or paste to the scale of the key at that position (drums are not affected)</value>
+    <value>Snaps notes to the current scale when placing or moving them</value>
   </data>
   <data name="ApplyTapTip" xml:space="preserve">
     <value>Apply the candidate BPM at the play start</value>
@@ -203,13 +203,13 @@
     <value>＋ Chord</value>
   </data>
   <data name="TrackAddChordTip" xml:space="preserve">
-    <value>Add a smart chord track</value>
+    <value>Adds a smart chord track</value>
   </data>
   <data name="TrackAddDrums" xml:space="preserve">
     <value>＋ Drums</value>
   </data>
   <data name="TrackAddDrumsTip" xml:space="preserve">
-    <value>Add a smart drum track</value>
+    <value>Adds a smart drum track</value>
   </data>
   <data name="TrackRemove" xml:space="preserve">
     <value>Remove</value>
@@ -221,7 +221,7 @@
     <value>Mute</value>
   </data>
   <data name="TrackOnionSkin" xml:space="preserve">
-    <value>Onion skin: show this track's notes faintly while editing other tracks</value>
+    <value>Onion skin: shows this track's notes faintly while editing other tracks</value>
   </data>
   <data name="TrackSmartBadge" xml:space="preserve">
     <value>Smart</value>
@@ -398,10 +398,10 @@
     <value>Libraries (included in the app)</value>
   </data>
   <data name="DataSourcesIntro" xml:space="preserve">
-    <value>Chord suggestion order (how likely each chord is to follow the previous one) uses tables aggregated from these datasets.</value>
+    <value>Chord suggestions are ranked using tables aggregated from the following datasets.</value>
   </data>
   <data name="DataSourcesBundled" xml:space="preserve">
-    <value>The bundled table is aggregated only from McGill Billboard (CC0). Chordonomicon (CC BY-NC 4.0) is used only if you agree to its license in Settings and download it, and that data may only be used non-commercially.</value>
+    <value>The bundled table is aggregated only from McGill Billboard (CC0). Chordonomicon (CC BY-NC 4.0) is used only if you agree to its license in Settings and download it.</value>
   </data>
   <data name="UnsavedMessage" xml:space="preserve">
     <value>Do you want to save the changes to &quot;{0}&quot;?</value>
@@ -422,11 +422,11 @@
     <value>Agree and Get</value>
   </data>
   <data name="ChordDataLicense" xml:space="preserve">
-    <value>Chord suggestion order will be improved using data tallied from a larger set of songs (about 660,000 songs).
+    <value>Improves the accuracy of the chord transition data using data tallied from a larger set of songs (about 660,000 songs).
 
-The dataset &quot;Chordonomicon&quot; (S. Kantarelis et al., 2024) will be downloaded from Hugging Face (about 260 MB). Only the chord transition counts are tallied and saved on this PC; the downloaded original data is not saved.
+The dataset &quot;Chordonomicon&quot; (S. Kantarelis et al., 2024) will be downloaded from Hugging Face, and the chord transition counts are computed and saved on this PC. The downloaded original data is not saved.
 
-This dataset is provided under the CC BY-NC 4.0 (Attribution-NonCommercial) license. The tallied data follows the same license and may only be used for non-commercial purposes.
+This dataset is provided under the CC BY-NC 4.0 (Attribution-NonCommercial) license.
 https://creativecommons.org/licenses/by-nc/4.0/deed.en
 https://huggingface.co/datasets/ailsntua/Chordonomicon
 
@@ -442,7 +442,7 @@ Do you agree to the license and download it?</value>
     <value>Extracting chord data… ({0:N0} songs)</value>
   </data>
   <data name="ChordDataDone" xml:space="preserve">
-    <value>Chord suggestions are now more accurate with the additional data</value>
+    <value>Generated and applied the additional chord transition data</value>
   </data>
   <data name="ChordDataCancelled" xml:space="preserve">
     <value>Chord data extraction was cancelled</value>
@@ -478,7 +478,7 @@ Do you agree to the license and download it?</value>
     <value>MIDI Export Options</value>
   </data>
   <data name="MidiExportOptionsHint" xml:space="preserve">
-    <value>Items to export (tempo, meter, track names, and notes are always exported)</value>
+    <value>Select the additional information to export.</value>
   </data>
   <data name="MidiExportProgramChange" xml:space="preserve">
     <value>Program Change (instrument)</value>
@@ -514,7 +514,7 @@ Do you agree to the license and download it?</value>
     <value>Bit depth</value>
   </data>
   <data name="WavExportReleaseTail" xml:space="preserve">
-    <value>Keep the release tail after the last note</value>
+    <value>Keep a release tail at the end of the audio</value>
   </data>
   <data name="WavExportButton" xml:space="preserve">
     <value>Export</value>
@@ -523,10 +523,10 @@ Do you agree to the license and download it?</value>
     <value>Exporting {0}…</value>
   </data>
   <data name="WavExportTooLong" xml:space="preserve">
-    <value>The song is too long for a WAV file (4 GB limit)</value>
+    <value>Could not export because the output data exceeds 4 GB.</value>
   </data>
   <data name="CannotQuitDuringWavExport" xml:space="preserve">
-    <value>Can't quit while a WAV file is being written</value>
+    <value>You can't quit while a WAV file is being exported.</value>
   </data>
   <data name="WavFormatPcm16" xml:space="preserve">
     <value>16-bit</value>
@@ -541,43 +541,43 @@ Do you agree to the license and download it?</value>
     <value>Loading sound source…</value>
   </data>
   <data name="AudioInitFailed" xml:space="preserve">
-    <value>Failed to initialize the sound source: {0}</value>
+    <value>Failed to initialize the sound source. ({0})</value>
   </data>
   <data name="AudioDeviceOpenFailed" xml:space="preserve">
-    <value>Could not open the output device</value>
+    <value>Could not open the output device.</value>
   </data>
   <data name="ErrorInvalidProject" xml:space="preserve">
-    <value>The project file is invalid or was saved by a newer version</value>
+    <value>The project file is invalid or was saved by a newer version.</value>
   </data>
   <data name="ErrorInvalidMidi" xml:space="preserve">
-    <value>The file is not a supported Standard MIDI File</value>
+    <value>The file is not a supported Standard MIDI File.</value>
   </data>
   <data name="FileOpened" xml:space="preserve">
-    <value>Opened {0}</value>
+    <value>Opened {0}.</value>
   </data>
   <data name="FileOpenFailed" xml:space="preserve">
-    <value>Could not open: {0}</value>
+    <value>Could not open the file. ({0})</value>
   </data>
   <data name="FileSaved" xml:space="preserve">
-    <value>Saved {0}</value>
+    <value>Saved {0}.</value>
   </data>
   <data name="FileSaveFailed" xml:space="preserve">
-    <value>Could not save: {0}</value>
+    <value>Could not save the file. ({0})</value>
   </data>
   <data name="FileExported" xml:space="preserve">
-    <value>Exported {0}</value>
+    <value>Exported {0}.</value>
   </data>
   <data name="FileExportFailed" xml:space="preserve">
-    <value>Could not export: {0}</value>
+    <value>Could not export the file. ({0})</value>
   </data>
   <data name="FileImported" xml:space="preserve">
-    <value>Imported {0}</value>
+    <value>Imported {0}.</value>
   </data>
   <data name="FileImportFailed" xml:space="preserve">
-    <value>Could not import: {0}</value>
+    <value>Could not import the file. ({0})</value>
   </data>
   <data name="TrackDeleted" xml:space="preserve">
-    <value>Deleted {0} ({1}+Z to undo)</value>
+    <value>Deleted {0}. ({1}+Z to undo)</value>
   </data>
   <data name="DataSourceEntry" xml:space="preserve">
     <value>・{0} ({1}, {2:N0} songs)</value>
@@ -613,7 +613,7 @@ Do you agree to the license and download it?</value>
     <value>Not set</value>
   </data>
   <data name="SoundFontSetupPrompt" xml:space="preserve">
-    <value>A SoundFont (.sf2) is needed to play sound. Choose a GM-compatible SF2 file.
+    <value>A SoundFont (.sf2 format) is needed to play sound. Choose a GM-compatible SF2 file.
 
 You can also choose one later in Settings.</value>
   </data>
@@ -639,13 +639,13 @@ Choose another file.</value>
     <value>SoundFont not found: {0}</value>
   </data>
   <data name="ChordDataSettingsHint" xml:space="preserve">
-    <value>Data used to order chord suggestions. Adding Chordonomicon (about 660,000 songs, CC BY-NC 4.0) makes the order more accurate.</value>
+    <value>Data used to rank chord suggestions. Downloading Chordonomicon (about 660,000 songs, CC BY-NC 4.0) enables more accurate rankings.</value>
   </data>
   <data name="ChordDataStateBundled" xml:space="preserve">
-    <value>In use: bundled data (McGill Billboard)</value>
+    <value>Currently using the bundled data only</value>
   </data>
   <data name="ChordDataStateExtended" xml:space="preserve">
-    <value>In use: bundled data + Chordonomicon</value>
+    <value>Currently using the bundled data plus data extracted from Chordonomicon</value>
   </data>
   <data name="ChordDataAcquire" xml:space="preserve">
     <value>Get…</value>
@@ -654,40 +654,40 @@ Choose another file.</value>
     <value>Delete</value>
   </data>
   <data name="Transposed" xml:space="preserve">
-    <value>Transposed by {0} semitones ({1}+Z to undo)</value>
+    <value>Transposed by {0}. ({1}+Z to undo)</value>
   </data>
   <data name="TransposeOutOfRange" xml:space="preserve">
-    <value>Can't transpose: a note would go outside the MIDI range (0-127)</value>
+    <value>Transposing in that direction would push some notes outside the range (0–127)!</value>
   </data>
   <data name="MenuTranspose" xml:space="preserve">
     <value>Transpose</value>
   </data>
   <data name="MenuTransposeUp" xml:space="preserve">
-    <value>Up 1 Semitone</value>
+    <value>+1 Semitone</value>
   </data>
   <data name="MenuTransposeDown" xml:space="preserve">
-    <value>Down 1 Semitone</value>
+    <value>-1 Semitone</value>
   </data>
   <data name="MenuTransposeOctaveUp" xml:space="preserve">
-    <value>Up 1 Octave</value>
+    <value>+1 Octave</value>
   </data>
   <data name="MenuTransposeOctaveDown" xml:space="preserve">
-    <value>Down 1 Octave</value>
+    <value>-1 Octave</value>
   </data>
   <data name="NativeTranspose" xml:space="preserve">
     <value>Transpose</value>
   </data>
   <data name="NativeTransposeUp" xml:space="preserve">
-    <value>Up 1 Semitone</value>
+    <value>+1 Semitone</value>
   </data>
   <data name="NativeTransposeDown" xml:space="preserve">
-    <value>Down 1 Semitone</value>
+    <value>-1 Semitone</value>
   </data>
   <data name="NativeTransposeOctaveUp" xml:space="preserve">
-    <value>Up 1 Octave</value>
+    <value>+1 Octave</value>
   </data>
   <data name="NativeTransposeOctaveDown" xml:space="preserve">
-    <value>Down 1 Octave</value>
+    <value>-1 Octave</value>
   </data>
   <data name="RecordTip" xml:space="preserve">
     <value>Record humming (R)</value>
@@ -729,10 +729,10 @@ Choose another file.</value>
     <value>Off</value>
   </data>
   <data name="RecordingScaleLean" xml:space="preserve">
-    <value>Lean</value>
+    <value>Snap loosely</value>
   </data>
   <data name="RecordingScaleSnap" xml:space="preserve">
-    <value>Snap</value>
+    <value>Snap fully</value>
   </data>
   <data name="RecordingLatency" xml:space="preserve">
     <value>Latency compensation (ms)</value>
@@ -744,10 +744,10 @@ Choose another file.</value>
     <value>Could not open the input device.</value>
   </data>
   <data name="RecordingStartFailed" xml:space="preserve">
-    <value>Could not start recording: {0}</value>
+    <value>Could not start recording. ({0})</value>
   </data>
   <data name="RecordingInProgress" xml:space="preserve">
-    <value>Recording… (R or Space to stop)</value>
+    <value>Recording… (R / Space to stop)</value>
   </data>
   <data name="RecordingCancelled" xml:space="preserve">
     <value>Recording cancelled.</value>
@@ -756,7 +756,7 @@ Choose another file.</value>
     <value>Transcribing…</value>
   </data>
   <data name="TranscriptionDone" xml:space="preserve">
-    <value>Transcribed {0} notes.</value>
+    <value>Generated {0} notes.</value>
   </data>
   <data name="TranscriptionFailed" xml:space="preserve">
     <value>Transcription failed: {0}</value>
@@ -765,7 +765,7 @@ Choose another file.</value>
     <value>The track was removed, so the transcription was discarded.</value>
   </data>
   <data name="TranscriptionNoNotes" xml:space="preserve">
-    <value>No voice was detected, so the notes were left unchanged.</value>
+    <value>No voice was detected in the recording.</value>
   </data>
   <data name="RecordingFitOctave" xml:space="preserve">
     <value>Fit octave to C4–C6</value>
@@ -777,9 +777,9 @@ Choose another file.</value>
     <value>Save Recording</value>
   </data>
   <data name="RecordingSaved" xml:space="preserve">
-    <value>Saved the recording: {0}</value>
+    <value>Saved the recording to {0}</value>
   </data>
   <data name="RecordingSaveFailed" xml:space="preserve">
-    <value>Could not save the recording: {0}</value>
+    <value>Could not save the recording. ({0})</value>
   </data>
 </root>
