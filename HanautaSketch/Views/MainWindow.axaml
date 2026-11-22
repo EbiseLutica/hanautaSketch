@@ -23,10 +23,6 @@
         <KeyBinding Gesture="Ctrl+Shift+Up" Command="{Binding TransposeOctaveUpCommand}" />
         <KeyBinding Gesture="Ctrl+Shift+Down" Command="{Binding TransposeOctaveDownCommand}" />
     </Window.KeyBindings>
-    <!--
-        macOS の画面上端のメニューバー（Windows では使わない）。並びと名前は macOS の慣例に合わせる。
-        アプリ名のメニュー（について・終了など）は App.axaml。ショートカットは macOS 専用なので最初から ⌘（Meta）で書く
-    -->
     <NativeMenu.Menu>
         <NativeMenu>
             <NativeMenuItem Header="{x:Static res:Strings.NativeFile}">
@@ -114,13 +110,10 @@
                 <ic:FluentIcon Icon="{Binding PlaybackIcon}" IconVariant="Filled" FontSize="16" />
             </ToggleButton>
             <StackPanel Orientation="Horizontal" Spacing="2">
-                <ToggleButton Classes="record" Command="{Binding ToggleRecordingCommand}" IsChecked="{Binding IsRecording, Mode=OneWay}"
-                              Width="40" HorizontalContentAlignment="Center" ToolTip.Tip="{x:Static res:Strings.RecordTip}">
+                <ToggleSplitButton Classes="record" Command="{Binding ToggleRecordingCommand}" IsChecked="{Binding IsRecording, Mode=OneWay}"
+                              ToolTip.Tip="{x:Static res:Strings.RecordTip}">
                     <ic:FluentIcon Icon="Circle" IconVariant="Filled" FontSize="14" Foreground="{DynamicResource LuDangerBrush}" />
-                </ToggleButton>
-                <Button Width="24" Padding="0" HorizontalContentAlignment="Center" ToolTip.Tip="{x:Static res:Strings.RecordingSettingsTip}">
-                    <ic:FluentIcon Icon="ChevronDown" FontSize="12" />
-                    <Button.Flyout>
+                    <ToggleSplitButton.Flyout>
                         <Flyout Placement="BottomEdgeAlignedLeft" Opening="OnRecordingFlyoutOpening">
                             <StackPanel Spacing="6" Width="240">
                                 <TextBlock Text="{x:Static res:Strings.RecordingDevice}" Classes="caption" />
@@ -149,8 +142,8 @@
                                         HorizontalAlignment="Stretch" />
                             </StackPanel>
                         </Flyout>
-                    </Button.Flyout>
-                </Button>
+                    </ToggleSplitButton.Flyout>
+                </ToggleSplitButton>
             </StackPanel>
             <TextBlock Text="BPM" VerticalAlignment="Center" Margin="8,0,0,0" />
             <NumericUpDown Value="{Binding Bpm}" Minimum="20" Maximum="400" Increment="1" FormatString="0" Width="110" />
