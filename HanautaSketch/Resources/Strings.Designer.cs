@@ -1,4 +1,6 @@
 // このファイルは Strings.resx / Strings.ja.resx に対応する。キーを足すときはここにプロパティも足す（Visual Studio ではビルド時に自動生成される）。
+// .Designer.cs は自動生成のコードとして nullable が無効になるので、明示的に有効にする
+#nullable enable
 using System.Globalization;
 using System.Resources;
 
