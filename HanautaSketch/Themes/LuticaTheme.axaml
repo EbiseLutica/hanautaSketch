@@ -143,7 +143,8 @@
                     <BoxShadows x:Key="LuShadowSm">0 1 2 0 #143C1416</BoxShadows>
                     <BoxShadows x:Key="LuShadowControl">inset 0 1 0 0 #6BFFFFFF, inset 0 -1 0 0 #2E000000, 0 1 3 0 #243C1416</BoxShadows>
                     <BoxShadows x:Key="LuShadowInset">inset 0 1 2 0 #243C1416</BoxShadows>
-                    <BoxShadows x:Key="LuShadowInsetFocus">0 0 0 1 #B3d30e17, 0 0 10 2 #73d30e17, inset 0 1 2 0 #243C1416</BoxShadows>
+                    <BoxShadows x:Key="LuShadowInsetRest">inset 0 1 2 0 #243C1416, inset 0 0 0 1 #00d30e17</BoxShadows>
+                    <BoxShadows x:Key="LuShadowInsetFocus">inset 0 1 2 0 #243C1416, inset 0 0 0 1 #ffd30e17</BoxShadows>
                     <BoxShadows x:Key="LuShadowControlFocus">0 0 0 1 #B3d30e17, 0 0 10 2 #73d30e17, inset 0 1 0 0 #6BFFFFFF, inset 0 -1 0 0 #2E000000</BoxShadows>
                     <BoxShadows x:Key="LuShadowMd">0 4 12 0 #1A3C1416</BoxShadows>
                     <BoxShadows x:Key="LuShadowLg">0 12 32 0 #293C1416</BoxShadows>
@@ -245,7 +246,8 @@
                     <BoxShadows x:Key="LuShadowSm">0 1 2 0 #4D000000</BoxShadows>
                     <BoxShadows x:Key="LuShadowControl">inset 0 1 0 0 #1FFFFFFF, inset 0 -1 0 0 #40000000, 0 1 3 0 #4D000000</BoxShadows>
                     <BoxShadows x:Key="LuShadowInset">inset 0 1 3 0 #73000000</BoxShadows>
-                    <BoxShadows x:Key="LuShadowInsetFocus">0 0 0 1 #B3f24149, 0 0 10 2 #73f24149, inset 0 1 3 0 #73000000</BoxShadows>
+                    <BoxShadows x:Key="LuShadowInsetRest">inset 0 1 3 0 #73000000, inset 0 0 0 1 #00f24149</BoxShadows>
+                    <BoxShadows x:Key="LuShadowInsetFocus">inset 0 1 3 0 #73000000, inset 0 0 0 1 #fff24149</BoxShadows>
                     <BoxShadows x:Key="LuShadowControlFocus">0 0 0 1 #B3f24149, 0 0 10 2 #73f24149, inset 0 1 0 0 #1FFFFFFF, inset 0 -1 0 0 #40000000</BoxShadows>
                     <BoxShadows x:Key="LuShadowMd">inset 0 1 0 0 #0FFFFFFF, 0 4 12 0 #59000000</BoxShadows>
                     <BoxShadows x:Key="LuShadowLg">inset 0 1 0 0 #14FFFFFF, 0 12 32 0 #73000000</BoxShadows>
@@ -685,11 +687,13 @@
     </Style>
 
     <!-- TextBox：panel の面に shadow-inset で凹んだ入力欄。入力中は primary でふわっと光る -->
+    <!-- フォーカスの輪郭は 1px の BorderBrush で描く（BoxShadow の spread だと角丸で四隅しか出ないため）。枠は常に 1px で、フォーカスでレイアウトが動かないようにする -->
     <Style Selector="TextBox /template/ Border#PART_BorderElement">
         <Setter Property="Background" Value="{DynamicResource LuPanelBrush}" />
-        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="5" />
-        <Setter Property="BoxShadow" Value="{DynamicResource LuShadowInset}" />
+        <Setter Property="BoxShadow" Value="{DynamicResource LuShadowInsetRest}" />
         <Setter Property="Transitions">
             <Transitions>
                 <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.25" />
@@ -701,10 +705,11 @@
     </Style>
     <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
         <Setter Property="Background" Value="{DynamicResource LuPanelBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource LuPrimaryBrush}" />
         <Setter Property="BoxShadow" Value="{DynamicResource LuShadowInsetFocus}" />
     </Style>
     <Style Selector="TextBox:error /template/ Border#PART_BorderElement">
-        <Setter Property="BoxShadow" Value="{DynamicResource LuShadowInset}" />
+        <Setter Property="BoxShadow" Value="{DynamicResource LuShadowInsetRest}" />
     </Style>
     <Style Selector="TextBox:error">
         <Setter Property="Foreground" Value="{DynamicResource LuDangerBrush}" />
